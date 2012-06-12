@@ -17,8 +17,12 @@ import java.util.logging.Logger;
  * @author etsai
  */
 public class UDPListener implements Runnable {
-    public static final Integer port= 6000;
+    private final Integer port;
     public static final Integer bufferSize= 1024;
+    
+    public UDPListener(Integer port) {
+        this.port= port;
+    }
     
     @Override
     public void run() {
@@ -26,6 +30,7 @@ public class UDPListener implements Runnable {
             byte[] buffer= new byte[bufferSize];
             DatagramSocket socket= new DatagramSocket(port);
             DatagramPacket packet= new DatagramPacket(buffer, buffer.length);
+            System.out.println("Listening on port: "+port);
             
             while(true) {
                 try {
