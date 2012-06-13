@@ -30,7 +30,8 @@ public class Main {
         try {
             props= ServerProperties.load(clom.getPropertiesFilename());
         } catch (IOException ex) {
-            Logger.getLogger(Main.class.getName()).log(Level.SEVERE, null, ex);
+            logger.warning(ex.getMessage());
+            logger.warning("Using default properties...");
             props= ServerProperties.getDefaults();
         }
         
@@ -54,7 +55,7 @@ public class Main {
         try {
             localHostAddress= InetAddress.getLocalHost().getHostName();
         } catch (UnknownHostException ex) {
-            logger.log(Level.SEVERE, "Error getting hostname of local host", ex);
+            logger.warning(ex.getMessage());
             localHostAddress= "unknown";
         }
         
@@ -69,7 +70,8 @@ public class Main {
             }
             logger.addHandler(logFileHandler);
         } catch (IOException|SecurityException ex) {
-            logger.log(Level.SEVERE, "Cannot write to file: "+filename, ex);
+            logger.warning(ex.getMessage());
+            logger.warning("Logging to output stream...");
         } 
     }
 }
