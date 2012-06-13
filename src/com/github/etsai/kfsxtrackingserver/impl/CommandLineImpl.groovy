@@ -18,10 +18,7 @@ public class CommandLineImpl extends CommandLine {
     public CommandLineImpl(String[] args) {
         def cli= new CliBuilder(usage:"cli.groovy")
         cli.propertyfile(args:1, argName:'file', 'sets properties to file')
-        options= cli.parse(args)
-
-        println options.propertyfile
-        
+        options= cli.parse(args)        
     }
     
     public String getPropertiesFilename() {

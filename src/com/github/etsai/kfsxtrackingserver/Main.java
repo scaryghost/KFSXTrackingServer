@@ -27,6 +27,8 @@ public class Main {
         Properties props;
         CommandLine clom= CommandLine.parse(args);
         
+        initLogging();
+        
         try {
             props= ServerProperties.load(clom.getPropertiesFilename());
         } catch (IOException ex) {
