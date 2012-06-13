@@ -5,6 +5,7 @@
 
 package com.github.etsai.kfsxtrackingserver;
 
+import static com.github.etsai.kfsxtrackingserver.Core.logger;
 import java.io.IOException;
 import java.net.DatagramPacket;
 import java.net.DatagramSocket;
@@ -39,11 +40,11 @@ public class UDPListener implements Runnable {
                     
                     System.out.format("%s:%s-%s\n", packet.getAddress(), packet.getPort(), data);
                 } catch (IOException ex) {
-                    Logger.getLogger(UDPListener.class.getName()).log(Level.SEVERE, null, ex);
+                    logger.log(Level.SEVERE, "Error reading data on UDP socket", ex);
                 }
             }
         } catch (SocketException ex) {
-            Logger.getLogger(UDPListener.class.getName()).log(Level.SEVERE, null, ex);
+            logger.log(Level.SEVERE, "Error creating DatagramSocket", ex);
         }
         
     }
