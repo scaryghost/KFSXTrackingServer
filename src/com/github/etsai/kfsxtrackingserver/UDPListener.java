@@ -11,7 +11,6 @@ import java.net.DatagramPacket;
 import java.net.DatagramSocket;
 import java.net.SocketException;
 import java.util.logging.Level;
-import java.util.logging.Logger;
 
 /**
  * Listens for UDP packets from the KFStatsX mutator
@@ -31,7 +30,7 @@ public class UDPListener implements Runnable {
             byte[] buffer= new byte[bufferSize];
             DatagramSocket socket= new DatagramSocket(port);
             DatagramPacket packet= new DatagramPacket(buffer, buffer.length);
-            System.out.println("Listening on port: "+port);
+            logger.info("Listening on port: "+port);
             
             while(true) {
                 try {
