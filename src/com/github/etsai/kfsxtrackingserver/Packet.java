@@ -5,6 +5,7 @@
 
 package com.github.etsai.kfsxtrackingserver;
 
+import com.github.etsai.kfsxtrackingserver.impl.*;
 import java.util.Map;
 
 /**
@@ -12,18 +13,38 @@ import java.util.Map;
  * @author etsai
  */
 public abstract class Packet {
+    public static final String protocolMatch= "kfstatsx-match";
+    public static final String protocolPlayer= "kfstatsx-player";
+    public static final String protocolPwd= "kfstatsx-pwd";
+    
     private final String protocol;
     private final int version;
-    private Map<String, String> data;
+    
+    protected Map<String, Object> data;
+    protected boolean valid;
     
     public enum Type {
         Match, Player, Password;
     }
     
-    public static void parse(String text) {
+    public static Packet parse(String text) {
+        Packet instance;
         String[] parts= text.split("\\|");
         
-    
+        switch (parts[0]) {
+            case protocolMatch:
+                instance= new MatchPacket(parts[0], Integer.valueOf(parts[1]), parts);
+                break;
+            case protocolPlayer:
+                instance= new PlayerPacket(parts[0], Integer.valueOf(parts[1]), parts);
+                break;
+            case protocolPwd:
+                instance= new PasswordPacket(parts[0], Integer.valueOf(parts[1]), parts);
+                break;
+            default:
+                throw new RuntimeException("Unrecognized protocol: "+parts[0]);
+        }
+        return instance;
     }
     protected Packet(String protocol, int version) {
         this.protocol= protocol;
@@ -34,11 +55,16 @@ public abstract class Packet {
     }
     public int getVersion() {
         return version;
+    }        
+    public Iterable<String> getDataKeys() {
+        return data.keySet();
+    }
+    public Object getData(String key) {
+        return data.get(key);
     }
     public abstract Type getType();
     public abstract int getSeqnum();
     public abstract boolean isLast();
-    public abstract Map<String,Object> getData();
     public abstract boolean isValid();
-    
+
 }
