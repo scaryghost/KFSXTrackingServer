@@ -20,9 +20,7 @@ public class MatchPacket extends Packet {
     public final def keyTime= "time"
     public final def keyResult= "result"
     public final def keyWave= "wave"
-    
-    private final def valid
-    
+
     public MatchPacket(String protocol, int version, String[] parts) {
         super(protocol, version)
         
@@ -49,10 +47,7 @@ public class MatchPacket extends Packet {
     public boolean isLast() {
         return true
     }
-    public Map<String, Object> getData() {
-        throw new UnsupportedOperationException("Not yet implemented")
-    }
-    public abstract boolean isValid() {
+    public boolean isValid() {
         return valid
     }
 }

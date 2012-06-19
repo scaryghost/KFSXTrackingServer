@@ -6,23 +6,38 @@
 package com.github.etsai.kfsxtrackingserver.impl
 
 import com.github.etsai.kfsxtrackingserver.Packet
+import static com.github.etsai.kfsxtrackingserver.Packet.Type.Password
 
 /**
  *
  * @author eric
  */
 public class PasswordPacket extends Packet{
+    public static final keyPassword= "password"
+    
+    public PasswordPacket(String protocol, int version, String[] parts) {
+        super(protocol, version)
+        
+        try {
+            data= [:]
+            data[keyPassword]= parts[1]
+            valid= true
+        } catch (Exception e) {
+            valid= false
+        }
+    }
+    
     public Packet.Type getType() {
-        throw new UnsupportedOperationException("Not yet implemented")
+        return Password
     }
     public int getSeqnum() {
-        throw new UnsupportedOperationException("Not yet implemented")
+        return -1
     }
     public boolean isLast() {
-        throw new UnsupportedOperationException("Not yet implemented")
+        return true
     }
-    public String getBody() {
-        throw new UnsupportedOperationException("Not yet implemented")
+    public boolean isValid() {
+        return valid
     }
 }
 
