@@ -6,7 +6,7 @@
 package com.github.etsai.kfsxtrackingserver.impl
 
 import com.github.etsai.kfsxtrackingserver.Packet
-import static com.github.etsai.kfsxtrackingserver.Packet.Type.Password
+import com.github.etsai.kfsxtrackingserver.Packet.Type
 
 /**
  *
@@ -27,8 +27,8 @@ public class PasswordPacket extends Packet{
         }
     }
     
-    public Packet.Type getType() {
-        return Password
+    public Type getType() {
+        return Type.Password
     }
     public int getSeqnum() {
         return -1

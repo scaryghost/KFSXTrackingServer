@@ -6,8 +6,8 @@
 package com.github.etsai.kfsxtrackingserver.impl
 
 import com.github.etsai.kfsxtrackingserver.Packet
+import com.github.etsai.kfsxtrackingserver.Packet.Type
 import com.github.etsai.kfsxtrackingserver.Time
-import static com.github.etsai.kfsxtrackingserver.Packet.Type.Match
 
 /**
  *
@@ -38,8 +38,8 @@ public class MatchPacket extends Packet {
         }
         
     }
-    public Packet.Type getType() {
-        return Match
+    public Type getType() {
+        return Type.Match
     }
     public int getSeqnum() {
         return -1

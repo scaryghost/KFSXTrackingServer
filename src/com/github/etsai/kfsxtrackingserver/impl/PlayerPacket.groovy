@@ -6,7 +6,7 @@
 package com.github.etsai.kfsxtrackingserver.impl
 
 import com.github.etsai.kfsxtrackingserver.Packet
-import static com.github.etsai.kfsxtrackingserver.Packet.Type.Player
+import com.github.etsai.kfsxtrackingserver.Packet.Type
 
 /**
  *
@@ -50,8 +50,8 @@ public class PlayerPacket extends Packet {
         }
     }
     
-    public Packet.Type getType() {
-        return Player
+    public Type getType() {
+        return Type.Player
     }
     public int getSeqnum() {
         return seqnum
