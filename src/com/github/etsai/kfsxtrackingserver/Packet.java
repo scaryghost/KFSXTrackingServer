@@ -5,6 +5,8 @@
 
 package com.github.etsai.kfsxtrackingserver;
 
+import java.util.Map;
+
 /**
  * Interface for parsing and getting at packet information
  * @author etsai
@@ -12,6 +14,7 @@ package com.github.etsai.kfsxtrackingserver;
 public abstract class Packet {
     private final String protocol;
     private final int version;
+    private Map<String, String> data;
     
     public enum Type {
         Match, Player, Password;
@@ -35,6 +38,7 @@ public abstract class Packet {
     public abstract Type getType();
     public abstract int getSeqnum();
     public abstract boolean isLast();
-    public abstract String getBody();
+    public abstract Map<String,Object> getData();
+    public abstract boolean isValid();
     
 }
