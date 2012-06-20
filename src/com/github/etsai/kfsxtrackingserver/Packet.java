@@ -24,7 +24,7 @@ public abstract class Packet {
     protected boolean valid;
     
     public enum Type {
-        Match, Player, Password;
+        Match, Player;
     }
     
     public static Packet parse(String text) {
