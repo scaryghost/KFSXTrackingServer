@@ -5,7 +5,8 @@
 
 package com.github.etsai.kfsxtrackingserver;
 
-import com.github.etsai.kfsxtrackingserver.impl.*;
+import com.github.etsai.kfsxtrackingserver.impl.MatchPacket;
+import com.github.etsai.kfsxtrackingserver.impl.PlayerPacket;
 import java.util.Map;
 
 /**
@@ -15,7 +16,6 @@ import java.util.Map;
 public abstract class Packet {
     public static final String protocolMatch= "kfstatsx-match";
     public static final String protocolPlayer= "kfstatsx-player";
-    public static final String protocolPwd= "kfstatsx-pwd";
     
     private final String protocol;
     private final int version;
@@ -37,9 +37,6 @@ public abstract class Packet {
                 break;
             case protocolPlayer:
                 instance= new PlayerPacket(parts[0], Integer.valueOf(parts[1]), parts);
-                break;
-            case protocolPwd:
-                instance= new PasswordPacket(parts[0], Integer.valueOf(parts[1]), parts);
                 break;
             default:
                 throw new RuntimeException("Unrecognized protocol: "+parts[0]);
