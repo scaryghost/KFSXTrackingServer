@@ -31,6 +31,10 @@ public abstract class Packet {
         Packet instance;
         String[] parts= text.split("\\|");
         
+        if (!Core.properties.getProperty(ServerProperties.propPassword).equals(parts[2])) {
+            throw new RuntimeException("Password does not match.  Ignoring packet...");
+        }
+                
         switch (parts[0]) {
             case protocolMatch:
                 instance= new MatchPacket(parts[0], Integer.valueOf(parts[1]), parts);

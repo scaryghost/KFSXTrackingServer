@@ -17,7 +17,8 @@ public class ServerProperties {
     private static Properties props;
     private static Properties defaults;
     
-    public static final String UDP_PORT= "udp.port";
+    public static final String propUdpPort= "udp.port";
+    public static final String propPassword= "password";
     
     public synchronized static Properties load(String filename) throws IOException {
         if (props == null) {
@@ -31,7 +32,8 @@ public class ServerProperties {
     public synchronized static Properties getDefaults() {
         if (defaults == null) {
             defaults= new Properties();
-            defaults.setProperty(UDP_PORT, "6000");
+            defaults.setProperty(propUdpPort, "6000");
+            defaults.setProperty(propPassword, "server");
         }
         return defaults;
     }

@@ -5,13 +5,15 @@
 package com.github.etsai.kfsxtrackingserver;
 
 import static com.github.etsai.kfsxtrackingserver.Core.logger;
-import static com.github.etsai.kfsxtrackingserver.ServerProperties.UDP_PORT;
+import static com.github.etsai.kfsxtrackingserver.Core.properties;
+import static com.github.etsai.kfsxtrackingserver.ServerProperties.propUdpPort;
 import java.io.IOException;
 import java.net.InetAddress;
 import java.net.UnknownHostException;
 import java.util.Date;
-import java.util.Properties;
-import java.util.logging.*;
+import java.util.logging.FileHandler;
+import java.util.logging.Handler;
+import java.util.logging.SimpleFormatter;
 
 /**
  * Main entry point for the tracking server
@@ -24,20 +26,19 @@ public class Main {
      * @param args the command line arguments
      */
     public static void main(String[] args) {
-        Properties props;
         CommandLine clom= CommandLine.parse(args);
         
         initLogging();
         
         try {
-            props= ServerProperties.load(clom.getPropertiesFilename());
+            properties= ServerProperties.load(clom.getPropertiesFilename());
         } catch (IOException ex) {
             logger.warning(ex.getMessage());
             logger.warning("Using default properties...");
-            props= ServerProperties.getDefaults();
+            properties= ServerProperties.getDefaults();
         }
         
-        UDPListener listener= new UDPListener(Integer.valueOf(props.getProperty(UDP_PORT)));
+        UDPListener listener= new UDPListener(Integer.valueOf(properties.getProperty(propUdpPort)));
         Thread udpTh= new Thread(listener);
         
         Runtime.getRuntime().addShutdownHook(new Thread() {

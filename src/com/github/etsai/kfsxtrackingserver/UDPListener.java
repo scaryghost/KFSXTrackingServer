@@ -30,7 +30,7 @@ public class UDPListener implements Runnable {
             byte[] buffer= new byte[bufferSize];
             DatagramSocket socket= new DatagramSocket(port);
             DatagramPacket packet= new DatagramPacket(buffer, buffer.length);
-            logger.info("Listening on port: "+port);
+            logger.log(Level.INFO, "Listening on port: {0}", port);
             
             while(true) {
                 try {
@@ -47,5 +47,4 @@ public class UDPListener implements Runnable {
         }
         
     }
-
 }

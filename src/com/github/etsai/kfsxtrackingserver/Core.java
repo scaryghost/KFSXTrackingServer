@@ -1,6 +1,7 @@
 package com.github.etsai.kfsxtrackingserver;
 
 
+import java.util.Properties;
 import java.util.logging.Logger;
 
 /*
@@ -15,4 +16,5 @@ import java.util.logging.Logger;
  */
 public class Core {
     public static final Logger logger= Logger.getLogger("KFSXTrackingServer");
+    public static Properties properties;
 }
