@@ -17,4 +17,5 @@ import java.util.logging.Logger;
 public class Core {
     public static final Logger logger= Logger.getLogger("KFSXTrackingServer");
     public static Properties properties;
+    public static Content matchContent;
 }

@@ -4,8 +4,7 @@
  */
 package com.github.etsai.kfsxtrackingserver;
 
-import static com.github.etsai.kfsxtrackingserver.Core.logger;
-import static com.github.etsai.kfsxtrackingserver.Core.properties;
+import static com.github.etsai.kfsxtrackingserver.Core.*;
 import static com.github.etsai.kfsxtrackingserver.ServerProperties.propUdpPort;
 import java.io.IOException;
 import java.net.InetAddress;
@@ -48,6 +47,7 @@ public class Main {
             }
         });
         
+        matchContent= (Content) new com.github.etsai.kfsxtrackingserver.impl.MatchContent();
         udpTh.start();
     }
     
