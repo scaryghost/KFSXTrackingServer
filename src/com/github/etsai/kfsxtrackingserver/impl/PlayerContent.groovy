@@ -33,6 +33,7 @@ public class PlayerContent implements Content {
         session["weapons"]= [:]
         session["kills"]= [:]
         session["perks"]= [:]
+        session["match"]= [:]
         
         player= [:]
         actions= [:]
@@ -87,6 +88,13 @@ public class PlayerContent implements Content {
             accum(packet, actions, "actions")
         }
         groupActions["match"]= {packet ->
+            sessions["match"]= packet.getData(PlayerPacket.keyStats)
+            def levelName= sessions["match"]["map"]
+            def difficultyName= sessions["match"]["difficulty"]
+            def length= sessions["match"]["length"]
+            def wave= sessions["match"]["wave"]
+            def result= sessions["match"]["result"]
+            
             if (levels[levelName] == null) {
                 levels[levelName]= new Level(levelName)
             }
@@ -96,7 +104,7 @@ public class PlayerContent implements Content {
             levels[levelName].addTime(time)
             difficulties[[difficultyName, length]].addTime(time)
             difficulties[[difficultyName, length]].addWave(wave)
-            if (packet.getData(MatchPacket.keyResult) != "2") {
+            if (result != "2") {
                 levels[levelName].addLosses()
                 difficulties[[difficultyName, length]].addLosses()
             } else {
