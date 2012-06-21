@@ -34,7 +34,7 @@ public class MatchContent implements Content {
         def difficultyName= packet.getData(MatchPacket.Difficulty)
         def length= packet.getData(MatchPacket.Length)
         def wave= packet.getData(MatchPacket.Wave).toInteger()
-        def time= packet.getData(MatchPacket.keyTime).toInteger()
+        def time= new Time(packet.getData(MatchPacket.keyTime).toInteger())
         
         if (levels[levelName] == null) {
             levels[levelName]= new Level(levelName)
@@ -43,7 +43,8 @@ public class MatchContent implements Content {
             difficulties[[difficultyName, length]]= new Difficulty(difficultyName, length, wave)
         }
         
-        levels[levelName].addTime(new Time(time))
+        levels[levelName].addTime(time)
+        difficulties[[difficultyName, length]].addTime(time)
         difficulties[[difficultyName, length]].addWave(wave)
         if (packet.getData(MatchPacket.keyResult) == "1") {
             levels[levelName].addLosses()

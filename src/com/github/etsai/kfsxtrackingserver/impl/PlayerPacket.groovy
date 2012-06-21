@@ -34,7 +34,7 @@ public class PlayerPacket extends Packet {
             data[keyPlayerId]= parts[1]
             data[keyGroup]= parts[3]
             
-            if (seqnum == 4) {
+            if (data[keyGroup] == "group") {
                 def items= ["map=${parts[4]}", "difficulty=${parts[5]}", "length=${parts[6]}", 
                     "result=${parts[7]}", "wave=${parts[8]}"]
                 body= items.join("\n")
