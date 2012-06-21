@@ -39,25 +39,23 @@ public class MatchContent implements Content {
         conn.close()
     }
     public boolean save() {
+        Class.forName("org.sqlite.JDBC")
         def conn= DriverManager.getConnection("jdbc:sqlite:kfsxdb.sqlite");
         def statement= "replace into levels (id, name, time, losses, wins) values "
         statement+= "(?,"
         statement+= "coalesce(( select name from levels where id=?),?),"
-        statement+= "coalesce(( select time from levels where id=?),?),"
-        statement+= "coalesce(( select losses from levels where id=?),?),"
-        statement+= "coalesce(( select wins from levels where id=?),?));"
+        statement+= "?,"
+        statement+= "?,"
+        statement+= "?);"
         def prep= conn.prepareStatement(statement);
         
         levels.each {name, level ->
             prep.setInt(1, level.getData(Level.keyName).hashCode())
             prep.setInt(2, level.getData(Level.keyName).hashCode())
             prep.setString(3, level.getData(Level.keyName))
-            prep.setInt(4, level.getData(Level.keyName).hashCode())
-            prep.setString(5, level.getData(Level.keyTime).toString())
-            prep.setInt(6, level.getData(Level.keyName).hashCode())
-            prep.setInt(7, level.getData(Level.keyLosses))
-            prep.setInt(8, level.getData(Level.keyName).hashCode())
-            prep.setInt(9, level.getData(Level.keyWins))
+            prep.setString(4, level.getData(Level.keyTime).toString())
+            prep.setInt(5, level.getData(Level.keyLosses))
+            prep.setInt(6, level.getData(Level.keyWins))
             prep.addBatch()
         }
         conn.setAutoCommit(false);
