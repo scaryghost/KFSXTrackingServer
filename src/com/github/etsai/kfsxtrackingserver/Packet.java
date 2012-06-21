@@ -30,20 +30,21 @@ public abstract class Packet {
     public static Packet parse(String text) {
         Packet instance;
         String[] parts= text.split("\\|");
+        String[] header= parts[0].split(",");
         
-        if (!Core.properties.getProperty(ServerProperties.propPassword).equals(parts[2])) {
+        if (!Core.properties.getProperty(ServerProperties.propPassword).equals(header[2])) {
             throw new RuntimeException("Password does not match.  Ignoring packet...");
         }
                 
-        switch (parts[0]) {
+        switch (header[0]) {
             case protocolMatch:
-                instance= new MatchPacket(parts[0], Integer.valueOf(parts[1]), parts);
+                instance= new MatchPacket(header[0], Integer.valueOf(header[1]), parts);
                 break;
             case protocolPlayer:
-                instance= new PlayerPacket(parts[0], Integer.valueOf(parts[1]), parts);
+                instance= new PlayerPacket(header[0], Integer.valueOf(header[1]), parts);
                 break;
             default:
-                throw new RuntimeException("Unrecognized protocol: "+parts[0]);
+                throw new RuntimeException("Unrecognized protocol: "+header[0]);
         }
         return instance;
     }
