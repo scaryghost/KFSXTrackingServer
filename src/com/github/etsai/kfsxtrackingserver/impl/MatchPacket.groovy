@@ -14,13 +14,13 @@ import com.github.etsai.kfsxtrackingserver.Time
  * @author eric
  */
 public class MatchPacket extends Packet {
-    public final def keyMap= "map"
-    public final def keyDifficulty= "difficulty"
-    public final def keyLength= "length"
-    public final def keyTime= "time"
-    public final def keyResult= "result"
-    public final def keyWave= "wave"
-    public final def keyDeaths= "deaths"
+    public static final def keyMap= "map"
+    public static final def keyDifficulty= "difficulty"
+    public static final def keyLength= "length"
+    public static final def keyTime= "time"
+    public static final def keyResult= "result"
+    public static final def keyWave= "wave"
+    public static final def keyDeaths= "deaths"
 
     public MatchPacket(String protocol, int version, String[] parts) {
         super(protocol, version)

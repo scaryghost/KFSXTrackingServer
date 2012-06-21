@@ -41,4 +41,9 @@ public class Time {
         
         return this;
     }
+    
+    @Override
+    public String toString() {
+        return String.format("%d days %02d:%02d:%02d", days, hours, minutes, seconds);
+    }
 }

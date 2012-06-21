@@ -27,14 +27,19 @@ public class Level {
         data[keyTime]= new Time(0)
     }
         
-    public void addWin() {
+    public void addWins() {
         data[keyWins]++
+    }
+    public void addWins(def offset) {
+        data[keyWins]+= offset
     }
         
     public void addLosses() {
         data[keyLosses]++
     }
-        
+    public void addLosses(def offset) {
+        data[keyLosses]+= offset
+    }   
     public void addTime(def time) {
         data[keyTime].add(time)
     }
