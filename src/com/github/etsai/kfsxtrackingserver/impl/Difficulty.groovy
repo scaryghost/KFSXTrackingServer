@@ -18,7 +18,11 @@ public class Difficulty extends Level {
         data[keyLength]= length
         data[keyWave]= wave
     }
-        
+    @Override
+    public int hashCode() {
+        return "${data[keyName]}-${data[keyLength]}".hashCode()
+    }
+    
     public void addWave(def wave) {
         data[keyWave]+= wave
     }

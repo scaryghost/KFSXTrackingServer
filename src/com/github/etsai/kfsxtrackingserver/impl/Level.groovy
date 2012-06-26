@@ -26,7 +26,12 @@ public class Level {
         data[keyLosses]= 0
         data[keyTime]= new Time(0)
     }
-        
+    
+    @Override
+    public int hashCode() {
+        return data[keyName].hashCode()
+    }
+    
     public void addWins() {
         data[keyWins]++
     }
