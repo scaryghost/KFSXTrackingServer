@@ -19,6 +19,7 @@ public class MatchContent implements Content {
     private def difficulties
     private def levels
     private def deaths
+    private def lastLevelName
     
     public MatchContent() {
         difficulties= [:]
@@ -49,19 +50,19 @@ public class MatchContent implements Content {
         statement+= "?);"
         def prep= conn.prepareStatement(statement);
         
-        levels.each {name, level ->
-            prep.setInt(1, level.getData(Level.keyName).hashCode())
-            prep.setInt(2, level.getData(Level.keyName).hashCode())
-            prep.setString(3, level.getData(Level.keyName))
-            prep.setString(4, level.getData(Level.keyTime).toString())
-            prep.setInt(5, level.getData(Level.keyLosses))
-            prep.setInt(6, level.getData(Level.keyWins))
-            prep.addBatch()
-        }
+        def level= levels[lastLevelName]
+        prep.setInt(1, level.getData(Level.keyName).hashCode())
+        prep.setInt(2, level.getData(Level.keyName).hashCode())
+        prep.setString(3, level.getData(Level.keyName))
+        prep.setString(4, level.getData(Level.keyTime).toString())
+        prep.setInt(5, level.getData(Level.keyLosses))
+        prep.setInt(6, level.getData(Level.keyWins))
+        prep.addBatch()
         conn.setAutoCommit(false);
         prep.executeBatch()
         conn.commit()
         conn.close()
+        lastLevelName= null
     }
     public void accumulate(Packet packet) {
         def levelName= packet.getData(MatchPacket.keyMap)
@@ -70,6 +71,7 @@ public class MatchContent implements Content {
         def wave= packet.getData(MatchPacket.keyWave).toInteger()
         def time= packet.getData(MatchPacket.keyTime)
         
+        lastLevelName= levelName
         if (levels[levelName] == null) {
             levels[levelName]= new Level(levelName)
         }
