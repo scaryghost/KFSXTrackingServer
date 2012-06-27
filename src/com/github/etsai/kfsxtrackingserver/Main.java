@@ -48,6 +48,7 @@ public class Main {
         });
         
         matchContent= (Content) new com.github.etsai.kfsxtrackingserver.impl.MatchContent();
+        matchContent.load();
         udpTh.start();
     }
     

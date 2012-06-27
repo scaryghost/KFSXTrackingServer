@@ -35,9 +35,28 @@ public class MatchContent implements Content {
             def name= rs.getString("name")
             levels[name]= new Level(name)
             levels[name].addTime(rs.getString("time"))
-            levels[name].addLosses(rs.getString("losses").toInteger())
-            levels[name].addWins(rs.getString("wins").toInteger())
+            levels[name].addLosses(rs.getInt("losses"))
+            levels[name].addWins(rs.getInt("wins"))
         }
+        rs.close()
+        
+        rs = stat.executeQuery("select * from difficulties")
+        while(rs.next()) {
+            def name= rs.getString("name")
+            def length= rs.getString("length")
+            def wave= rs.getInt("wave")
+            difficulties[[name, length]]= Difficulty(name, length, wave)
+            difficulties[[name, length]].addTime(rs.getString("time"))
+            difficulties[[name, length]].addLosses(rs.getInt("losses"))
+            difficulties[[name, length]].addWins(rs.getInt("wins"))
+        }
+        rs.close()
+        
+        rs = stat.executeQuery("select * from deaths")
+        while(rs.next()) {
+            deaths[rs.getString("name")]= rs.getInt("count")
+        }
+        rs.close()
         conn.close()
     }
     public boolean save() {
