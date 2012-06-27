@@ -24,7 +24,7 @@ public class Main {
     /**
      * @param args the command line arguments
      */
-    public static void main(String[] args) {
+    public static void main(String[] args) throws ClassNotFoundException {
         CommandLine clom= CommandLine.parse(args);
         
         initLogging();
@@ -47,6 +47,7 @@ public class Main {
             }
         });
         
+        Class.forName("org.sqlite.JDBC");
         matchContent= (Content) new com.github.etsai.kfsxtrackingserver.impl.MatchContent();
         matchContent.load();
         udpTh.start();

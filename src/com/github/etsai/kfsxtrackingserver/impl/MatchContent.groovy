@@ -29,6 +29,7 @@ public class MatchContent implements Content {
     }
     public boolean load() {
         def conn= DriverManager.getConnection("jdbc:sqlite:kfsxdb.sqlite")
+        def stat = conn.createStatement()
         def rs = stat.executeQuery("select * from levels")
         
         while(rs.next()) {
@@ -45,7 +46,7 @@ public class MatchContent implements Content {
             def name= rs.getString("name")
             def length= rs.getString("length")
             def wave= rs.getInt("wave")
-            difficulties[[name, length]]= Difficulty(name, length, wave)
+            difficulties[[name, length]]= new Difficulty(name, length, wave)
             difficulties[[name, length]].addTime(rs.getString("time"))
             difficulties[[name, length]].addLosses(rs.getInt("losses"))
             difficulties[[name, length]].addWins(rs.getInt("wins"))
@@ -60,7 +61,7 @@ public class MatchContent implements Content {
         conn.close()
     }
     public boolean save() {
-        Class.forName("org.sqlite.JDBC")
+        
         def conn= DriverManager.getConnection("jdbc:sqlite:kfsxdb.sqlite");
         conn.setAutoCommit(false);
         
