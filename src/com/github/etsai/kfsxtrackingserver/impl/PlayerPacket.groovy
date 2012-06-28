@@ -26,14 +26,24 @@ public class PlayerPacket extends Packet {
         try {
             def playerStats= [:]
             def body
+            def id
             
             data= [:]
             seqnum= Integer.valueOf(parts[2])
             last= parts[parts.length-1].equals("_close")
             
-            data[keyPlayerId]= parts[1]
-            data[keyGroup]= parts[3]
+            if (parts[1].length() < 17) {
+                def offset= new BigInteger("76561197960265728")
+                def linuxId= new BigInteger(parts[1])
+                
+                linuxId+= offset
+                id= linuxId.toString()
+            } else {
+                id= parts[1]
+            }
             
+            data[keyPlayerId]= id
+            data[keyGroup]= parts[3]
             if (data[keyGroup] == "match") {
                 def items= ["map=${parts[4]}", "difficulty=${parts[5]}", "length=${parts[6]}", 
                     "result=${parts[7]}", "wave=${parts[8]}"]
