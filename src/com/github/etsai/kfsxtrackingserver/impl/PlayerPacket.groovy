@@ -13,9 +13,9 @@ import com.github.etsai.kfsxtrackingserver.Packet.Type
  * @author eric
  */
 public class PlayerPacket extends Packet {
-    public static final keyPlayerId= "playerid"
-    public static final keyGroup= "group"
-    public static final keyStats= "stats"
+    public static final String keyPlayerId= "playerid"
+    public static final String keyGroup= "group"
+    public static final String keyStats= "stats"
     
     private def seqnum
     private def last
@@ -24,7 +24,7 @@ public class PlayerPacket extends Packet {
         super(protocol, version)
         
         try {
-            def playerStats= new Properties()
+            def playerStats= [:]
             def body
             
             data= [:]
@@ -34,16 +34,18 @@ public class PlayerPacket extends Packet {
             data[keyPlayerId]= parts[1]
             data[keyGroup]= parts[3]
             
-            if (data[keyGroup] == "group") {
+            if (data[keyGroup] == "match") {
                 def items= ["map=${parts[4]}", "difficulty=${parts[5]}", "length=${parts[6]}", 
                     "result=${parts[7]}", "wave=${parts[8]}"]
-                body= items.join("\n")
+                body= items.join(",")
             } else {
-                body= parts[4].replace(',','\n')
+                body= parts[4]
             }
-            playerStats.load(new StringReader(body))
+            body.split(",").each {stats ->
+                def keyVal= stats.split("=")
+                playerStats[keyVal[0]]= keyVal[1]
+            }
             data[keyStats]= playerStats
-            
             valid= true
         } catch (Exception e) {
             valid= false

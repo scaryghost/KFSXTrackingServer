@@ -8,6 +8,8 @@ package com.github.etsai.kfsxtrackingserver;
 import static com.github.etsai.kfsxtrackingserver.Core.logger;
 import static com.github.etsai.kfsxtrackingserver.Packet.Type.Match;
 import static com.github.etsai.kfsxtrackingserver.Packet.Type.Player;
+import com.github.etsai.kfsxtrackingserver.impl.PlayerPacket;
+import com.github.etsai.kfsxtrackingserver.impl.PlayerContent;
 import java.io.IOException;
 import java.net.DatagramPacket;
 import java.net.DatagramSocket;
@@ -84,6 +86,11 @@ public class UDPListener implements Runnable {
                         Core.matchContent.accumulate(packet);
                         break;
                     case Player:
+                        String playerId= (String) packet.getData(PlayerPacket.keyPlayerId);
+                        if (!Core.playerContents.containsKey(playerId)) {
+                            Core.playerContents.put(playerId, new PlayerContent(playerId));
+                        }
+                        Core.playerContents.get(playerId).accumulate(packet);
                         break;
                     default:
                         System.err.println("Unrecognized packet type");

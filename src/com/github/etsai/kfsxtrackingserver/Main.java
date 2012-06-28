@@ -10,6 +10,7 @@ import java.io.IOException;
 import java.net.InetAddress;
 import java.net.UnknownHostException;
 import java.util.Date;
+import java.util.HashMap;
 import java.util.logging.FileHandler;
 import java.util.logging.Handler;
 import java.util.logging.SimpleFormatter;
@@ -50,6 +51,8 @@ public class Main {
         Class.forName("org.sqlite.JDBC");
         matchContent= (Content) new com.github.etsai.kfsxtrackingserver.impl.MatchContent();
         matchContent.load();
+        
+        playerContents= new HashMap();
         udpTh.start();
     }
     
