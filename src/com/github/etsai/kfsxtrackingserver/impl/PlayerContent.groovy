@@ -225,7 +225,7 @@ public class PlayerContent implements Content {
                 sessions[hash][group][stat]= value
                 if (map[stat] == null) map[stat]= 0
                 map[stat]+= value.toInteger()
-                if (stat == "time connected") time= new Time(value)
+                if (stat == "time connected") time= new Time(value.toInteger())
             }
         }
         def groupActions= [:]

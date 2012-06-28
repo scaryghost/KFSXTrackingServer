@@ -30,18 +30,16 @@ public class Time {
     /**
      * Construct a Time object given a string representation 
      * of the time in the format "D days HH:MM:SS".  If the 
-     * input string does not match the format, a time object 
-     * set to 0 is created.
+     * input string does not match the format, an exception 
+     * will be thrown
      * @param timeStr String representation to convert
+     * @throws Exception if input does not match pattern
      */
-    public Time(String timeStr) {
+    public Time(String timeStr) throws RuntimeException {
         Matcher matcher= timePat.matcher(timeStr);
         
         if (!matcher.matches()) {
-            seconds= 0;
-            minutes= 0;
-            hours= 0;
-            days= 0;
+            throw new RuntimeException("Input is not in the format D days HH:MM:SS");
         } else {
             days= Integer.valueOf(matcher.group(1));
             minutes= Integer.valueOf(matcher.group(2));
