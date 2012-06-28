@@ -153,14 +153,18 @@ public class PlayerContent implements Content {
         
         def accumStatement= "replace into pAccumulate (id, steamid, player, actions, weapons, kills, perks) values "
         accumStatement+= "(?, "
-        accumStatement+= "coalesce(( select steamid from pDifficulties where id=?),?), "
+        accumStatement+= "coalesce(( select steamid from pAccumulate where id=?),?), "
         accumStatement+= "?, "
         accumStatement+= "?, "
         accumStatement+= "?, "
         accumStatement+= "?, "
         accumStatement+= "?);"
         def accumPrep= conn.prepareStatement(accumStatement)
-        def index= 2
+        def idHash= id.hashCode()
+        accumPrep.setInt(1, idHash)
+        accumPrep.setInt(2, idHash)
+        accumPrep.setString(3, id)
+        def index= 4
         ["player", "actions", "weapons", "kills", "perks"].each {group ->
             def accum= accumStats[group].inject([]) {list, key, val ->
                 list << "${key}=${val}"
