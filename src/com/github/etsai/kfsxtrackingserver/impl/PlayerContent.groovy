@@ -232,8 +232,8 @@ public class PlayerContent implements Content {
         groupActions["player"]= {packet ->
             accum(packet, accumStats["player"], "player")
         }
-        groupActions["weapon"]= {packet ->
-            accum(packet, accumStats["weapons"], "weapon")
+        groupActions["weapons"]= {packet ->
+            accum(packet, accumStats["weapons"], "weapons")
         }
         groupActions["kills"]= {packet ->
             accum(packet, accumStats["kills"], "kills")
