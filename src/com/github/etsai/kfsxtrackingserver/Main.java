@@ -4,7 +4,7 @@
  */
 package com.github.etsai.kfsxtrackingserver;
 
-import static com.github.etsai.kfsxtrackingserver.Core.*;
+import static com.github.etsai.kfsxtrackingserver.Common.*;
 import static com.github.etsai.kfsxtrackingserver.ServerProperties.propUdpPort;
 import java.io.IOException;
 import java.net.InetAddress;

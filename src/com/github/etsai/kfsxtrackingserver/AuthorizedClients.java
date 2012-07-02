@@ -5,7 +5,7 @@
 
 package com.github.etsai.kfsxtrackingserver;
 
-import static com.github.etsai.kfsxtrackingserver.Core.logger;
+import static com.github.etsai.kfsxtrackingserver.Common.logger;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;

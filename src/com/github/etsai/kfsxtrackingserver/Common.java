@@ -15,7 +15,7 @@ import java.util.logging.Logger;
  * The objects must be thread safe
  * @author etsai
  */
-public class Core {
+public class Common {
     public static final Logger logger= Logger.getLogger("KFSXTrackingServer");
     public static Properties properties;
     public static Content matchContent;

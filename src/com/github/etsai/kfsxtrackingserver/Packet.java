@@ -32,7 +32,7 @@ public abstract class Packet {
         String[] parts= text.split("\\|");
         String[] header= parts[0].split(",");
         
-        if (!Core.properties.getProperty(ServerProperties.propPassword).equals(header[2])) {
+        if (!Common.properties.getProperty(ServerProperties.propPassword).equals(header[2])) {
             throw new RuntimeException("Password does not match.  Ignoring packet...");
         }
                 
