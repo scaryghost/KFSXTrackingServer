@@ -15,6 +15,21 @@ import java.sql.*;
  * @author etsai
  */
 public class PlayerContent implements Content {
+    private static final def pLevelsSql= 
+'''replace into pLevels (id, name, time, steamid, wins, losses) values 
+    (?, coalesce(( select name from pLevels where id=?),?), ?,
+    coalesce(( select steamid from pLevels where id=?),?), ?, ?);'''
+    private static final def pDifficultiesSql= 
+'''replace into pDifficulties (id, name, steamid, length, wins, losses, time, wave) values
+    (?, coalesce(( select name from pDifficulties where id=?),?),
+    coalesce(( select steamid from pDifficulties where id=?),?),
+    coalesce(( select length from pDifficulties where id=?),?), ?, ?, ?, ?)'''
+    private static final def pAccumulateSql= 
+'''replace into pAccumulate (id, steamid, player, actions, weapons, kills, perks) values 
+    (?, coalesce(( select steamid from pAccumulate where id=?),?), ?, ?, ?, ?, ?);'''
+    private static final def pSessionsSql= 
+'''insert into pSessions (sessionid, timestamp, steamid, player, actions, weapons, kills, perks, match) values (?, ?, ?, ?, ?, ?, ?, ?, ?)'''
+    
     private final def id
     private def sessions
     private def accumStats
@@ -103,14 +118,8 @@ public class PlayerContent implements Content {
         def conn= DriverManager.getConnection("jdbc:sqlite:kfsxdb.sqlite");
         conn.setAutoCommit(false);
         
-        def statement= "replace into pLevels (id, name, time, steamid, wins, losses) values "
-        statement+= "(?,"
-        statement+= "coalesce(( select name from pLevels where id=?),?),"
-        statement+= "?,"
-        statement+= "coalesce(( select steamid from pLevels where id=?),?),"
-        statement+= "?,"
-        statement+= "?);"
-        def prep= conn.prepareStatement(statement);
+        
+        def prep= conn.prepareStatement(pLevelsSql);
         
         def levelId= "${lastLevelName}-${id}".hashCode()
         def level= levels[lastLevelName]
@@ -125,18 +134,10 @@ public class PlayerContent implements Content {
         prep.addBatch()
         prep.executeBatch()
         
-        def diffStatement= "replace into pDifficulties (id, name, steamid, length, wins, losses, time, wave) values "
-        diffStatement+= "(?,"
-        diffStatement+= "coalesce(( select name from pDifficulties where id=?),?),"
-        diffStatement+= "coalesce(( select steamid from pDifficulties where id=?),?),"
-        diffStatement+= "coalesce(( select length from pDifficulties where id=?),?),"
-        diffStatement+= "?,"
-        diffStatement+= "?,"
-        diffStatement+= "?,"
-        diffStatement+= "?);"
+        
         def diff= difficulties[lastDiffKey]
         def diffId= "${lastDiffKey[0]}-${lastDiffKey[1]}-${id}".hashCode()
-        def diffprep= conn.prepareStatement(diffStatement)
+        def diffprep= conn.prepareStatement(pDifficultiesSql)
         diffprep.setInt(1, diffId)
         diffprep.setInt(2, diffId)
         diffprep.setString(3, diff.getData(Difficulty.keyName))
@@ -151,15 +152,8 @@ public class PlayerContent implements Content {
         diffprep.addBatch()
         diffprep.executeBatch()
         
-        def accumStatement= "replace into pAccumulate (id, steamid, player, actions, weapons, kills, perks) values "
-        accumStatement+= "(?, "
-        accumStatement+= "coalesce(( select steamid from pAccumulate where id=?),?), "
-        accumStatement+= "?, "
-        accumStatement+= "?, "
-        accumStatement+= "?, "
-        accumStatement+= "?, "
-        accumStatement+= "?);"
-        def accumPrep= conn.prepareStatement(accumStatement)
+        
+        def accumPrep= conn.prepareStatement(pAccumulateSql)
         def idHash= id.hashCode()
         accumPrep.setInt(1, idHash)
         accumPrep.setInt(2, idHash)
@@ -175,8 +169,8 @@ public class PlayerContent implements Content {
         accumPrep.addBatch()
         accumPrep.executeBatch()
         
-        def sessionStatement= "insert into pSessions (sessionid, timestamp, steamid, player, actions, weapons, kills, perks, match) values (?, ?, ?, ?, ?, ?, ?, ?, ?)"
-        def sessionPrep= conn.prepareStatement(sessionStatement)
+        
+        def sessionPrep= conn.prepareStatement(pSessionsSql)
         def session= sessions[lastSessionHash]
         sessionPrep.setString(1, lastSessionHash.toString())
         sessionPrep.setString(2, session["timestamp"])
@@ -212,6 +206,8 @@ public class PlayerContent implements Content {
     }
     
     private void buildSession() {
+        def tempAccum= accumStats.clone()
+        def tempDiff, tempLevel
         def time
         def calendar= Calendar.getInstance(TimeZone.getTimeZone("PST"))
         def hash= calendar.hashCode()
@@ -230,52 +226,52 @@ public class PlayerContent implements Content {
         }
         def groupActions= [:]
         groupActions["player"]= {packet ->
-            accum(packet, accumStats["player"], "player")
+            accum(packet, tempAccum["player"], "player")
         }
         groupActions["weapons"]= {packet ->
-            accum(packet, accumStats["weapons"], "weapons")
+            accum(packet, tempAccum["weapons"], "weapons")
         }
         groupActions["kills"]= {packet ->
-            accum(packet, accumStats["kills"], "kills")
+            accum(packet, tempAccum["kills"], "kills")
         }
         groupActions["perks"]= {packet ->
-            accum(packet, accumStats["perks"], "perks")
+            accum(packet, tempAccum["perks"], "perks")
         }
         groupActions["actions"]= {packet ->
-            accum(packet, accumStats["actions"], "actions")
+            accum(packet, tempAccum["actions"], "actions")
         }
         groupActions["match"]= {packet ->
             sessions[hash]["match"]= packet.getData(PlayerPacket.keyStats)
-            def levelName= sessions[hash]["match"]["map"]
-            def difficultyName= sessions[hash]["match"]["difficulty"]
-            def length= sessions[hash]["match"]["length"]
             def wave= sessions[hash]["match"]["wave"].toInteger()
             def result= sessions[hash]["match"]["result"]
             
-            lastLevelName= levelName
-            lastDiffKey= [difficultyName, length]
-            if (levels[levelName] == null) {
-                levels[levelName]= new Level(levelName)
-            }
-            if (difficulties[[difficultyName, length]] == null) {
-                difficulties[[difficultyName, length]]= new Difficulty(difficultyName, length, wave)
-            }
-            levels[levelName].addTime(time)
-            difficulties[[difficultyName, length]].addTime(time)
-            difficulties[[difficultyName, length]].addWave(wave)
+            lastLevelName= sessions[hash]["match"]["map"]
+            println lastLevelName
+            lastDiffKey= [sessions[hash]["match"]["difficulty"], sessions[hash]["match"]["length"]]
+            tempDiff= difficulties[lastDiffKey] == null ? 
+                    new Difficulty(lastDiffKey[0], lastDiffKey[1], 0) : difficulties[lastDiffKey]
+            tempLevel= levels[lastLevelName] == null ? new Level(lastLevelName) : levels[lastLevelName]
+            
+            tempLevel.addTime(time)
+            tempDiff.addTime(time)
+            tempDiff.addWave(wave)
             if (result != "2") {
-                levels[levelName].addLosses()
-                difficulties[[difficultyName, length]].addLosses()
+                tempLevel.addLosses()
+                tempDiff.addLosses()
             } else {
-                levels[levelName].addWins()
-                difficulties[[difficultyName, length]].addWins()
+                tempLevel.addWins()
+                tempDiff.addWins()
             }
         }
         
         packets.each {packet ->
             groupActions[packet.getData(PlayerPacket.keyGroup)](packet)
         }
+        levels[lastLevelName]= tempLevel
+        difficulties[lastDiffKey]= tempDiff
+        accumStats= tempAccum
         packets= []
+        
         save()
     }
 }

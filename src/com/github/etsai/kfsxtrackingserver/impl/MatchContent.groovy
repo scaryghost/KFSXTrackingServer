@@ -16,6 +16,17 @@ import java.sql.*;
  * @author eric
  */
 public class MatchContent implements Content {
+    private static def levelsSql=
+'''replace into levels (id, name, time, losses, wins) values 
+    (?, coalesce(( select name from levels where id=?),?), ?, ?, ?);'''
+    private static def difficultiesSql=
+'''replace into difficulties (id, name, length, wave, wins, losses, time) values
+    (?, coalesce(( select name from difficulties where id=?),?),
+    coalesce(( select length from difficulties where id=?),?), ?, ?, ?, ?);'''
+    private static def deathsSql=
+'''replace into deaths (id, name, count) values
+    (?, coalesce(( select name from deaths where id=?),?), ?);'''
+        
     private def difficulties
     private def levels
     private def deaths
@@ -65,13 +76,8 @@ public class MatchContent implements Content {
         def conn= DriverManager.getConnection("jdbc:sqlite:kfsxdb.sqlite");
         conn.setAutoCommit(false);
         
-        def statement= "replace into levels (id, name, time, losses, wins) values "
-        statement+= "(?,"
-        statement+= "coalesce(( select name from levels where id=?),?),"
-        statement+= "?,"
-        statement+= "?,"
-        statement+= "?);"
-        def prep= conn.prepareStatement(statement);
+        
+        def prep= conn.prepareStatement(levelsSql);
         
         def level= levels[lastLevelName]
         prep.setInt(1, level.hashCode())
@@ -83,16 +89,9 @@ public class MatchContent implements Content {
         prep.addBatch()
         prep.executeBatch()
         
-        def diffStatement= "replace into difficulties (id, name, length, wave, wins, losses, time) values "
-        diffStatement+= "(?,"
-        diffStatement+= "coalesce(( select name from difficulties where id=?),?),"
-        diffStatement+= "coalesce(( select length from difficulties where id=?),?),"
-        diffStatement+= "?,"
-        diffStatement+= "?,"
-        diffStatement+= "?,"
-        diffStatement+= "?);"
+        
         def diff= difficulties[lastDiffKey]
-        def diffprep= conn.prepareStatement(diffStatement)
+        def diffprep= conn.prepareStatement(difficultiesSql)
         diffprep.setInt(1, diff.hashCode())
         diffprep.setInt(2, diff.hashCode())
         diffprep.setString(3, diff.getData(Difficulty.keyName))
@@ -105,12 +104,8 @@ public class MatchContent implements Content {
         diffprep.addBatch()
         diffprep.executeBatch()
         
-        def deathStatement= "replace into deaths (id, name, count) values"
-        deathStatement+= "(?,"
-        deathStatement+= "coalesce(( select name from deaths where id=?),?),"
-        deathStatement+= "?);"
-        def deathPrep= conn.prepareStatement(deathStatement)
         
+        def deathPrep= conn.prepareStatement(deathsSql)
         deaths.each {source, count ->
             deathPrep.setInt(1, source.hashCode())
             deathPrep.setInt(2, source.hashCode())
@@ -125,40 +120,36 @@ public class MatchContent implements Content {
         lastLevelName= null
     }
     public void accumulate(Packet packet) {
-        def levelName= packet.getData(MatchPacket.keyMap)
-        def difficultyName= packet.getData(MatchPacket.keyDifficulty)
-        def length= packet.getData(MatchPacket.keyLength)
-        def wave= packet.getData(MatchPacket.keyWave).toInteger()
         def time= packet.getData(MatchPacket.keyTime)
         
-        lastLevelName= levelName
-        lastDiffKey= [difficultyName, length]
-        if (levels[levelName] == null) {
-            levels[levelName]= new Level(levelName)
-        }
-        if (difficulties[[difficultyName, length]] == null) {
-            difficulties[[difficultyName, length]]= new Difficulty(difficultyName, length, wave)
-        } else {
-            difficulties[[difficultyName, length]].addWave(wave)
-        }
+        lastLevelName= packet.getData(MatchPacket.keyMap)
+        lastDiffKey= [packet.getData(MatchPacket.keyDifficulty), packet.getData(MatchPacket.keyLength)]
+        def tempDiff= difficulties[lastDiffKey] == null ? 
+                new Difficulty(lastDiffKey[0], lastDiffKey[1], 0) : difficulties[lastDiffKey]
+        def tempLevel= levels[lastLevelName] == null ? new Level(lastLevelName) : levels[levelName]
+        def tempDeaths= deaths.clone()
         
-        levels[levelName].addTime(time)
-        difficulties[[difficultyName, length]].addTime(time)
+        tempDiff.addWave(packet.getData(MatchPacket.keyWave).toInteger())
+        tempLevel.addTime(time)
+        tempDiff.addTime(time)
         if (packet.getData(MatchPacket.keyResult).toString() == "1") {
-            levels[levelName].addLosses()
-            difficulties[[difficultyName, length]].addLosses()
+            tempLevel.addLosses()
+            tempDiff.addLosses()
         } else {
-            levels[levelName].addWins()
-            difficulties[[difficultyName, length]].addWins()
+            tempLevel.addWins()
+            tempDiff.addWins()
         }
         
         packet.getData(MatchPacket.keyDeaths).each {source, count ->
-            if (deaths[source] == null) {
-                deaths[source]= count.toInteger()
+            if (tempDeaths[source] == null) {
+                tempDeaths[source]= count.toInteger()
             } else {
-                deaths[source]+= count.toInteger()
+                tempDeaths[source]+= count.toInteger()
             }
         }
+        difficulties[lastDiffKey]= tempDiff
+        levels[lastLevelName]= tempLevel
+        deaths= tempDeaths
         save()
     }
 }
