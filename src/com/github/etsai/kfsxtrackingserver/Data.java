@@ -121,7 +121,7 @@ public class Data {
     public Iterable<Aggregate> getAggregateStats() {
         return Collections.unmodifiableCollection(aggregate.values());
     }
-    public void accumulateStat(String stat, String category, int offset) {
+    public void accumulateAggregateStat(String stat, int offset, String category) {
         Integer id= genAggregateKey(stat, category);
         Aggregate tempAggregate;
         

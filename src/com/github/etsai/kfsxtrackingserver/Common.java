@@ -19,5 +19,6 @@ public class Common {
     public static final Logger logger= Logger.getLogger("KFSXTrackingServer");
     public static Properties properties;
     public static Content matchContent;
+    public static Data statsData;
     public static Map<String, Content> playerContents;
 }
