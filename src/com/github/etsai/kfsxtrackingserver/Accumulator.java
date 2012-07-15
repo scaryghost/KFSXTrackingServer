@@ -8,6 +8,6 @@ package com.github.etsai.kfsxtrackingserver;
  * Interface for accumulating and reordering packets
  * @author eric
  */
-public interface Accumulator {
-    public void addPacket(Packet packet);
+public interface Accumulator extends Runnable {
+    public void add(String data);
 }
