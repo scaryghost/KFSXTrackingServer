@@ -5,7 +5,8 @@
 
 package com.github.etsai.kfsxtrackingserver.impl
 
-import static com.github.etsai.kfsxtrackingserver.Common.statsData;
+import static com.github.etsai.kfsxtrackingserver.Common.statsData
+import static com.github.etsai.kfsxtrackingserver.Common.logger
 import com.github.etsai.kfsxtrackingserver.Accumulator
 import com.github.etsai.kfsxtrackingserver.Packet
 import com.github.etsai.kfsxtrackingserver.Packet.Type
@@ -34,7 +35,7 @@ public class AccumulatorImpl implements Accumulator {
                     try {
                         wait();
                     } catch (InterruptedException ex) {
-                        Logger.getLogger(UDPListener.class.getName()).log(Level.SEVERE, null, ex);
+                        logger.log(Level.SEVERE, null, ex);
                     }
                 }
                 
@@ -71,7 +72,7 @@ public class AccumulatorImpl implements Accumulator {
                         }
                         break
                     default:
-                        System.err.println "Unrecognized packet type: ${packet.getType()}"
+                        logger.info("Unrecognized packet type: ${packet.getType()}")
                         break
                 }
             }
