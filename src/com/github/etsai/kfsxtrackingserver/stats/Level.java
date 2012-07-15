@@ -5,12 +5,23 @@
 package com.github.etsai.kfsxtrackingserver.stats;
 
 import com.github.etsai.kfsxtrackingserver.Time;
+import java.sql.ResultSet;
+import java.sql.SQLException;
 
 /**
  *
  * @author etsai
  */
 public class Level extends TableCommon {
+    public static Level build(ResultSet rs) throws SQLException {
+        Level level= new Level(rs.getInt("id"), rs.getString("name"));
+        
+        level.time= new Time(rs.getString("time"));
+        level.addLosses(rs.getInt("losses"));
+        level.addWins(rs.getInt("wins"));
+        return level;
+    }
+    
     private Time time;
     private final String name;
     

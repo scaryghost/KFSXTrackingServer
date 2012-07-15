@@ -4,11 +4,20 @@
  */
 package com.github.etsai.kfsxtrackingserver.stats;
 
+import java.sql.ResultSet;
+import java.sql.SQLException;
+
 /**
  *
  * @author etsai
  */
 public class Aggregate extends Death {
+    public static Aggregate build(ResultSet rs) throws SQLException {
+        Aggregate aggregate= new Aggregate(rs.getInt("id"), rs.getString("stat"), 
+                rs.getString("category"));
+        aggregate.addValue(Integer.valueOf(rs.getString("value")));
+        return aggregate;
+    }
     private final String category;
     
     public Aggregate(int id, String stat, String category) {

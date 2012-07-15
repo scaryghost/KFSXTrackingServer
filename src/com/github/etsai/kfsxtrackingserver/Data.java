@@ -7,12 +7,55 @@ package com.github.etsai.kfsxtrackingserver;
 import com.github.etsai.kfsxtrackingserver.stats.*;
 import java.util.Collections;
 import java.util.Map;
+import java.sql.*;
 
 /**
  * Interface for accessing and modifying the server data
  * @author etsai
  */
 public class Data {
+    public static Data load(Connection conn) throws SQLException {
+        Data data= new Data();
+        Statement statement= conn.createStatement();
+        ResultSet rs;
+        
+        rs= statement.executeQuery("select * from deaths");
+        while(rs.next()) {
+            Death death= Death.build(rs);
+            data.deaths.put(death.getId(), death);
+        }
+        rs.close();
+        
+        rs= statement.executeQuery("select * from records");
+        while(rs.next()) {
+            Record record= Record.build(rs);
+            data.records.put(record.getSteamId(), record);
+        }
+        rs.close();
+        
+        rs= statement.executeQuery("select * from levels");
+        while(rs.next()) {
+            Level level= Level.build(rs);
+            data.levels.put(level.getId(),level);
+        }
+        rs.close();
+        
+        rs= statement.executeQuery("select * from difficulties");
+        while(rs.next()) {
+            Difficulty difficulty= Difficulty.build(rs);
+            data.difficulties.put(difficulty.getId(), difficulty);
+        }
+        rs.close();
+        
+        rs= statement.executeQuery("select * from aggregate");
+        while(rs.next()) {
+            Aggregate aggregate= Aggregate.build(rs);
+            data.aggregate.put(aggregate.getId(), aggregate);
+        }
+        rs.close();
+        return data;
+    }
+    
     private static Integer genDifficultyKey(String name, String length) {
         return String.format("%s-%s",name, length).hashCode();
     }

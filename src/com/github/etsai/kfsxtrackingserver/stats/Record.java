@@ -4,11 +4,23 @@
  */
 package com.github.etsai.kfsxtrackingserver.stats;
 
+import java.sql.ResultSet;
+import java.sql.SQLException;
+
 /**
  *
- * @author eric
+ * @author etsai
  */
 public class Record extends TableCommon {
+    public static Record build(ResultSet rs) throws SQLException {
+        Record record= new Record(rs.getString("steamid"));
+        
+        record.disconnects= rs.getInt("disconnects");
+        record.addLosses(rs.getInt("losses"));
+        record.addWins(rs.getInt("wins"));
+        return record;
+    }
+    
     private final String steamid;
     private int disconnects;
     

@@ -4,11 +4,21 @@
  */
 package com.github.etsai.kfsxtrackingserver.stats;
 
+import java.sql.ResultSet;
+import java.sql.SQLException;
+
 /**
  *
  * @author etsai
  */
 public class Death {
+    public static Death build(ResultSet rs) throws SQLException {
+        Death death= new Death(rs.getInt("id"), rs.getString("name"));
+        
+        death.value= rs.getInt("count");
+        return death;
+    }
+    
     private final int id;
     private final String stat;
     private long value;
