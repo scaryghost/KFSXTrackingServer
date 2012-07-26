@@ -12,7 +12,7 @@ import java.util.regex.Pattern;
  * @author etsai
  */
 public class Time {
-    private static Pattern timePat= Pattern.compile("(\\d)+ days (\\d){2}:(\\d){2}:(\\d){2}");
+    private static Pattern timePat= Pattern.compile("(\\d+) days (\\d{2}):(\\d{2}):(\\d{2})");
     
     private int days, hours, minutes, seconds;
     
@@ -42,9 +42,10 @@ public class Time {
             throw new RuntimeException("Input is not in the format D days HH:MM:SS");
         } else {
             days= Integer.valueOf(matcher.group(1));
-            minutes= Integer.valueOf(matcher.group(2));
-            hours= Integer.valueOf(matcher.group(3));
+            hours= Integer.valueOf(matcher.group(2));
+            minutes= Integer.valueOf(matcher.group(3));
             seconds= Integer.valueOf(matcher.group(4));
+            System.out.format("%s-%s-%s-%s%n", days, hours, minutes, seconds);
         }
     }
     /**
