@@ -5,9 +5,12 @@
 package com.github.etsai.kfsxtrackingserver;
 
 import com.github.etsai.kfsxtrackingserver.stats.*;
+import java.sql.Connection;
+import java.sql.ResultSet;
+import java.sql.SQLException;
+import java.sql.Statement;
 import java.util.Collections;
 import java.util.Map;
-import java.sql.*;
 
 /**
  * Interface for accessing and modifying the server data
