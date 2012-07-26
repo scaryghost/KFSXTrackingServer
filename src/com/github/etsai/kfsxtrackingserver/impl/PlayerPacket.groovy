@@ -70,10 +70,6 @@ public class PlayerPacket extends Packet {
     }
     public boolean isLast() {
         return last
-    }
-    public boolean isValid() {
-        return valid
-    }
-	
+    }	
 }
 

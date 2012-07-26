@@ -26,9 +26,12 @@ public class MatchPacket extends Packet {
         super(protocol, version)
         
         try {
-            def deaths= new Properties()
-            deaths.load(new StringReader(parts[7].replace(',','\n')))
-            
+            def deaths= [:]
+            parts[7].split(",").each {death ->
+                def keyVal= death.split("=")
+                deaths[keyVal[0]]= keyVal[1]
+            }
+
             data= [:]
             data[keyMap]= parts[1]
             data[keyDifficulty]= parts[2]
@@ -52,9 +55,6 @@ public class MatchPacket extends Packet {
     }
     public boolean isLast() {
         return true
-    }
-    public boolean isValid() {
-        return valid
     }
 }
 

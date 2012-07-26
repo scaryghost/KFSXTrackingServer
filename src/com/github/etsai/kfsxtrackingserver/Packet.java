@@ -64,9 +64,11 @@ public abstract class Packet {
     public Object getData(String key) {
         return data.get(key);
     }
+    public boolean isValid() {
+        return valid;
+    }
+    
     public abstract Type getType();
     public abstract int getSeqnum();
     public abstract boolean isLast();
-    public abstract boolean isValid();
-
 }

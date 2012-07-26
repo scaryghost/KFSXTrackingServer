@@ -8,6 +8,8 @@ package com.github.etsai.kfsxtrackingserver.impl
 import com.github.etsai.kfsxtrackingserver.DataWriter
 import static com.github.etsai.kfsxtrackingserver.Common.statsData
 
+import java.sql.*
+
 /**
  *
  * @author etsai
@@ -21,42 +23,31 @@ public class DataWriterImpl extends DataWriter {
     (?, coalesce(( select steamid from records where id=?),?), ?, ?, ?);'''
     private static def aggregateSql= 
     '''replace into aggregate (id, stat, value, category) values 
-    (?, coalesce(( select stat from aggregate where id=?),?), ?, coalesce(( select category from aggregate where id=?),?);'''
+    (?, coalesce(( select stat from aggregate where id=?),?), ?, 
+    coalesce(( select category from aggregate where id=?),?));'''
     private static def difficultySql= 
     '''replace into difficulties (id, name, length, wins, losses, wave, time) values
     (?, coalesce(( select name from difficulties where id=?),?),
     coalesce(( select length from difficulties where id=?),?), ?, ?, ?, ?);'''
     private static def levelSql=
-'''replace into levels (id, name, wins, losses, time) values 
+    '''replace into levels (id, name, wins, losses, time) values 
     (?, coalesce(( select name from levels where id=?),?), ?, ?, ?);'''
-    
-    private enum Table {
-        Difficulty(deathSql), Level(levelSql), Record(recordSql), Aggregate(aggregateSql), Death(deathSql);
-        
-        public final def sql
-        
-        public Table(def sql) {
-            this.sql= sql
-        }
-    }
     
     private def conn
     private def preparedStatements
 
-    public DataWriterImpl() {
-        conn= DriverManager.getConnection("jdbc:sqlite:kfsxdb.sqlite");
-        conn.setAutoCommit(false);
-        
+    public DataWriterImpl(def conn) {
+        this.conn= conn
         reset()
     }
     private void reset() {
         preparedStatements= [:]
-        Table.getValues().each {value ->
-            preparedStatements[value]= conn.prepareStatement(value.sql)
+        [deathSql, recordSql, aggregateSql, difficultySql, levelSql].each {sql ->
+            preparedStatements[sql]= conn.prepareStatement(sql)
         }
     }
     public void addDiffId(String name, String length) {
-        def ps= preparedStatements[Difficulty]
+        def ps= preparedStatements[difficultySql]
         def diff= statsData.getDifficulty(name, length)
         def id= diff.getId()
         
@@ -73,20 +64,20 @@ public class DataWriterImpl extends DataWriter {
         
     }
     public void addLevelId(String name) {
-        def ps= preparedStatements[Level]
+        def ps= preparedStatements[levelSql]
         def level= statsData.getLevel(name)
         def id= level.getId()
         
         ps.setInt(1, id)
         ps.setInt(2, id)
         ps.setString(3, level.getName())
-        ps.setString(4, level.getWins())
-        ps.setString(5, level.getLosses())
+        ps.setInt(4, level.getWins())
+        ps.setInt(5, level.getLosses())
         ps.setString(6, level.getTime().toString())
         ps.addBatch()
     }
     public void addRecordId(String steamid) {
-        def ps= preparedStatements[Record]
+        def ps= preparedStatements[recordSql]
         def record= statsData.getRecord(steamid)
         def id= record.getId()
         
@@ -101,31 +92,32 @@ public class DataWriterImpl extends DataWriter {
     
     @Override
     public void run() {
+        println "Writing data to db..."
         statsData.getAggregateStats().each {aggregate ->
-            def ps= preparedStatements[Aggregate]
+            def ps= preparedStatements[aggregateSql]
             def id= aggregate.getId()
             
             ps.setInt(1, id)
             ps.setInt(2, id)
             ps.setString(3, aggregate.getStat())
             ps.setString(4, aggregate.getValue())
-            ps.setString(5, id)
+            ps.setInt(5, id)
             ps.setString(6, aggregate.getCategory())
             ps.addBatch()
         }
         
         statsData.getDeaths().each {death ->
-            def ps= preparedStatements[Death]
+            def ps= preparedStatements[deathSql]
             def id= death.getId()
             
             ps.setInt(1, id);
             ps.setInt(2, id);
             ps.setString(3, death.getStat());
-            ps.setInt(4, (int)death.getValue());
+            ps.setInt(4, death.getValue().toInteger());
             ps.addBatch();
         }
         
-        preparedStatements.each {ps ->
+        preparedStatements.each {sql, ps ->
             ps.executeBatch()
         }
         conn.commit()

@@ -28,6 +28,7 @@ public class Level extends TableCommon {
     public Level(int id, String name) {
         super(id);
         this.name= name;
+        time= new Time(0);
     }
     public String getName() {
         return name;

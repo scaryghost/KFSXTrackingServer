@@ -4,13 +4,17 @@
  */
 package com.github.etsai.kfsxtrackingserver;
 
-import static com.github.etsai.kfsxtrackingserver.Common.*;
+import static com.github.etsai.kfsxtrackingserver.Common.logger;
+import static com.github.etsai.kfsxtrackingserver.Common.properties;
 import static com.github.etsai.kfsxtrackingserver.ServerProperties.propUdpPort;
 import java.io.IOException;
 import java.net.InetAddress;
 import java.net.UnknownHostException;
+import java.sql.Connection;
+import java.sql.DriverManager;
+import java.sql.SQLException;
 import java.util.Date;
-import java.util.HashMap;
+import java.util.Timer;
 import java.util.logging.FileHandler;
 import java.util.logging.Handler;
 import java.util.logging.SimpleFormatter;
@@ -25,7 +29,7 @@ public class Main {
     /**
      * @param args the command line arguments
      */
-    public static void main(String[] args) throws ClassNotFoundException {
+    public static void main(String[] args) throws ClassNotFoundException, SQLException {
         CommandLine clom= CommandLine.parse(args);
         
         initLogging();
@@ -49,10 +53,17 @@ public class Main {
         });
         
         Class.forName("org.sqlite.JDBC");
-        matchContent= (Content) new com.github.etsai.kfsxtrackingserver.impl.MatchContent();
-        matchContent.load();
+        Connection conn= DriverManager.getConnection("jdbc:sqlite:kfsxdb.sqlite");
+        conn.setAutoCommit(false);
         
-        playerContents= new HashMap();
+        Timer timer = new Timer();
+        Data.writer= new com.github.etsai.kfsxtrackingserver.impl.DataWriterImpl(conn);
+        timer.scheduleAtFixedRate(Data.writer, 10000, 5000);
+        Runtime.getRuntime().addShutdownHook( 
+            new Thread(Data.writer)
+        );
+        
+        Common.statsData= Data.load(conn);
         udpTh.start();
     }
     

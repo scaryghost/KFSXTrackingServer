@@ -10,6 +10,7 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.Map;
 
 /**
@@ -17,6 +18,8 @@ import java.util.Map;
  * @author etsai
  */
 public class Data {
+    public static DataWriter writer;
+    
     public static Data load(Connection conn) throws SQLException {
         Data data= new Data();
         Statement statement= conn.createStatement();
@@ -69,11 +72,11 @@ public class Data {
         return String.format("%s-%s",stat, category).hashCode();
     }
     
-    private Map<Integer, Difficulty> difficulties;
-    private Map<Integer, Level> levels;
-    private Map<String, Record> records;
-    private Map<Integer, Aggregate> aggregate;
-    private Map<Integer, Death> deaths;
+    private Map<Integer, Difficulty> difficulties= new HashMap<>();
+    private Map<Integer, Level> levels= new HashMap<>();
+    private Map<String, Record> records= new HashMap<>();
+    private Map<Integer, Aggregate> aggregate= new HashMap<>();
+    private Map<Integer, Death> deaths= new HashMap<>();
     
     public Difficulty getDifficulty(String name, String length) {
         return difficulties.get(genDifficultyKey(name, length));
@@ -103,6 +106,7 @@ public class Data {
         tempDiff.addWave(wave);
         tempDiff.addTime(timeLength);
         difficulties.put(id, tempDiff);
+        writer.addDiffId(name, length);
     }
     
     public Level getLevel(String name) {
@@ -132,6 +136,7 @@ public class Data {
         }
         tempLevel.addTime(timeLength);
         levels.put(id, tempLevel);
+        writer.addLevelId(name);
     }
     
     public Record getRecord(String steamid) {
@@ -162,6 +167,7 @@ public class Data {
                 throw new RuntimeException("Unrecognized result value: "+result);
         }
         records.put(steamid, tempRecord);
+        writer.addRecordId(steamid);
     }
     
     public Iterable<Aggregate> getAggregateStats() {
