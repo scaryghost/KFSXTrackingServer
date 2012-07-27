@@ -6,7 +6,7 @@ package com.github.etsai.kfsxtrackingserver;
 
 import static com.github.etsai.kfsxtrackingserver.Common.logger;
 import static com.github.etsai.kfsxtrackingserver.Common.properties;
-import static com.github.etsai.kfsxtrackingserver.ServerProperties.propUdpPort;
+import static com.github.etsai.kfsxtrackingserver.ServerProperties.*;
 import java.io.IOException;
 import java.net.InetAddress;
 import java.net.UnknownHostException;
@@ -53,12 +53,13 @@ public class Main {
         });
         
         Class.forName("org.sqlite.JDBC");
-        Connection conn= DriverManager.getConnection("jdbc:sqlite:kfsxdb.sqlite");
+        String dbUri= String.format("jdbc:sqlite:%s", properties.getProperty(propDbName));
+        Connection conn= DriverManager.getConnection(dbUri);
         conn.setAutoCommit(false);
         
         Timer timer = new Timer();
         Data.writer= new com.github.etsai.kfsxtrackingserver.impl.DataWriterImpl(conn);
-        timer.scheduleAtFixedRate(Data.writer, 10000, 5000);
+        timer.scheduleAtFixedRate(Data.writer, 0, Long.valueOf(properties.getProperty(propDbWritePeriod)));
         Runtime.getRuntime().addShutdownHook( 
             new Thread(Data.writer)
         );

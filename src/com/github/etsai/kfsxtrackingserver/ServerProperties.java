@@ -19,6 +19,8 @@ public class ServerProperties {
     
     public static final String propUdpPort= "udp.port";
     public static final String propPassword= "password";
+    public static final String propDbName= "db.name";
+    public static final String propDbWritePeriod= "db.write.period";
     
     public synchronized static Properties load(String filename) throws IOException {
         if (props == null) {
@@ -34,6 +36,8 @@ public class ServerProperties {
             defaults= new Properties();
             defaults.setProperty(propUdpPort, "6000");
             defaults.setProperty(propPassword, "server");
+            defaults.setProperty(propDbName, "kfsxdb.sqlite");
+            defaults.setProperty(propDbWritePeriod, "60000");
         }
         return defaults;
     }
