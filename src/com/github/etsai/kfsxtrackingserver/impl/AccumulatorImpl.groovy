@@ -20,11 +20,15 @@ public class AccumulatorImpl implements Accumulator {
     private def packets= Collections.synchronizedList([]);
     
     public synchronized void add(String data) {
-        Packet packet= Packet.parse(data);
-        
-        if (packet.isValid()) {
-            packets.add(packet);
-            notify();
+        try {
+            Packet packet= Packet.parse(data);
+
+            if (packet.isValid()) {
+                packets.add(packet);
+                notify();
+            }
+        } catch (Exception ex) {
+            logger.log(Level.SEVERE, "Error parsing message: ${data}", ex);
         }
     }
     
