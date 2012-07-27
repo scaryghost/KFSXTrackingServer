@@ -7,6 +7,7 @@ package com.github.etsai.kfsxtrackingserver.impl
 
 import com.github.etsai.kfsxtrackingserver.DataWriter
 import static com.github.etsai.kfsxtrackingserver.Common.statsData
+import static com.github.etsai.kfsxtrackingserver.Common.logger
 
 import java.sql.*
 
@@ -35,6 +36,7 @@ public class DataWriterImpl extends DataWriter {
     
     private def conn
     private def preparedStatements
+    private def saveDeaths, saveAggregate
 
     public DataWriterImpl(def conn) {
         this.conn= conn
@@ -45,6 +47,8 @@ public class DataWriterImpl extends DataWriter {
         [deathSql, recordSql, aggregateSql, difficultySql, levelSql].each {sql ->
             preparedStatements[sql]= conn.prepareStatement(sql)
         }
+        saveDeaths= false
+        saveAggregate= false
     }
     public void addDiffId(String name, String length) {
         def ps= preparedStatements[difficultySql]
@@ -90,31 +94,40 @@ public class DataWriterImpl extends DataWriter {
         ps.addBatch()
     }
     
+    public void addDeath(String death) {
+        saveDeaths= true
+    }
+    public void addAggregate(String stat, String category) {
+        saveAggregate= true
+    }
+    
     @Override
     public void run() {
-        println "Writing data to db..."
-        statsData.getAggregateStats().each {aggregate ->
-            def ps= preparedStatements[aggregateSql]
-            def id= aggregate.getId()
-            
-            ps.setInt(1, id)
-            ps.setInt(2, id)
-            ps.setString(3, aggregate.getStat())
-            ps.setString(4, aggregate.getValue())
-            ps.setInt(5, id)
-            ps.setString(6, aggregate.getCategory())
-            ps.addBatch()
+        if (saveDeaths) {
+            statsData.getAggregateStats().each {aggregate ->
+                def ps= preparedStatements[aggregateSql]
+                def id= aggregate.getId()
+
+                ps.setInt(1, id)
+                ps.setInt(2, id)
+                ps.setString(3, aggregate.getStat())
+                ps.setString(4, aggregate.getValue())
+                ps.setInt(5, id)
+                ps.setString(6, aggregate.getCategory())
+                ps.addBatch()
+            }
         }
-        
-        statsData.getDeaths().each {death ->
-            def ps= preparedStatements[deathSql]
-            def id= death.getId()
-            
-            ps.setInt(1, id);
-            ps.setInt(2, id);
-            ps.setString(3, death.getStat());
-            ps.setInt(4, death.getValue().toInteger());
-            ps.addBatch();
+        if (saveAggregate) {
+            statsData.getDeaths().each {death ->
+                def ps= preparedStatements[deathSql]
+                def id= death.getId()
+
+                ps.setInt(1, id);
+                ps.setInt(2, id);
+                ps.setString(3, death.getStat());
+                ps.setInt(4, death.getValue().toInteger());
+                ps.addBatch();
+            }
         }
         
         preparedStatements.each {sql, ps ->
@@ -122,6 +135,7 @@ public class DataWriterImpl extends DataWriter {
         }
         conn.commit()
         reset()
+        logger.info("Writing changes to database")
     }
 }
 
