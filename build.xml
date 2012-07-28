@@ -71,4 +71,16 @@
     nbproject/build-impl.xml file. 
 
     -->
+
+    <condition property="isUnix">
+        <os family="unix"/>
+    </condition>
+    
+    <target name="-pre-init" depends="override-properties-unix" />
+    <target name="override-properties-unix" if="isUnix">
+        <property environment="env" />
+        <fail unless="env.GROOVY_HOME">GROOVY_HOME must be set</fail>
+        <property name="user.properties.file" value="linux_build.properties" />
+    </target>
+
 </project>
