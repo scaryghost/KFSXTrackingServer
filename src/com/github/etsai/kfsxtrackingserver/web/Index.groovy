@@ -20,14 +20,44 @@ public class Index extends Page {
 
                 
             }
-/*
             'levels'() {
-                def attr= [:]
                 statsData.getLevels().each {level ->
-                    
+                    def attr= [:]
+                    attr["name"]= level.getName()
+                    attr["wins"]= level.getWins()
+                    attr["losses"]= level.getLosses()
+                    attr["time"]= level.getTime().toString()
+                    xmlBuilder.'level'(attr)
                 }
             }
-            */
+            'deaths'() {
+                statsData.getDeaths().each {death ->
+                    def attr= [:]
+                    attr["source"]= death.getStat()
+                    attr["count"]= death.getValue()
+                    xmlBuilder.'death'(attr)
+                }
+            }
+            'aggregate'() {
+                def categories= [:]
+                statsData.getAggregateStats().each {stat ->
+                    def cat= stat.getCategory()
+                    if (categories[cat] == null) {
+                        categories[cat]= []
+                    }
+                    categories[cat] << stat
+                }
+                categories.each {cat, stats ->
+                    xmlBuilder.'stats'(category: cat) {
+                        stats.each {stat ->
+                            def attrs= [:]
+                            attrs["stat"]= stat.getStat()
+                            attrs["value"]= stat.getValue()
+                            xmlBuilder.'stat'(attrs)
+                        }
+                    }
+                }
+            }
         }
     }
 }
