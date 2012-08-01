@@ -1,7 +1,14 @@
 package com.github.etsai.kfsxtrackingserver;
 
+import static com.github.etsai.kfsxtrackingserver.Common.logger;
+import com.github.etsai.kfsxtrackingserver.web.Page;
+import java.io.BufferedReader;
+import java.io.DataOutputStream;
+import java.io.IOException;
+import java.io.InputStreamReader;
 import java.net.ServerSocket;
 import java.net.Socket;
+import java.util.logging.Level;
 
 public class HTTPListener implements Runnable {
     private final int port;
@@ -13,10 +20,17 @@ public class HTTPListener implements Runnable {
 
     @Override
     public void run() {
-        httpSocket= new ServerSocket(port);
-        
-        while(true) {
-            Socket connection= webSocket.accept();
+        try {
+            httpSocket= new ServerSocket(port);
+            
+            while(true) {
+                Socket connection= httpSocket.accept();
+                Thread th= new Thread(new Handler(connection));
+                
+                th.start();
+            }
+        } catch (IOException ex) {
+            logger.log(Level.SEVERE, null, ex);
         }
     }
 
@@ -29,15 +43,16 @@ public class HTTPListener implements Runnable {
 
         @Override
         public void run() {
-            BufferedReader input = new BufferedReader(new InputStreamReader(connection.getInputStream()));
-            DataOutputSream output= new DataOutputStream(connection.getOutputStream());
-
-            String[] request= input.readLine().tokenize(" ");
-            String[] fileSplit= request[1].tokenize("?=");
-            String filepath= fileSplit[0] == "/" ? "/index.xml" : fileSplit[0];
-            String extension= filepath.substring(filepath.lastIndexOf(".")+1, filepath.length());
-
-            output.close();
+            try {
+                BufferedReader input = new BufferedReader(new InputStreamReader(connection.getInputStream()));
+                try (DataOutputStream output = new DataOutputStream(connection.getOutputStream())) {
+                    String[] request= input.readLine().split(" ");
+                    
+                    Page.generate(output, request);
+                }
+            } catch (IOException ex) {
+                logger.log(Level.SEVERE, null, ex);
+            }
         }
     }
 }

@@ -44,7 +44,8 @@ public class Main {
         
         UDPListener listener= new UDPListener(Integer.valueOf(properties.getProperty(propUdpPort)));
         Thread udpTh= new Thread(listener);
-        
+        Thread httpTh= new Thread(new HTTPListener(8080));
+                
         Runtime.getRuntime().addShutdownHook(new Thread() {
             @Override
             public void run() {
@@ -66,6 +67,7 @@ public class Main {
         
         Common.statsData= Data.load(conn);
         udpTh.start();
+        httpTh.start();
     }
     
     public static void initLogging() {
