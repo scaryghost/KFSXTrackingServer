@@ -5,8 +5,10 @@
 
 package com.github.etsai.kfsxtrackingserver.impl
 
+import static com.github.etsai.kfsxtrackingserver.Common.logger
 import com.github.etsai.kfsxtrackingserver.Packet
 import com.github.etsai.kfsxtrackingserver.Packet.Type
+import java.util.logging.Level
 
 /**
  *
@@ -58,6 +60,7 @@ public class PlayerPacket extends Packet {
             data[keyStats]= playerStats
             valid= true
         } catch (Exception e) {
+            logger.log(Level.SEVERE, null, ex)
             valid= false
         }
     }

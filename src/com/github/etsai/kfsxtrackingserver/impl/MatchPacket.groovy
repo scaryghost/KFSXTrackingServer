@@ -5,9 +5,11 @@
 
 package com.github.etsai.kfsxtrackingserver.impl
 
+import static com.github.etsai.kfsxtrackingserver.Common.logger
 import com.github.etsai.kfsxtrackingserver.Packet
 import com.github.etsai.kfsxtrackingserver.Packet.Type
 import com.github.etsai.kfsxtrackingserver.Time
+import java.util.logging.Level
 
 /**
  *
@@ -27,9 +29,11 @@ public class MatchPacket extends Packet {
         
         try {
             def deaths= [:]
-            parts[7].split(",").each {death ->
-                def keyVal= death.split("=")
-                deaths[keyVal[0]]= keyVal[1]
+            if (parts[7] != "") {
+                parts[7].split(",").each {death ->
+                    def keyVal= death.split("=")
+                    deaths[keyVal[0]]= keyVal[1]
+                }
             }
 
             data= [:]
@@ -43,6 +47,7 @@ public class MatchPacket extends Packet {
             
             valid= true
         } catch (Exception ex) {
+            logger.log(Level.SEVERE, null, ex)
             valid= false
         }
         
