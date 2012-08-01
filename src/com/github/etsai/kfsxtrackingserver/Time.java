@@ -45,7 +45,6 @@ public class Time {
             hours= Integer.valueOf(matcher.group(2));
             minutes= Integer.valueOf(matcher.group(3));
             seconds= Integer.valueOf(matcher.group(4));
-            System.out.format("%s-%s-%s-%s%n", days, hours, minutes, seconds);
         }
     }
     /**
