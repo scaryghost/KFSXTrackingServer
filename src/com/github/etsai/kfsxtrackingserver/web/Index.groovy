@@ -51,7 +51,7 @@ public class Index extends Page {
                     xmlBuilder.'stats'(category: cat) {
                         stats.each {stat ->
                             def attrs= [:]
-                            attrs["stat"]= stat.getStat()
+                            attrs["name"]= stat.getStat()
                             attrs["value"]= stat.getValue()
                             xmlBuilder.'stat'(attrs)
                         }
