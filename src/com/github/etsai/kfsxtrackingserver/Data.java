@@ -184,6 +184,7 @@ public class Data {
         }
         tempAggregate.addValue(offset);
         aggregate.put(id, tempAggregate);
+        writer.addAggregate(stat, category);
     }
     
     public Iterable<Death> getDeaths() {
@@ -200,5 +201,6 @@ public class Data {
         }
         tempDeath.addValue(offset);
         deaths.put(id, tempDeath);
+        writer.addDeath(stat);
     }
 }
