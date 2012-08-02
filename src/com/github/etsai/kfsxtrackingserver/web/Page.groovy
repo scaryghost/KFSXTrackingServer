@@ -6,7 +6,7 @@ import java.io.DataOutputStream
 import groovy.xml.MarkupBuilder
 
 public abstract class Page {
-    private static def pages= ["index.xml", "playerinfo.xml", "players.xml"].collect {"/${it}" as String}
+    private static def pages= ["index.xml", "records.xml", "profile.xml"].collect {"/${it}" as String}
     private static def methods= ["GET", "HEAD"]
     private static def returnCodes= [200: "OK", 400: "Bad Request", 403: "Forbidden", 
         404: "Not Found", 500: "Internal Server Error", 501: "Not Implemented"]
@@ -19,7 +19,7 @@ public abstract class Page {
         
         def code, body
         def fileSplit= request[1].tokenize("\\?=");
-        def filename= fileSplit[0]
+        def filename= fileSplit[0] == "/" ? "/index.xml" : fileSplit[0]
         def extension= filename.substring(filename.lastIndexOf(".")+1, filename.length());
         
         try {
@@ -34,7 +34,21 @@ public abstract class Page {
                     body= "${code} ${returnCodes[code]}"
                     extension= "html"
                 } else {
-                    new Index().fillBody(xml)
+                    switch (filename) {
+                        case "/":
+                            new Index().fillBody(xml)
+                            break
+                        case "/index.xml":
+                            new Index().fillBody(xml)
+                            break
+                        case "/records.xml":
+                            new Records().fillBody(xml)
+                            break
+                        case "/profile.xml":
+                            new Profile(fileSplit[2]).fillBody(xml)
+                            break
+                    }
+                    
                     body= writer.toString()
                     //body= pageActions[filepath](fileSplit)
                 }              
