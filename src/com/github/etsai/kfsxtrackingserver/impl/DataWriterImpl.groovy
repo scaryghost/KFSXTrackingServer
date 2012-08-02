@@ -33,10 +33,14 @@ public class DataWriterImpl extends DataWriter {
     private static def levelSql=
     '''replace into levels (id, name, wins, losses, time) values 
     (?, coalesce(( select name from levels where id=?),?), ?, ?, ?);'''
+    private static def playerSql= 
+    '''replace into player (id, steamid, stats, category) values
+    (?, coalesce(( select steamid from player where id=?),?), ?, 
+    coalesce(( select category from player where id=?),?));'''
     
     private def conn
     private def preparedStatements
-    private def saveDeaths, saveAggregate
+    private def saveDeaths, saveAggregate, playerSteamIds
 
     public DataWriterImpl(def conn) {
         this.conn= conn
@@ -44,11 +48,13 @@ public class DataWriterImpl extends DataWriter {
     }
     private void reset() {
         preparedStatements= [:]
-        [deathSql, recordSql, aggregateSql, difficultySql, levelSql].each {sql ->
+        [deathSql, recordSql, aggregateSql, difficultySql, 
+            levelSql, playerSql].each {sql ->
             preparedStatements[sql]= conn.prepareStatement(sql)
         }
         saveDeaths= false
         saveAggregate= false
+        playerSteamIds= new HashSet()
     }
     public void addDiffId(String name, String length) {
         def ps= preparedStatements[difficultySql]
@@ -101,6 +107,10 @@ public class DataWriterImpl extends DataWriter {
         saveAggregate= true
     }
     
+    public void addPlayer(String steamid) {
+        playerSteamIds.add(steamid)
+    }
+    
     @Override
     public void run() {
         if (saveDeaths) {
@@ -129,10 +139,28 @@ public class DataWriterImpl extends DataWriter {
                 ps.addBatch();
             }
         }
+        playerSteamIds.each {steamid ->
+            statsData.getPlayerStats(steamid).each {category, player ->
+                def ps= preparedStatements[playerSql]
+                def id= player.getId()
+                def stats= []
+                player.getStats().each {stat, value ->
+                    stats << "${stat}=${value}"
+                }
+                ps.setInt(1, id)
+                ps.setInt(2, id)
+                ps.setString(3, steamid)
+                ps.setString(4, stats.join(","))
+                ps.setInt(5, id)
+                ps.setString(6, category)
+                ps.addBatch()
+            }
+        }
         
         preparedStatements.each {sql, ps ->
             ps.executeBatch()
         }
+        
         conn.commit()
         reset()
         logger.info("Writing changes to database")

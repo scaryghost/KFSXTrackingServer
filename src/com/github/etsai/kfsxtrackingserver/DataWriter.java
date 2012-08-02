@@ -16,4 +16,5 @@ public abstract class DataWriter extends TimerTask {
     public abstract void addRecordId(String steamid);
     public abstract void addDeath(String death);
     public abstract void addAggregate(String stat, String category);
+    public abstract void addPlayer(String steamid);
 }

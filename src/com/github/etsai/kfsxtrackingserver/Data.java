@@ -59,6 +59,16 @@ public class Data {
             data.aggregate.put(aggregate.getId(), aggregate);
         }
         rs.close();
+        
+        rs= statement.executeQuery("select * from player");
+        while(rs.next()) {
+            Player player= Player.build(rs);
+            String steamid= player.getSteamId();
+            if (!data.playerStats.containsKey(steamid)) {
+                data.playerStats.put(steamid, new HashMap());
+            }
+            data.playerStats.get(steamid).put(player.getCategory(), player);
+        }
         return data;
     }
     
@@ -71,12 +81,16 @@ public class Data {
     private static Integer genAggregateKey(String stat, String category) {
         return String.format("%s-%s",stat, category).hashCode();
     }
+    private static Integer genPlayerKey(String steamid, String category) {
+        return String.format("%s-%s",steamid, category).hashCode();
+    }
     
     private Map<Integer, Difficulty> difficulties= new HashMap<>();
     private Map<Integer, Level> levels= new HashMap<>();
     private Map<String, Record> records= new HashMap<>();
     private Map<Integer, Aggregate> aggregate= new HashMap<>();
     private Map<Integer, Death> deaths= new HashMap<>();
+    private Map<String, Map<String, Player>> playerStats= new HashMap<>();
     
     public Difficulty getDifficulty(String name, String length) {
         return difficulties.get(genDifficultyKey(name, length));
@@ -202,5 +216,23 @@ public class Data {
         tempDeath.addValue(offset);
         deaths.put(id, tempDeath);
         writer.addDeath(stat);
+    }
+    
+    public Map<String, Player> getPlayerStats(String steamid) {
+        return Collections.unmodifiableMap(playerStats.get(steamid));
+    }
+    public void accumulatePlayerStat(String steamid, String stat, int offset, String category) {
+        if (!playerStats.containsKey(steamid)) {
+            playerStats.put(steamid, new HashMap());
+        }
+        Map<String, Player> categories= playerStats.get(steamid);
+        if (!categories.containsKey(category)) {
+            categories.put(category, new Player(genPlayerKey(steamid, category), steamid));
+        }
+        Player temp= categories.get(category);
+        
+        temp.accumulate(stat, offset);
+        categories.put(category, temp);
+        writer.addPlayer(steamid);
     }
 }

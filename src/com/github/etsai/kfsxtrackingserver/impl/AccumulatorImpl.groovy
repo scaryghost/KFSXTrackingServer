@@ -91,6 +91,7 @@ public class AccumulatorImpl implements Accumulator {
             } else {
                 packet.getData(PlayerPacket.keyStats).each {stat, value ->
                     statsData.accumulateAggregateStat(stat, value.toInteger(), group)
+                    statsData.accumulatePlayerStat(steamid, stat, value.toInteger(), group)
                 }
             }
         }
