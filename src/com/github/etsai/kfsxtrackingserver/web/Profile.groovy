@@ -9,7 +9,7 @@ import static com.github.etsai.kfsxtrackingserver.Common.statsData
 
 /**
  *
- * @author eric
+ * @author etsai
  */
 public class Profile extends Page {
     private final def steamid
@@ -22,13 +22,12 @@ public class Profile extends Page {
         def record= statsData.getRecord(steamid)
         
         xmlBuilder.kfstatsx() {
-            def url= new URL("http://steamcommunity.com/profiles/${steamid}?xml=1")
-            def steamXmlRoot= new XmlSlurper().parseText(url.getContent().readLines().join("\n"))
-                
             def profileAttr= [:]
+            def steamIdInfo= Records.getSteamId(steamid)
+            
             profileAttr["steamid"]= steamid
-            profileAttr["name"]= steamXmlRoot.steamID.text()
-            profileAttr["avatar"]= steamXmlRoot.avatarMedium.text()
+            profileAttr["name"]= steamIdInfo.name
+            profileAttr["avatar"]= steamIdInfo.avatarMedium
             profileAttr["wins"]= record.getWins()
             profileAttr["losses"]= record.getLosses()
             profileAttr["disconnects"]= record.getDisconnects()
