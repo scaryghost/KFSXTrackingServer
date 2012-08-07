@@ -29,12 +29,12 @@
 </xsl:template>
 
 <xsl:template match="aggregate/stats">
+    <xsl:variable name="sum" select="sum(stat/@value)" />
     <table width="630" class="graph" cellspacing="6" cellpadding="0">
         <thead>
             <tr><th colspan="3" style="text-transform: capitalize;"><xsl:value-of select="@category" /></th></tr>
         </thead>
         <tbody>
-            <xsl:variable name="sum" select="sum(stat/@value)" />
             <xsl:for-each select="stat">
                 <tr>
                     <td width="200" style="text-transform: capitalize;"><xsl:value-of select="@name"/></td>
@@ -51,11 +51,13 @@
                     <td><xsl:value-of select="@value" /></td>
                 </tr>
             </xsl:for-each>
+        </tbody>
+        <tfoot>
             <tr>
-                <td width="100" colspan="2">Total</td>
+                <td colspan="2">Total</td>
                 <td><xsl:value-of select="$sum"/></td>
             </tr>
-        </tbody>
+        </tfoot>
     </table>
     <br/>
 </xsl:template>
