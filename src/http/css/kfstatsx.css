@@ -12,12 +12,12 @@
 }
       
 .graph td {
-    font-family: verdana, arial, sans-serif;
+    font-family: gill, sans-serif;
 }
       
 .graph thead th {
     border-bottom: double 3px black;
-    font-family: verdana, arial, sans-serif;
+    font-family: gill, sans-serif;
     padding: 1em;
 }
     
@@ -50,4 +50,5 @@
       
 body {
     background-color: white;
+    font-family: gill, sans-serif;
 }

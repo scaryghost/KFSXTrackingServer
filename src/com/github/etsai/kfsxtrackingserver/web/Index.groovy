@@ -30,15 +30,15 @@ public class Index extends Page {
                     xmlBuilder.'level'(attr)
                 }
             }
-            'deaths'() {
-                statsData.getDeaths().each {death ->
-                    def attr= [:]
-                    attr["source"]= death.getStat()
-                    attr["count"]= death.getValue()
-                    xmlBuilder.'death'(attr)
-                }
-            }
             'aggregate'() {
+                'stats'(category:"deaths") {                
+                    statsData.getDeaths().sort{it.getStat()}.each {death ->
+                        def attr= [:]
+                        attr["name"]= death.getStat()
+                        attr["value"]= death.getValue()
+                        xmlBuilder.'stat'(attr)
+                    }
+                }
                 def categories= [:]
                 statsData.getAggregateStats().each {stat ->
                     def cat= stat.getCategory()
@@ -49,7 +49,7 @@ public class Index extends Page {
                 }
                 categories.each {cat, stats ->
                     xmlBuilder.'stats'(category: cat) {
-                        stats.each {stat ->
+                        stats.sort{it.getStat()}.each {stat ->
                             def attrs= [:]
                             attrs["name"]= stat.getStat()
                             attrs["value"]= stat.getValue()
