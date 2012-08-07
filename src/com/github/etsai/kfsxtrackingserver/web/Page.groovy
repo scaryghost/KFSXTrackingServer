@@ -28,7 +28,7 @@ public abstract class Page {
                 body= "${code} ${returnCodes[code]}"
             } else {
                 if(extension == "xsl" || extension == "css"){
-                    body= new File(".${filename}").readLines().join("\n")
+                    body= new File("./dist/${filename}").readLines().join("\n")
                 } else if (!pages.contains(filename)) {
                     code= 404
                     body= "${code} ${returnCodes[code]}"
@@ -36,9 +36,13 @@ public abstract class Page {
                 } else {
                     switch (filename) {
                         case "/":
+                            xml.mkp.xmlDeclaration(version:'1.0')
+                            xml.mkp.pi("xml-stylesheet":[type:"text/xsl",href:"http/xsl/index.xsl"])
                             new Index().fillBody(xml)
                             break
                         case "/index.xml":
+                            xml.mkp.xmlDeclaration(version:'1.0')
+                            xml.mkp.pi("xml-stylesheet":[type:"text/xsl",href:"http/xsl/index.xsl"])
                             new Index().fillBody(xml)
                             break
                         case "/records.xml":

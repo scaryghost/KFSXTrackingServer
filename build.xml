@@ -83,4 +83,9 @@
         <property name="user.properties.file" value="linux_build.properties" />
     </target>
 
+    <target name="-post-jar">
+        <copy todir="${dist.dir}/http" >
+            <fileset dir="${src.dir}/http" />
+        </copy>
+    </target>
 </project>
