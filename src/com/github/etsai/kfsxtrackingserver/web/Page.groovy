@@ -17,7 +17,7 @@ public abstract class Page {
         def writer= new StringWriter()
         def xml= new MarkupBuilder(writer)
         
-        def code, body
+        def code= 200, body
         def fileSplit= request[1].tokenize("\\?=");
         def filename= fileSplit[0] == "/" ? "/index.xml" : fileSplit[0]
         def extension= filename.substring(filename.lastIndexOf(".")+1, filename.length());
@@ -70,10 +70,11 @@ public abstract class Page {
         }
         
         def content= extensions[extension]
-        def header= "HTTP/1.0 ${code} ${returnCodes[code]}\r\nConnection: close\r\nServer KFStats\r\n${content}\r\n\r\n"
+        def header= "HTTP/1.0 ${code} ${returnCodes[code]}\nConnection: close\nServer KFStats\n${content}\n\n"
         
         output.writeBytes(header)
-        if (request != "HEAD") output.writeBytes(body)
+        if (request != "HEAD")
+            output.writeBytes(body)
     }
 
     public abstract String fillBody(def xmlBuilder);
