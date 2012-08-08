@@ -27,7 +27,7 @@ public abstract class Page {
                 code= 501
                 body= "${code} ${returnCodes[code]}"
             } else {
-                if(extension == "xsl" || extension == "css"){
+                if(extension == "xsl" || extension == "css" || extension == "js"){
                     body= new File("./dist/${filename}").readLines().join("\n")
                 } else if (!pages.contains(filename)) {
                     code= 404

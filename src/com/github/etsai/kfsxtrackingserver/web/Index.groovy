@@ -6,8 +6,8 @@ import groovy.xml.MarkupBuilder
 public class Index extends Page {
     public String fillBody(def xmlBuilder) {
         xmlBuilder.kfstatsx() {
-            'difficulties'() {
-                statsData.getDifficulties().each {diff ->
+            'aggregate'(category:"difficulties") {
+                statsData.getDifficulties().sort{"${it.getName()}/${it.getLength()}"}each {diff ->
                     def attr= [:]
                     attr["name"]= diff.getName()
                     attr["length"]= diff.getLength()
@@ -15,46 +15,44 @@ public class Index extends Page {
                     attr["losses"]= diff.getLosses()
                     attr["wave"]= diff.getWave()
                     attr["time"]= diff.getTime().toString()
-                    'difficulty'(attr)
+                    'entry'(attr)
                 }
 
                 
             }
-            'levels'() {
-                statsData.getLevels().each {level ->
+            'aggregate'(category:"levels") {
+                statsData.getLevels().sort{it.getName()}.each {level ->
                     def attr= [:]
                     attr["name"]= level.getName()
                     attr["wins"]= level.getWins()
                     attr["losses"]= level.getLosses()
                     attr["time"]= level.getTime().toString()
-                    xmlBuilder.'level'(attr)
+                    'entry'(attr)
                 }
             }
-            'aggregate'() {
-                'stats'(category:"deaths") {                
-                    statsData.getDeaths().sort{it.getStat()}.each {death ->
-                        def attr= [:]
-                        attr["name"]= death.getStat()
-                        attr["value"]= death.getValue()
-                        xmlBuilder.'stat'(attr)
-                    }
+            'aggregate'(category:"deaths") {                
+                statsData.getDeaths().sort{it.getStat()}.each {death ->
+                    def attr= [:]
+                    attr["name"]= death.getStat()
+                    attr["value"]= death.getValue()
+                    'entry'(attr)
                 }
-                def categories= [:]
-                statsData.getAggregateStats().each {stat ->
-                    def cat= stat.getCategory()
-                    if (categories[cat] == null) {
-                        categories[cat]= []
-                    }
-                    categories[cat] << stat
+            }
+            def categories= [:]
+            statsData.getAggregateStats().each {stat ->
+                def cat= stat.getCategory()
+                if (categories[cat] == null) {
+                    categories[cat]= []
                 }
-                categories.each {cat, stats ->
-                    xmlBuilder.'stats'(category: cat) {
-                        stats.sort{it.getStat()}.each {stat ->
-                            def attrs= [:]
-                            attrs["name"]= stat.getStat()
-                            attrs["value"]= stat.getValue()
-                            xmlBuilder.'stat'(attrs)
-                        }
+                categories[cat] << stat
+            }
+            categories.each {cat, stats ->
+                'aggregate'(category: cat) {
+                    stats.sort{it.getStat()}.each {stat ->
+                        def attrs= [:]
+                        attrs["name"]= stat.getStat()
+                        attrs["value"]= stat.getValue()
+                        'entry'(attrs)
                     }
                 }
             }

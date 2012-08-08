@@ -5,12 +5,19 @@
     Description:
         Purpose of the stylesheet follows.
 */
+a {
+    text-decoration:none
+}
+
+td+td,th+th {
+    text-align: center;
+}
 
 .graph {
     background-color: #C8C8C8;
     border: solid 1px black;
 }
-      
+
 .graph td {
     font-family: gill, sans-serif;
 }
@@ -46,6 +53,6 @@
 }
       
 body {
-    background-color: white;
+    background-color: #39495A;
     font-family: gill, sans-serif;
 }
