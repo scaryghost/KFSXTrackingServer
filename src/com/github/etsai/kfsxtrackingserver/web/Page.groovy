@@ -46,6 +46,8 @@ public abstract class Page {
                             new Index().fillBody(xml)
                             break
                         case "/records.xml":
+                            xml.mkp.xmlDeclaration(version:'1.0')
+                            xml.mkp.pi("xml-stylesheet":[type:"text/xsl",href:"http/xsl/records.xsl"])
                             new Records().fillBody(xml)
                             break
                         case "/profile.xml":
