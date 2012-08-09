@@ -32,6 +32,7 @@
                 </tr>
             </thead>
         </table>
+
         <div name="item" style="display: block">
             <xsl:apply-templates select="aggregate[@category='weapons']" />
         </div>
@@ -55,9 +56,37 @@
         <div name="item" style="display: none">
             <xsl:apply-templates select="aggregate[@category='levels']" />            
         </div>
+        
+        <div name="item" style="display: none">
+            <xsl:apply-templates select="aggregate[@category='player']" />            
+        </div>
+        
+        <div name="item" style="display: none">
+            <xsl:apply-templates select="aggregate[@category='actions']" />            
+        </div>
     </center>
 </body>
 </html>
+</xsl:template>
+
+<xsl:template match="aggregate[@category='player']|aggregate[@category='actions']">
+    <table class="graph" width="630" cellspacing="6" cellpadding="0">
+        <thead>
+            <tr>
+                <th colspan="2">
+                    <xsl:value-of select="@category" />
+                </th>
+            </tr>
+        </thead>
+        <tbody>
+            <xsl:for-each select="entry">
+                <tr>
+                    <td><xsl:value-of select="@name"/></td>
+                    <td style="text-align: right"><xsl:value-of select="@value"/></td>
+                </tr>
+            </xsl:for-each>
+        </tbody>
+    </table>
 </xsl:template>
 
 <xsl:template match="aggregate[@category='difficulties']|aggregate[@category='levels']">
@@ -78,13 +107,13 @@
         <tbody>
             <tr>
                 <xsl:for-each select="entry[1]/@*">
-                <th style="text-transform: capitalize;"><xsl:value-of select="name()"/></th>
+                <th><xsl:value-of select="name()"/></th>
                 </xsl:for-each>
             </tr>
             <xsl:for-each select="entry">
                 <tr>
                     <xsl:for-each select="@*">
-                        <td style="text-transform: capitalize;"><xsl:value-of select="."/></td>
+                        <td><xsl:value-of select="."/></td>
                     </xsl:for-each>
                 </tr>
             </xsl:for-each>
@@ -96,12 +125,12 @@
     <xsl:variable name="sum" select="sum(entry/@value)" />
     <table width="630" class="graph" cellspacing="6" cellpadding="0">
         <thead>
-            <tr><th colspan="3" style="text-transform: capitalize;"><xsl:value-of select="@category" /></th></tr>
+            <tr><th colspan="3"><xsl:value-of select="@category" /></th></tr>
         </thead>
         <tbody>
             <xsl:for-each select="entry">
                 <tr>
-                    <td width="200" style="text-transform: capitalize;"><xsl:value-of select="@name"/></td>
+                    <td width="200"><xsl:value-of select="@name"/></td>
                     <td width="400" class="bar">
                         <div>
                             <xsl:attribute name="style">
