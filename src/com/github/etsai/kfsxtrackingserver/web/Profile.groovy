@@ -35,7 +35,7 @@ public class Profile extends Page {
             'profile'(profileAttr) {
                 statsData.getPlayerStats(steamid).each {cat, player ->
                     'stats'(category: cat) {
-                        player.getStats().each {stat, value ->
+                        player.getStats().sort{it.key}.each {stat, value ->
                             def attr= [:]
                             attr["name"]= stat
                             attr["value"]= value
