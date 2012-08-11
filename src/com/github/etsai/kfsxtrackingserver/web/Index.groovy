@@ -31,7 +31,7 @@ public class Index extends Page {
                     totalGames+= (accum[0] + accum[1])
                     totalPlayTime.add(accum[3])
                 }
-                'total'(name: "", length: "", wins: wins, losses:losses, wave: wave, time:time.toString())
+                'total'(name: "Total", length: "", wins: wins, losses:losses, wave: wave, time:time.toString())
             }
             'stats'(category:"levels") {
                 def wins= 0, losses= 0, time= new Time(0)
@@ -48,7 +48,7 @@ public class Index extends Page {
                     attr["time"]= accum[2].toString()
                     'entry'(attr)
                 }
-                'total'(name: "", wins: wins, losses:losses, time:time.toString())
+                'total'(name: "Total", wins: wins, losses:losses, time:time.toString())
             }
             'stats'(category:"deaths") {                
                 statsData.getDeaths().sort{it.getStat()}.each {death ->

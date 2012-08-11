@@ -51,6 +51,13 @@
                 </tr>
             </xsl:for-each>
         </tbody>
+        <tfoot>
+            <tr>
+                <xsl:for-each select="total/@*">
+                    <td><xsl:value-of select="."/></td>
+                </xsl:for-each>
+            </tr>
+        </tfoot>
     </table>
 </xsl:template>
 

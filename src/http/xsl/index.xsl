@@ -59,36 +59,4 @@
 </html>
 </xsl:template>
 
-<xsl:template match="aggregate[@category='difficulties']|aggregate[@category='levels']">
-    <table class="graph" width="630" cellspacing="6" cellpadding="0">
-        <thead>
-            <tr>
-                <th>
-                <xsl:attribute name="colspan">
-                    <xsl:value-of select="count(entry[1]/@*)" />
-                </xsl:attribute>
-                <xsl:attribute name="style">
-                    text-transform: capitalize
-                </xsl:attribute>
-                <xsl:value-of select="@category" />
-                </th>
-            </tr>
-        </thead>
-        <tbody>
-            <tr>
-                <xsl:for-each select="entry[1]/@*">
-                <th><xsl:value-of select="name()"/></th>
-                </xsl:for-each>
-            </tr>
-            <xsl:for-each select="entry">
-                <tr>
-                    <xsl:for-each select="@*">
-                        <td><xsl:value-of select="."/></td>
-                    </xsl:for-each>
-                </tr>
-            </xsl:for-each>
-        </tbody>
-    </table>
-</xsl:template>
-
 </xsl:stylesheet>
