@@ -22,19 +22,7 @@
 </head>
 <body>
     <center>
-        <table width="630" class="graph" cellspacing="6" cellpadding="0">
-            <thead>
-                <tr>
-                    <td colspan="2">
-                        <a id="displayText" href="javascript:toggle('left');">&#171;</a>
-                    </td>
-                    <td style="text-align:right">
-                        <a id="displayText" href="javascript:toggle('right');">&#187;</a>
-                    </td>
-                </tr>
-            </thead>
-        </table>
-
+        <xsl:copy-of select="$nav" />
         <div name="item" style="display: block">
             <xsl:apply-templates select="stats[@category='weapons']" />
         </div>

@@ -10,6 +10,21 @@
 
 <xsl:stylesheet xmlns:xsl="http://www.w3.org/1999/XSL/Transform" version="1.0">
 
+<xsl:variable name="nav" >
+    <table width="630" class="graph" cellspacing="6" cellpadding="0">
+            <thead>
+                <tr>
+                    <td colspan="2">
+                        <a id="displayText" href="javascript:toggle('left');">&#171;</a>
+                    </td>
+                    <td style="text-align:right">
+                        <a id="displayText" href="javascript:toggle('right');">&#187;</a>
+                    </td>
+                </tr>
+            </thead>
+        </table>
+</xsl:variable>
+
 <xsl:template match="stats[@category='difficulties']|stats[@category='levels']">
     <table class="graph" width="630" cellspacing="6" cellpadding="0">
         <thead>

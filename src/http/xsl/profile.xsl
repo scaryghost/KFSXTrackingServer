@@ -21,8 +21,32 @@
         <script type="text/javascript" src="http/js/kfstatsx.js" ></script>
     </head>
     <body>
-        <xsl:apply-templates select="profile" />
-        <xsl:apply-templates select="profile/stats"/>
+        <center>
+            <xsl:copy-of select="$nav" />
+            <div name="item" style="display: block">
+                <xsl:apply-templates select="profile" />
+            </div>
+            
+            <div name="item" style="display: none">
+                <xsl:apply-templates select="profile/stats[@category='weapons']" />
+            </div>
+
+            <div name="item" style="display: none">
+                <xsl:apply-templates select="profile/stats[@category='perks']" />
+            </div>
+
+            <div name="item" style="display: none">
+                <xsl:apply-templates select="profile/stats[@category='kills']" />
+            </div>
+
+            <div name="item" style="display: none">
+                <xsl:apply-templates select="profile/stats[@category='player']" />            
+            </div>
+
+            <div name="item" style="display: none">
+                <xsl:apply-templates select="profile/stats[@category='actions']" />            
+            </div>
+        </center>
     </body>
 </html>
 </xsl:template>
