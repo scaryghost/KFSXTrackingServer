@@ -9,6 +9,7 @@ import java.sql.Connection;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
@@ -95,7 +96,7 @@ public class Data {
     public Difficulty getDifficulty(String name, String length) {
         return difficulties.get(genDifficultyKey(name, length));
     }
-    public Iterable<Difficulty> getDifficulties() {
+    public Collection<Difficulty> getDifficulties() {
         return Collections.unmodifiableCollection(difficulties.values());
     }
     public void accumulateDifficulty(String name, String length, int result, int wave, Time timeLength) {
@@ -126,7 +127,7 @@ public class Data {
     public Level getLevel(String name) {
         return levels.get(genLevelKey(name));
     }
-    public Iterable<Level> getLevels() {
+    public Collection<Level> getLevels() {
         return Collections.unmodifiableCollection(levels.values());
     }
     public void accumulateLevel(String name, int result, Time timeLength) {
@@ -156,7 +157,7 @@ public class Data {
     public Record getRecord(String steamid) {
         return records.get(steamid);
     }
-    public Iterable<Record> getRecords() {
+    public Collection<Record> getRecords() {
         return Collections.unmodifiableCollection(records.values());
     }
     public void accumulateRecord(String steamid, int result) {
@@ -184,7 +185,7 @@ public class Data {
         writer.addRecordId(steamid);
     }
     
-    public Iterable<Aggregate> getAggregateStats() {
+    public Collection<Aggregate> getAggregateStats() {
         return Collections.unmodifiableCollection(aggregate.values());
     }
     public void accumulateAggregateStat(String stat, int offset, String category) {
@@ -201,7 +202,7 @@ public class Data {
         writer.addAggregate(stat, category);
     }
     
-    public Iterable<Death> getDeaths() {
+    public Collection<Death> getDeaths() {
         return Collections.unmodifiableCollection(deaths.values());
     }
     public void accumulateDeath(String stat, int offset) {
