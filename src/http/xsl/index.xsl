@@ -9,6 +9,8 @@
 -->
 
 <xsl:stylesheet version="1.0" xmlns:xsl="http://www.w3.org/1999/XSL/Transform">
+    
+<xsl:include href="kfstatsx.xsl"/>
 
 <xsl:template match="kfstatsx">
 <html>
@@ -34,59 +36,39 @@
         </table>
 
         <div name="item" style="display: block">
-            <xsl:apply-templates select="aggregate[@category='weapons']" />
+            <xsl:apply-templates select="stats[@category='weapons']" />
         </div>
         
         <div name="item" style="display: none">
-            <xsl:apply-templates select="aggregate[@category='perks']" />
+            <xsl:apply-templates select="stats[@category='perks']" />
         </div>
         
         <div name="item" style="display: none">
-            <xsl:apply-templates select="aggregate[@category='deaths']" />
+            <xsl:apply-templates select="stats[@category='deaths']" />
         </div>
         
         <div name="item" style="display: none">
-            <xsl:apply-templates select="aggregate[@category='kills']" />
+            <xsl:apply-templates select="stats[@category='kills']" />
         </div>
         
         <div name="item" style="display: none">
-            <xsl:apply-templates select="aggregate[@category='difficulties']" />
+            <xsl:apply-templates select="stats[@category='difficulties']" />
         </div>
         
         <div name="item" style="display: none">
-            <xsl:apply-templates select="aggregate[@category='levels']" />            
+            <xsl:apply-templates select="stats[@category='levels']" />            
         </div>
         
         <div name="item" style="display: none">
-            <xsl:apply-templates select="aggregate[@category='player']" />            
+            <xsl:apply-templates select="stats[@category='player']" />            
         </div>
         
         <div name="item" style="display: none">
-            <xsl:apply-templates select="aggregate[@category='actions']" />            
+            <xsl:apply-templates select="stats[@category='actions']" />            
         </div>
     </center>
 </body>
 </html>
-</xsl:template>
-
-<xsl:template match="aggregate[@category='player']|aggregate[@category='actions']">
-    <table class="graph" width="630" cellspacing="6" cellpadding="0">
-        <thead>
-            <tr>
-                <th colspan="2">
-                    <xsl:value-of select="@category" />
-                </th>
-            </tr>
-        </thead>
-        <tbody>
-            <xsl:for-each select="entry">
-                <tr>
-                    <td><xsl:value-of select="@name"/></td>
-                    <td style="text-align: right"><xsl:value-of select="@value"/></td>
-                </tr>
-            </xsl:for-each>
-        </tbody>
-    </table>
 </xsl:template>
 
 <xsl:template match="aggregate[@category='difficulties']|aggregate[@category='levels']">
@@ -121,37 +103,4 @@
     </table>
 </xsl:template>
 
-<xsl:template match="aggregate">
-    <xsl:variable name="sum" select="sum(entry/@value)" />
-    <table width="630" class="graph" cellspacing="6" cellpadding="0">
-        <thead>
-            <tr><th colspan="3"><xsl:value-of select="@category" /></th></tr>
-        </thead>
-        <tbody>
-            <xsl:for-each select="entry">
-                <tr>
-                    <td width="200"><xsl:value-of select="@name"/></td>
-                    <td width="400" class="bar">
-                        <div>
-                            <xsl:attribute name="style">
-                                <xsl:value-of select="concat('width:', format-number(@value div $sum, '#%'))"/>
-                            </xsl:attribute>
-                        </div>
-                        <!--
-                        <xsl:value-of select="format-number(@value div $sum, '#.0000')"/>
-                        -->
-                    </td>
-                    <td><xsl:value-of select="@value" /></td>
-                </tr>
-            </xsl:for-each>
-        </tbody>
-        <tfoot>
-            <tr>
-                <td colspan="2">Total</td>
-                <td><xsl:value-of select="$sum"/></td>
-            </tr>
-        </tfoot>
-    </table>
-    <br/>
-</xsl:template>
 </xsl:stylesheet>

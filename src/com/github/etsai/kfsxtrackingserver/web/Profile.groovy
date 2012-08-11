@@ -39,7 +39,7 @@ public class Profile extends Page {
                             def attr= [:]
                             attr["name"]= stat
                             attr["value"]= value
-                            xmlBuilder.'stat'(attr)
+                            xmlBuilder.'entry'(attr)
                         }
                         
                     }

@@ -6,7 +6,7 @@ import groovy.xml.MarkupBuilder
 public class Index extends Page {
     public String fillBody(def xmlBuilder) {
         xmlBuilder.kfstatsx() {
-            'aggregate'(category:"difficulties") {
+            'stats'(category:"difficulties") {
                 statsData.getDifficulties().sort{"${it.getName()}/${it.getLength()}"}each {diff ->
                     def attr= [:]
                     attr["name"]= diff.getName()
@@ -17,10 +17,8 @@ public class Index extends Page {
                     attr["time"]= diff.getTime().toString()
                     'entry'(attr)
                 }
-
-                
             }
-            'aggregate'(category:"levels") {
+            'stats'(category:"levels") {
                 statsData.getLevels().sort{it.getName()}.each {level ->
                     def attr= [:]
                     attr["name"]= level.getName()
@@ -30,7 +28,7 @@ public class Index extends Page {
                     'entry'(attr)
                 }
             }
-            'aggregate'(category:"deaths") {                
+            'stats'(category:"deaths") {                
                 statsData.getDeaths().sort{it.getStat()}.each {death ->
                     def attr= [:]
                     attr["name"]= death.getStat()
@@ -47,7 +45,7 @@ public class Index extends Page {
                 categories[cat] << stat
             }
             categories.each {cat, stats ->
-                'aggregate'(category: cat) {
+                xmlBuilder.'stats'(category: cat) {
                     stats.sort{it.getStat()}.each {stat ->
                         def attrs= [:]
                         attrs["name"]= stat.getStat()
