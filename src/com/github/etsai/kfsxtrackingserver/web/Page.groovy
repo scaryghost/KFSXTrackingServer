@@ -63,7 +63,6 @@ public abstract class Page {
                     }
                     
                     body= writer.toString()
-                    //body= pageActions[filepath](fileSplit)
                 }              
             }
         } catch (Exception ex) {
@@ -73,7 +72,6 @@ public abstract class Page {
             extension= "html"
             code= 500
             body= "<pre>${code} ${returnCodes[code]}\n\n"
-            ex.printStackTrace(pw)
             body+= sw.toString() + "</pre>"
             Common.logger.log(Level.SEVERE, "Error generating webpage", ex);
         }
