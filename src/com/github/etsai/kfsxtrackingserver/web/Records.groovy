@@ -32,7 +32,6 @@ public class Records extends Page {
                     
                     attr["steamid"]= steamIdInfo.steamid
                     attr["name"]= steamIdInfo.name
-                    attr["avatar"]= steamIdInfo.avatarSmall
                     attr["wins"]= record.getWins()
                     attr["losses"]= record.getLosses()
                     attr["disconnects"]= record.getDisconnects()

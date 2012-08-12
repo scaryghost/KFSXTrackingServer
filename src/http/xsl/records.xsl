@@ -19,36 +19,42 @@
         <script type="text/javascript" src="http/js/kfstatsx.js" ></script>
     </head>
     <body>
-        <form action='profile.xml' method='get'>
-            <p>Enter player's steam id</p>
-            <input type='text' name='steamid' />
-            <br />
-            <input type='submit' value='submit' />
-        </form>
-        <xsl:apply-templates select="records"/>
+        <center>
+            <div style="background-color: #C8C8C8;width:630px" >
+                <form action='profile.xml' method='get'>
+                    <p style="text-align: left">Enter player's <a href="http://steamidconverter.com/" target="_blank">steamID64: </a>
+                    <input type='text' name='steamid' />
+                    <input type='submit' value='Search Player' />
+                    </p>
+                </form>
+                <xsl:apply-templates select="records"/>
+            </div>
+        </center>
     </body>
 </html>
 </xsl:template>
 
 <xsl:template match="records">
-    <table>
+    <table class="graph" width="630" cellspacing="6" cellpadding="0">
         <thead>
             <tr>
-                <th>Player</th>
+                <th colspan="5">Player Records</th>
+            </tr>
+        </thead>
+        <tbody>
+            <tr>
+                <th style="text-align:right">#</th>
+                <th style="text-align:left">Name</th>
                 <th>Wins</th>
                 <th>Losses</th>
                 <th>Disconnects</th>
             </tr>
-        </thead>
-        <tbody>
             <xsl:for-each select="record">
                 <tr>
-                    <td>
-                        <img>
-                            <xsl:attribute name="src">
-                                <xsl:value-of select="@avatar"/>
-                            </xsl:attribute>
-                        </img>
+                    <td style="text-align:right">
+                        <xsl:value-of select="position()" />
+                    </td>
+                    <td style="text-align:left;text-transform: none">
                         <a>
                             <xsl:attribute name="href">
                                 profile.xml?steamid=<xsl:value-of select="@steamid"/>
