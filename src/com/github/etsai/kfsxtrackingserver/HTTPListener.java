@@ -26,6 +26,8 @@ public class HTTPListener implements Runnable {
             while(true) {
                 Socket connection= httpSocket.accept();
                 Thread th= new Thread(new Handler(connection));
+                logger.info(String.format("Received TCP connection from %s:%d", 
+                        connection.getInetAddress().getHostAddress(), connection.getPort()));
                 
                 th.start();
             }

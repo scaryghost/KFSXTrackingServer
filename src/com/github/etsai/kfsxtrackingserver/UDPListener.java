@@ -40,6 +40,8 @@ public class UDPListener implements Runnable {
                 try {
                     socket.receive(packet);
                     String data= new String(packet.getData(), 0, packet.getLength()).toLowerCase();
+                    logger.info(String.format("Received UDP packet from %s:%d", 
+                            packet.getAddress().getHostAddress(), packet.getPort()));
                     
                     accumulator.add(data);
                 } catch (IOException ex) {
