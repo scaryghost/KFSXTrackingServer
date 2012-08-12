@@ -59,7 +59,7 @@ public class PlayerPacket extends Packet {
             }
             data[keyStats]= playerStats
             valid= true
-        } catch (Exception e) {
+        } catch (Exception ex) {
             logger.log(Level.SEVERE, null, ex)
             valid= false
         }
