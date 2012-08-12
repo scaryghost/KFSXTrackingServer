@@ -27,6 +27,31 @@
                     <input type='submit' value='Search Player' />
                     </p>
                 </form>
+                <form action="records.xml" method="get">
+                    <p style="text-align: left">Goto page 
+                    <input type='text' name='page' />
+                    <input type='hidden'/>
+                    Rows 
+                    <select name="rows">
+                        <option value="25">25</option>
+                        <option value="50" selected="selected">50</option>
+                        <option value="100">100</option>
+                        <option value="250">250</option>
+                    </select>
+                    <a id="displayText">
+                    <xsl:attribute name="href">
+                        records.xml?page=<xsl:value-of select="(records/@page)-1" />&#38;rows=<xsl:value-of select="records/@rows"/>
+                    </xsl:attribute>
+                    &#171;
+                    </a>
+                    <a id="displayText">
+                        <xsl:attribute name="href">
+                            records.xml?page=<xsl:value-of select="(records/@page)+1" />&#38;rows=<xsl:value-of select="records/@rows"/>
+                        </xsl:attribute>
+                        &#187;
+                    </a>
+                    </p>
+                </form>
                 <xsl:apply-templates select="records"/>
             </div>
         </center>
@@ -52,7 +77,7 @@
             <xsl:for-each select="record">
                 <tr>
                     <td style="text-align:right">
-                        <xsl:value-of select="position()" />
+                        <xsl:value-of select="@pos" />
                     </td>
                     <td style="text-align:left;text-transform: none">
                         <a>

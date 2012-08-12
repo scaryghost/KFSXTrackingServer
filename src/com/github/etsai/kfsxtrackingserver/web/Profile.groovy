@@ -12,10 +12,11 @@ import static com.github.etsai.kfsxtrackingserver.Common.statsData
  * @author etsai
  */
 public class Profile extends Page {
+    public static final KEY_STEAMID= "steamid"
     private final def steamid
     
-    public Profile(def steamid) {
-        this.steamid= steamid
+    public Profile(def queries) {
+        steamid= queries[KEY_STEAMID]
     }
     
     public String fillBody(def xmlBuilder) {

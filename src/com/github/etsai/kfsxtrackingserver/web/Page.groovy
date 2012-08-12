@@ -6,7 +6,7 @@ import java.io.DataOutputStream
 import groovy.xml.MarkupBuilder
 
 public abstract class Page {
-    private static def pages= ["index.xml", "records.xml", "profile.xml"].collect {"/${it}" as String}
+    private static def pages= ["","index.xml", "records.xml", "profile.xml"].collect {"/${it}" as String}
     private static def methods= ["GET", "HEAD"]
     private static def returnCodes= [200: "OK", 400: "Bad Request", 403: "Forbidden", 
         404: "Not Found", 500: "Internal Server Error", 501: "Not Implemented"]
@@ -18,9 +18,18 @@ public abstract class Page {
         def xml= new MarkupBuilder(writer)
         
         def code= 200, body
-        def fileSplit= request[1].tokenize("\\?=");
-        def filename= fileSplit[0] == "/" ? "/index.xml" : fileSplit[0]
+        def uri= URI.create(request[1])
+        def filename= uri.getPath()
         def extension= filename.substring(filename.lastIndexOf(".")+1, filename.length());
+        def queries= [:]
+        
+        if (uri.getQuery() != null) {
+            println uri.getQuery()
+            uri.getQuery().tokenize("&").each {token ->
+                def keyVal= token.split("=")
+                queries[keyVal[0]]= keyVal[1]
+            }
+        }
         
         try {
             if(!methods.contains(request[0])) {
@@ -36,10 +45,6 @@ public abstract class Page {
                 } else {
                     switch (filename) {
                         case "/":
-                            xml.mkp.xmlDeclaration(version:'1.0')
-                            xml.mkp.pi("xml-stylesheet":[type:"text/xsl",href:"http/xsl/index.xsl"])
-                            new Index().fillBody(xml)
-                            break
                         case "/index.xml":
                             xml.mkp.xmlDeclaration(version:'1.0')
                             xml.mkp.pi("xml-stylesheet":[type:"text/xsl",href:"http/xsl/index.xsl"])
@@ -48,12 +53,12 @@ public abstract class Page {
                         case "/records.xml":
                             xml.mkp.xmlDeclaration(version:'1.0')
                             xml.mkp.pi("xml-stylesheet":[type:"text/xsl",href:"http/xsl/records.xsl"])
-                            new Records().fillBody(xml)
+                            new Records(queries).fillBody(xml)
                             break
                         case "/profile.xml":
                             xml.mkp.xmlDeclaration(version:'1.0')
                             xml.mkp.pi("xml-stylesheet":[type:"text/xsl",href:"http/xsl/profile.xsl"])
-                            new Profile(fileSplit[2]).fillBody(xml)
+                            new Profile(queries).fillBody(xml)
                             break
                     }
                     
