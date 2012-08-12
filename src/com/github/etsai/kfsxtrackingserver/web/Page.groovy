@@ -24,7 +24,6 @@ public abstract class Page {
         def queries= [:]
         
         if (uri.getQuery() != null) {
-            println uri.getQuery()
             uri.getQuery().tokenize("&").each {token ->
                 def keyVal= token.split("=")
                 queries[keyVal[0]]= keyVal[1]

@@ -24,14 +24,16 @@ public class Index extends Page {
                     attr["length"]= diff.getLength()
                     attr["wins"]= accum[0]
                     attr["losses"]= accum[1]
-                    attr["wave"]= accum[2]
+                    attr["wave"]= (accum[2] / (accum[0] + accum[1])).toInteger()
                     attr["time"]= accum[3].toString()
                     'entry'(attr)
                     
                     totalGames+= (accum[0] + accum[1])
                     totalPlayTime.add(accum[3])
                 }
-                'total'(name: "Total", length: "", wins: wins, losses:losses, wave: wave, time:time.toString())
+                wave/= (wins + losses).toInteger()
+                'total'(name: "Total", length: "", wins: wins, losses:losses, 
+                        wave: wave, time:time.toString())
             }
             'stats'(category:"levels") {
                 def wins= 0, losses= 0, time= new Time(0)

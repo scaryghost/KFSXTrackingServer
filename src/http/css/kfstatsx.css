@@ -18,15 +18,15 @@ td+td,th+th {
 }
 
 .graph td {
-    font-family: gill, sans-serif;
     text-transform: capitalize;
 }
-      
+
+.graph th {
+    text-transform: capitalize;
+}
 .graph thead th {
     border-bottom: double 3px black;
-    font-family: gill, sans-serif;
     padding: 1em;
-    text-transform: capitalize;
 }
     
 .graph tfoot td {

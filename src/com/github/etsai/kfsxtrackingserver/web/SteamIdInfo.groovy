@@ -37,6 +37,7 @@ public class SteamIdInfo {
             }
         } catch (Exception ex) {
             Common.logger.log(Level.SEVERE, "Error polling steamcommunity.com", ex);
+            name= "null"
             valid= false
         }
         
