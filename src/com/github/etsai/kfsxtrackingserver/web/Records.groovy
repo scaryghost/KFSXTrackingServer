@@ -33,8 +33,6 @@ public class Records extends Page {
     public def Records(def queries) {
         page= queries[KEY_PAGE] == null ? DEFAULT_PAGE : [queries[KEY_PAGE].toInteger(), 1].max()
         rows= queries[KEY_ROWS] == null ? DEFAULT_ROWS : queries[KEY_ROWS].toInteger()
-        
-        println "page: ${page} -> rows: ${rows}"
     }
     
     public String fillBody(def xmlBuilder) {
