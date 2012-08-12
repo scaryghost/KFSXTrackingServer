@@ -15,9 +15,10 @@ public class Records extends Page {
     private static def steamIdInfo= Collections.synchronizedMap([:])
     
     public static def getSteamId(def steamid) {
-        if (steamIdInfo[steamid] == null) {
+        def steamInfo= steamIdInfo[steamid]
+        if (steamInfo == null) {
             steamIdInfo[steamid]= new SteamIdInfo(steamid)
-        } else if (!steamIdInfo[steamid].isValid()) {
+        } else if (!steamInfo.isValid()) {
             steamIdInfo[steamid]= null
             steamIdInfo[steamid]= new SteamIdInfo(steamid)
         }

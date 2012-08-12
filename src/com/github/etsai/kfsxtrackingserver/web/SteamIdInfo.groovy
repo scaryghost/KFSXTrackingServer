@@ -13,7 +13,7 @@ import java.util.logging.Level
  * @author etsai
  */
 public class SteamIdInfo {
-    private def valid
+    private def valid, expired
     
     public final def steamid
     public def name, avatarFull, avatarMedium, avatarSmall
@@ -39,10 +39,13 @@ public class SteamIdInfo {
             Common.logger.log(Level.SEVERE, "Error polling steamcommunity.com", ex);
             valid= false
         }
+        
+        expired= Calendar.getInstance()
+        expired.add(Calendar.SECOND, 1800)
     }
     
     public boolean isValid() {
-        return valid
+        return valid && expired.compareTo(Calendar.getInstance()) < 0
     }
 }
 
