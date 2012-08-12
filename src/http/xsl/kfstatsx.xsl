@@ -14,8 +14,18 @@
     <table width="630" class="graph" cellspacing="6" cellpadding="0">
             <thead>
                 <tr>
-                    <td colspan="2">
+                    <td>
                         <a id="displayText" href="javascript:toggle('left');">&#171;</a>
+                    </td>
+                    <td>
+                        <div style="overflow: auto">
+                            <div style="width:50%;float:left">
+                                <a href="index.xml">Home</a> 
+                            </div>
+                            <div>
+                                <a href="records.xml">Records</a>
+                            </div>
+                        </div>
                     </td>
                     <td style="text-align:right">
                         <a id="displayText" href="javascript:toggle('right');">&#187;</a>
