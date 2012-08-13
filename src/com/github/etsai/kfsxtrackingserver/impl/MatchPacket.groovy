@@ -27,30 +27,22 @@ public class MatchPacket extends Packet {
     public MatchPacket(String protocol, int version, String[] parts) {
         super(protocol, version)
         
-        try {
-            def deaths= [:]
-            if (parts[7] != "") {
-                parts[7].split(",").each {death ->
-                    def keyVal= death.split("=")
-                    deaths[keyVal[0]]= keyVal[1]
-                }
+        def deaths= [:]
+        if (parts[7] != "") {
+            parts[7].split(",").each {death ->
+                def keyVal= death.split("=")
+                deaths[keyVal[0]]= keyVal[1]
             }
-
-            data= [:]
-            data[keyMap]= parts[1]
-            data[keyDifficulty]= parts[2]
-            data[keyLength]= parts[3]
-            data[keyTime]= new Time(Integer.valueOf(parts[4]))
-            data[keyResult]= Integer.valueOf(parts[5])
-            data[keyWave]= Integer.valueOf(parts[6])
-            data[keyDeaths]= deaths
-            
-            valid= true
-        } catch (Exception ex) {
-            logger.log(Level.SEVERE, null, ex)
-            valid= false
         }
-        
+
+        data= [:]
+        data[keyMap]= parts[1]
+        data[keyDifficulty]= parts[2]
+        data[keyLength]= parts[3]
+        data[keyTime]= new Time(Integer.valueOf(parts[4]))
+        data[keyResult]= Integer.valueOf(parts[5])
+        data[keyWave]= Integer.valueOf(parts[6])
+        data[keyDeaths]= deaths        
     }
     public Type getType() {
         return Type.Match

@@ -24,10 +24,8 @@ public class AccumulatorImpl implements Accumulator {
         try {
             Packet packet= Packet.parse(data);
 
-            if (packet.isValid()) {
-                packets.add(packet);
-                notify();
-            }
+            packets.add(packet);
+            notify();
         } catch (Exception ex) {
             logger.log(Level.SEVERE, "Error parsing message: ${data}", ex);
         }

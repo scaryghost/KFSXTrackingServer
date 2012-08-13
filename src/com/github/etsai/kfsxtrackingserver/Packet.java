@@ -21,7 +21,6 @@ public abstract class Packet {
     private final int version;
     
     protected Map<String, Object> data;
-    protected boolean valid;
     
     public enum Type {
         Match, Player;
@@ -63,9 +62,6 @@ public abstract class Packet {
     }
     public Object getData(String key) {
         return data.get(key);
-    }
-    public boolean isValid() {
-        return valid;
     }
     
     public abstract Type getType();
