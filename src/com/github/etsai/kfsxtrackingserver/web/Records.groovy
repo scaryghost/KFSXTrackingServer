@@ -41,7 +41,7 @@ public class Records extends Page {
         def allRecords= statsData.getRecords().toArray()
         
         start= (page-1)* rows
-        end= start + rows
+        end= start + rows - 1
         if (start >= allRecords.size()) start= [0, allRecords.size() - rows].max()
         if (end >= allRecords.size()) end= allRecords.size()-1
         

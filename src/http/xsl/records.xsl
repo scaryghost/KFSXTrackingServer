@@ -29,15 +29,19 @@
                 </form>
                 <form action="records.xml" method="get">
                     <p style="text-align: left">Goto page 
-                    <input type='text' name='page' />
-                    <input type='hidden'/>
+                    <input type='text' name='page'>
+                        <xsl:attribute name="value">
+                            <xsl:value-of select="records/@page"/>
+                        </xsl:attribute>
+                    </input>
                     Rows 
                     <select name="rows">
                         <option value="25">25</option>
-                        <option value="50" selected="selected">50</option>
+                        <option value="50">50</option>
                         <option value="100">100</option>
                         <option value="250">250</option>
                     </select>
+                    <input type='submit' value='Update'/>
                     <a id="displayText">
                     <xsl:attribute name="href">
                         records.xml?page=<xsl:value-of select="(records/@page)-1" />&#38;rows=<xsl:value-of select="records/@rows"/>

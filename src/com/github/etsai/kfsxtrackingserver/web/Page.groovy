@@ -3,6 +3,8 @@ package com.github.etsai.kfsxtrackingserver.web;
 import com.github.etsai.kfsxtrackingserver.Common
 import java.util.logging.Level
 import java.io.DataOutputStream
+import java.util.TimeZone
+import java.text.SimpleDateFormat
 import groovy.xml.MarkupBuilder
 
 public abstract class Page {
@@ -10,8 +12,8 @@ public abstract class Page {
     private static def methods= ["GET", "HEAD"]
     private static def returnCodes= [200: "OK", 400: "Bad Request", 403: "Forbidden", 
         404: "Not Found", 500: "Internal Server Error", 501: "Not Implemented"]
-    private static def extensions= ["html":"Content-Type: text/html", "xml":"Content-Type: application/xml" ,
-        "xsl":"Content-Type: application/xslt+xml","css":"Content-Type: text/css","":""]
+    private static def extensions= ["html":"text/html", "xml":"application/xml" ,
+        "xsl":"application/xslt+xml","css":"text/css","js":"text/javascript"]
 
     public static String generate(DataOutputStream output, String[] request) {
         def writer= new StringWriter()
@@ -44,6 +46,7 @@ public abstract class Page {
                 } else {
                     switch (filename) {
                         case "/":
+                            extension= "xml"
                         case "/index.xml":
                             xml.mkp.xmlDeclaration(version:'1.0')
                             xml.mkp.pi("xml-stylesheet":[type:"text/xsl",href:"http/xsl/index.xsl"])
@@ -75,8 +78,13 @@ public abstract class Page {
             Common.logger.log(Level.SEVERE, "Error generating webpage", ex);
         }
         
+        def now= Calendar.getInstance()
+        def httpFormat= new SimpleDateFormat("EEE, dd MMM yyyy HH:mm:ss zzz")
+        httpFormat.setTimeZone(TimeZone.getTimeZone("GMT"))
+        def date= httpFormat.format(now.getTime())
+        
         def content= extensions[extension]
-        def header= "HTTP/1.0 ${code} ${returnCodes[code]}\nConnection: close\nServer KFStats\n${content}\n\n"
+        def header= "HTTP/1.0 ${code} ${returnCodes[code]}\nConnection: close\nDate: ${date}\nContent-Type: ${content}\n\n"
         
         output.writeBytes(header)
         if (request != "HEAD")

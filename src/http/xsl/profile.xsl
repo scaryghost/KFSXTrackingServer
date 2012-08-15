@@ -65,7 +65,7 @@
                 <tr>
                     <td>Steam Community</td>
                     <td>
-                        <a>
+                        <a target="_blank">
                             <xsl:attribute name="href">
                                 http://steamcommunity.com/profiles/<xsl:value-of select="@steamid" />
                             </xsl:attribute>

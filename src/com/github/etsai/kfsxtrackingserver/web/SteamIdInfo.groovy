@@ -7,12 +7,15 @@ package com.github.etsai.kfsxtrackingserver.web
 
 import com.github.etsai.kfsxtrackingserver.Common
 import java.util.logging.Level
+import java.nio.charset.Charset
 
 /**
  *
  * @author etsai
  */
 public class SteamIdInfo {
+    public static final def charset= "US-ASCII"
+    
     private def valid, expired
     
     public final def steamid
@@ -29,7 +32,9 @@ public class SteamIdInfo {
             if (steamXmlRoot.error != "") {
                 valid= false
             } else {
-                name= steamXmlRoot.steamID.text()
+                def tempName= steamXmlRoot.steamID.text()
+                
+                name= new String(tempName.getBytes(Charset.availableCharsets()[charset]))
                 avatarFull= steamXmlRoot.avatarFull.text()
                 avatarMedium= steamXmlRoot.avatarMedium.text()
                 avatarSmall= steamXmlRoot.avatarIcon.text()
@@ -46,7 +51,7 @@ public class SteamIdInfo {
     }
     
     public boolean isValid() {
-        return valid && expired.compareTo(Calendar.getInstance()) < 0
+        return valid && expired.compareTo(Calendar.getInstance()) > 0
     }
 }
 
