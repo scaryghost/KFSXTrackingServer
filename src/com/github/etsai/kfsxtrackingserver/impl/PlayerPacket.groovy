@@ -50,9 +50,9 @@ public class PlayerPacket extends Packet {
                 "result=${parts[7]}", "wave=${parts[8]}"]
             body= items.join(",")
         } else {
-            body= parts[4]
+            body= parts.size() > 4 ? parts[4] : ""
         }
-        body.split(",").each {stats ->
+        body.tokenize(",").each {stats ->
             def keyVal= stats.split("=")
             playerStats[keyVal[0]]= keyVal[1]
         }
