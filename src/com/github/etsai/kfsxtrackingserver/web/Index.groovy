@@ -32,7 +32,7 @@ public class Index extends Page {
                     attr["length"]= diff.getLength()
                     attr["wins"]= accum[0]
                     attr["losses"]= accum[1]
-                    attr["wave"]= diff.getWave() / (accum[0] + accum[1])
+                    attr["wave"]= String.format("%.2f",diff.getWave() / (accum[0] + accum[1]))
                     attr["time"]= accum[2].toString()
                     'entry'(attr)
                     
