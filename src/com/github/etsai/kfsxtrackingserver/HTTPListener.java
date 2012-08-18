@@ -50,9 +50,11 @@ public class HTTPListener implements Runnable {
             try {
                 BufferedReader input = new BufferedReader(new InputStreamReader(connection.getInputStream()));
                 try (DataOutputStream output = new DataOutputStream(connection.getOutputStream())) {
-                    String[] request= input.readLine().split(" ");
+                    String request= input.readLine();
+                    String[] requestParts= request.split(" ");
                     
-                    Page.generate(output, request);
+                    logger.log(Level.FINEST, "HTTP request: {0}", request);
+                    Page.generate(output, requestParts);
                 }
             } catch (IOException ex) {
                 logger.log(Level.SEVERE, null, ex);

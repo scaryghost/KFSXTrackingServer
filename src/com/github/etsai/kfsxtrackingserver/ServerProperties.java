@@ -23,6 +23,7 @@ public class ServerProperties {
     public static final String propDbName= "db.name";
     public static final String propDbWritePeriod= "db.write.period";
     public static final String propSteamPollingPeriod= "steam.polling.period";
+    public static final String propLogLevel= "log.level";
     
     public synchronized static Properties load(String filename) throws IOException {
         if (props == null) {
@@ -42,6 +43,7 @@ public class ServerProperties {
             defaults.setProperty(propDbName, "kfsxdb.sqlite");
             defaults.setProperty(propDbWritePeriod, "60000");
             defaults.setProperty(propSteamPollingPeriod, "21600000");
+            defaults.setProperty(propLogLevel, "INFO");
         }
         return defaults;
     }

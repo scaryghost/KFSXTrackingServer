@@ -71,6 +71,7 @@ public class DataWriterImpl extends DataWriter {
         ps.setInt(8, diff.getWave())
         ps.setString(9, diff.getTime().toString())
         ps.addBatch()
+        logger.fine("Adding difficulty: ${name}/${length} to batch")
         
     }
     public void addLevelId(String name) {
@@ -85,6 +86,7 @@ public class DataWriterImpl extends DataWriter {
         ps.setInt(5, level.getLosses())
         ps.setString(6, level.getTime().toString())
         ps.addBatch()
+        logger.fine("Adding level: ${name} to batch")
     }
     public void addRecordId(String steamid) {
         def ps= preparedStatements[recordSql]
@@ -98,6 +100,7 @@ public class DataWriterImpl extends DataWriter {
         ps.setInt(5, record.getLosses())
         ps.setInt(6, record.getDisconnects())
         ps.addBatch()
+        logger.fine("Adding record for: ${steamid} to batch")
     }
     
     public void addDeath(String death) {
@@ -114,6 +117,7 @@ public class DataWriterImpl extends DataWriter {
     @Override
     public void run() {
         if (saveDeaths) {
+            logger.fine("Saving deaths")
             statsData.getAggregateStats().each {aggregate ->
                 def ps= preparedStatements[aggregateSql]
                 def id= aggregate.getId()
@@ -128,6 +132,7 @@ public class DataWriterImpl extends DataWriter {
             }
         }
         if (saveAggregate) {
+            logger.fine("Saving aggregate player stats")
             statsData.getDeaths().each {death ->
                 def ps= preparedStatements[deathSql]
                 def id= death.getId()
@@ -139,6 +144,7 @@ public class DataWriterImpl extends DataWriter {
                 ps.addBatch();
             }
         }
+        logger.fine("Saving individual player stats")
         playerSteamIds.each {steamid ->
             statsData.getPlayerStats(steamid).each {category, player ->
                 def ps= preparedStatements[playerSql]
@@ -161,9 +167,9 @@ public class DataWriterImpl extends DataWriter {
             ps.executeBatch()
         }
         
+        logger.info("Committing changes to database")
         conn.commit()
         reset()
-        logger.info("Writing changes to database")
     }
 }
 

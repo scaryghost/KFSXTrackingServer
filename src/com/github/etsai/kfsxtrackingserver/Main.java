@@ -85,10 +85,14 @@ public class Main {
         
         filename= String.format("%s.%s.%tY%<tm%<td-%<tH%<tM%<tS.log", 
             "udpstatstracker", localHostAddress, new Date());
+        logger.setLevel(Level.ALL);
+        logger.setUseParentHandlers(false);
+        
         try {
             logFileHandler= new FileHandler(filename);
             logFileHandler.setFormatter(new SimpleFormatter());
-        
+            logFileHandler.setLevel(Level.parse(properties.getProperty(propLogLevel)));
+            
             for(Handler handler: logger.getHandlers()) {
                 logger.removeHandler(handler);
             }
@@ -96,6 +100,6 @@ public class Main {
         } catch (IOException|SecurityException ex) {
             logger.warning(ex.getMessage());
             logger.warning("Logging to output stream...");
-        } 
+        }
     }
 }

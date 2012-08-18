@@ -5,6 +5,7 @@
 package com.github.etsai.kfsxtrackingserver;
 
 import com.github.etsai.kfsxtrackingserver.stats.*;
+import static com.github.etsai.kfsxtrackingserver.Common.logger;
 import java.sql.Connection;
 import java.sql.ResultSet;
 import java.sql.SQLException;
@@ -26,6 +27,7 @@ public class Data {
         Statement statement= conn.createStatement();
         ResultSet rs;
         
+        logger.fine("Loading deaths");
         rs= statement.executeQuery("select * from deaths");
         while(rs.next()) {
             Death death= Death.build(rs);
@@ -33,6 +35,7 @@ public class Data {
         }
         rs.close();
         
+        logger.fine("Loading player records");
         rs= statement.executeQuery("select * from records");
         while(rs.next()) {
             Record record= Record.build(rs);
@@ -40,6 +43,7 @@ public class Data {
         }
         rs.close();
         
+        logger.fine("Loading level stats");
         rs= statement.executeQuery("select * from levels");
         while(rs.next()) {
             Level level= Level.build(rs);
@@ -47,6 +51,7 @@ public class Data {
         }
         rs.close();
         
+        logger.fine("Loading difficulty stats");
         rs= statement.executeQuery("select * from difficulties");
         while(rs.next()) {
             Difficulty difficulty= Difficulty.build(rs);
@@ -54,6 +59,7 @@ public class Data {
         }
         rs.close();
         
+        logger.fine("Loading aggregate player stats");
         rs= statement.executeQuery("select * from aggregate");
         while(rs.next()) {
             Aggregate aggregate= Aggregate.build(rs);
@@ -61,6 +67,7 @@ public class Data {
         }
         rs.close();
         
+        logger.fine("Loading individual player stats");
         rs= statement.executeQuery("select * from player");
         while(rs.next()) {
             Player player= Player.build(rs);
