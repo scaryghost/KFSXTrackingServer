@@ -4,13 +4,10 @@
  */
 
 
-var index= -1;
+var index= 0;
 function toggle(direction) {
     var elems= document.getElementsByName("item")
-    
-    if (index == -1) {
-        index= elems.length-1;
-    }
+
     if (direction == "right") {
         index= (index+1) % elems.length;
     } else {
@@ -23,6 +20,4 @@ function toggle(direction) {
             elems[x].style.display= "none";
     }
     elem.style.display = "block";
-
-
 } 

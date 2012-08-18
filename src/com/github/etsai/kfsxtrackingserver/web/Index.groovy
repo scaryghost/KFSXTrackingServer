@@ -10,30 +10,37 @@ public class Index extends Page {
             def totalGames= 0
             def totalPlayTime= new Time(0)
             
+            statsData.getDifficulties().each {diff ->
+                totalGames+= diff.getWins() + diff.getLosses()
+                totalPlayTime.add(diff.getTime())
+            }
+            'stats'(category:"totals") {
+                'entry'(name:"games", value:totalGames)
+                'entry'(name:"play time", value:totalPlayTime)
+                'entry'(name:"player count", value:statsData.getRecords().size())
+            }
             'stats'(category:"difficulties") {
-                def wins= 0, losses= 0, wave= 0, time= new Time(0)
-                statsData.getDifficulties().sort{"${it.getName()}/${it.getLength()}"}each {diff ->
+                def wins= 0, losses= 0, time= new Time(0)
+                statsData.getDifficulties().sort{"${it.getName()}/${it.getLength()}"}.each {diff ->
                     def attr= [:]
-                    def accum= [diff.getWins(), diff.getLosses(), diff.getWave(), diff.getTime()]
+                    def accum= [diff.getWins(), diff.getLosses(), diff.getTime()]
                     wins+= accum[0]
                     losses+= accum[1]
-                    wave+= accum[2]
-                    time.add(accum[3])
+                    time.add(accum[2])
                     
                     attr["name"]= diff.getName()
                     attr["length"]= diff.getLength()
                     attr["wins"]= accum[0]
                     attr["losses"]= accum[1]
-                    attr["wave"]= (accum[2] / (accum[0] + accum[1])).toInteger()
-                    attr["time"]= accum[3].toString()
+                    attr["wave"]= diff.getWave() / (accum[0] + accum[1])
+                    attr["time"]= accum[2].toString()
                     'entry'(attr)
                     
                     totalGames+= (accum[0] + accum[1])
-                    totalPlayTime.add(accum[3])
+                    
                 }
-                wave/= (wins + losses).toInteger()
                 'total'(name: "Total", length: "", wins: wins, losses:losses, 
-                        wave: wave, time:time.toString())
+                        wave: "", time:time.toString())
             }
             'stats'(category:"levels") {
                 def wins= 0, losses= 0, time= new Time(0)
@@ -77,12 +84,6 @@ public class Index extends Page {
                         'entry'(attrs)
                     }
                 }
-            }
-            
-            'stats'(category:"totals") {
-                'entry'(name:"games", value:totalGames)
-                'entry'(name:"play time", value:totalPlayTime)
-                'entry'(name:"player count", value:statsData.getRecords().size())
             }
         }
     }
