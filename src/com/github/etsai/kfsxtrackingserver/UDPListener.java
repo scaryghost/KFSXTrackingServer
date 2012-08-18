@@ -33,7 +33,7 @@ public class UDPListener implements Runnable {
             byte[] buffer= new byte[bufferSize];
             DatagramSocket socket= new DatagramSocket(port);
             DatagramPacket packet= new DatagramPacket(buffer, buffer.length);
-            logger.log(Level.INFO, "Listening on port: {0}", port);
+            logger.log(Level.INFO, "Listening for stats packets on port: {0}", port);
             
             handlerTh.start();
             while(true) {

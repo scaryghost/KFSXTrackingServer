@@ -17,6 +17,7 @@ import java.util.Date;
 import java.util.Timer;
 import java.util.logging.FileHandler;
 import java.util.logging.Handler;
+import java.util.logging.Level;
 import java.util.logging.SimpleFormatter;
 
 /**
@@ -42,9 +43,8 @@ public class Main {
             properties= ServerProperties.getDefaults();
         }
         
-        UDPListener listener= new UDPListener(Integer.valueOf(properties.getProperty(propUdpPort)));
-        Thread udpTh= new Thread(listener);
-        Thread httpTh= new Thread(new HTTPListener(8080));
+        Thread udpTh= new Thread(new UDPListener(Integer.valueOf(properties.getProperty(propUdpPort))));
+        Thread httpTh= new Thread(new HTTPListener(Integer.valueOf(properties.getProperty(propHttpPort))));
                 
         Runtime.getRuntime().addShutdownHook(new Thread() {
             @Override
@@ -60,11 +60,13 @@ public class Main {
         
         Timer timer = new Timer();
         Data.writer= new com.github.etsai.kfsxtrackingserver.impl.DataWriterImpl(conn);
-        timer.scheduleAtFixedRate(Data.writer, 0, Long.valueOf(properties.getProperty(propDbWritePeriod)));
+        Long dbWritePeriod= Long.valueOf(properties.getProperty(propDbWritePeriod));
+        timer.scheduleAtFixedRate(Data.writer, dbWritePeriod, dbWritePeriod);
         Runtime.getRuntime().addShutdownHook( 
             new Thread(Data.writer)
         );
         
+        logger.log(Level.INFO,"Loading stats from databse: {0}", properties.getProperty(propDbName));
         Common.statsData= Data.load(conn);
         udpTh.start();
         httpTh.start();

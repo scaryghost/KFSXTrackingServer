@@ -5,7 +5,7 @@
 
 package com.github.etsai.kfsxtrackingserver.web
 
-import static com.github.etsai.kfsxtrackingserver.Common.statsData
+import com.github.etsai.kfsxtrackingserver.Common
 
 /**
  *
@@ -18,9 +18,10 @@ public class Records extends Page {
         def steamInfo= steamIdInfo[steamid]
         if (steamInfo == null) {
             steamIdInfo[steamid]= new SteamIdInfo(steamid)
-        } else if (!steamInfo.isValid()) {
+        } else if (!steamInfo.isExpired()) {
             steamIdInfo[steamid]= null
             steamIdInfo[steamid]= new SteamIdInfo(steamid)
+            Common.logger.info("SteamID64: ${steamid} expired.  Repolling steamcommunity")
         }
         return steamIdInfo[steamid]
     }
@@ -38,7 +39,7 @@ public class Records extends Page {
     
     public String fillBody(def xmlBuilder) {
         def start, end
-        def allRecords= statsData.getRecords().toArray()
+        def allRecords= Common.statsData.getRecords().toArray()
         
         start= (page-1)* rows
         end= start + rows - 1

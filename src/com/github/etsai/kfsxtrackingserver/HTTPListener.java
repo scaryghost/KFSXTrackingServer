@@ -20,6 +20,8 @@ public class HTTPListener implements Runnable {
 
     @Override
     public void run() {
+        logger.log(Level.INFO, "Listening for http requests on port: {0}", port);
+        
         try {
             httpSocket= new ServerSocket(port);
             

@@ -5,6 +5,7 @@
 
 package com.github.etsai.kfsxtrackingserver.web
 
+import static com.github.etsai.kfsxtrackingserver.ServerProperties.*
 import com.github.etsai.kfsxtrackingserver.Common
 import java.util.logging.Level
 import java.nio.charset.Charset
@@ -24,13 +25,20 @@ public class SteamIdInfo {
     public SteamIdInfo(String steamid) {
         this.steamid= steamid
         
+        expired= Calendar.getInstance()
         try  {
             def url= new URL("http://steamcommunity.com/profiles/${steamid}?xml=1")
             def content= url.getContent().readLines().join("\n")
             def steamXmlRoot= new XmlSlurper().parseText(content)
             
+            valid= true
             if (steamXmlRoot.error != "") {
                 valid= false
+            } else if (steamXmlRoot.privacyMessage != "") {
+                name= "null"
+                avatarFull= ""
+                avatarMedium= ""
+                avatarSmall= ""
             } else {
                 def tempName= steamXmlRoot.steamID.text()
                 
@@ -38,20 +46,22 @@ public class SteamIdInfo {
                 avatarFull= steamXmlRoot.avatarFull.text()
                 avatarMedium= steamXmlRoot.avatarMedium.text()
                 avatarSmall= steamXmlRoot.avatarIcon.text()
-                valid= true
             }
+            
+            expired.add(Calendar.MILLISECOND, 
+                Common.properties[propSteamPollingPeriod].toInteger())
         } catch (Exception ex) {
             Common.logger.log(Level.SEVERE, "Error polling steamcommunity.com", ex);
             name= "null"
-            valid= false
         }
-        
-        expired= Calendar.getInstance()
-        expired.add(Calendar.SECOND, 1800)
     }
     
     public boolean isValid() {
-        return valid && expired.compareTo(Calendar.getInstance()) > 0
+        return valid
+    }
+    
+    public boolean isExpired() {
+        return expired.compareTo(Calendar.getInstance()) > 0
     }
 }
 
