@@ -47,7 +47,6 @@ public class AccumulatorImpl implements Accumulator {
                     case Type.Match:
                         def levelName= packet.getData(MatchPacket.keyMap)
                         def time= packet.getData(MatchPacket.keyTime)
-                        def map= packet.getData(MatchPacket.keyMap)
                         def diff= packet.getData(MatchPacket.keyDifficulty)
                         def length= packet.getData(MatchPacket.keyLength)
                         def wave= packet.getData(MatchPacket.keyWave).toInteger()

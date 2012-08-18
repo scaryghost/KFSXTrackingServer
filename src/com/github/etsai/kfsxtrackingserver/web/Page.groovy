@@ -73,8 +73,8 @@ public abstract class Page {
 
             extension= "html"
             code= 500
-            body= "<pre>${code} ${returnCodes[code]}\n\n"
-            body+= sw.toString() + "</pre>"
+            ex.printStackTrace(pw)
+            body= "<pre>${code} ${returnCodes[code]}\n\n${sw.toString()}</pre>"
             Common.logger.log(Level.SEVERE, "Error generating webpage", ex);
         }
         
