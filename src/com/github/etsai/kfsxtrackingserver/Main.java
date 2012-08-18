@@ -15,10 +15,7 @@ import java.sql.DriverManager;
 import java.sql.SQLException;
 import java.util.Date;
 import java.util.Timer;
-import java.util.logging.FileHandler;
-import java.util.logging.Handler;
-import java.util.logging.Level;
-import java.util.logging.SimpleFormatter;
+import java.util.logging.*;
 
 /**
  * Main entry point for the tracking server
@@ -26,14 +23,13 @@ import java.util.logging.SimpleFormatter;
  */
 public class Main {
     private static FileHandler logFileHandler;
+    private static ConsoleHandler logConsoleHandler;
     
     /**
      * @param args the command line arguments
      */
     public static void main(String[] args) throws ClassNotFoundException, SQLException {
         CommandLine clom= CommandLine.parse(args);
-        
-        initLogging();
         
         try {
             properties= ServerProperties.load(clom.getPropertiesFilename());
@@ -43,13 +39,17 @@ public class Main {
             properties= ServerProperties.getDefaults();
         }
         
+        initLogging();
+        
         Thread udpTh= new Thread(new UDPListener(Integer.valueOf(properties.getProperty(propUdpPort))));
         Thread httpTh= new Thread(new HTTPListener(Integer.valueOf(properties.getProperty(propHttpPort))));
                 
         Runtime.getRuntime().addShutdownHook(new Thread() {
             @Override
             public void run() {
+                logger.info("Shutting down server");
                 logFileHandler.close();
+                logConsoleHandler.close();
             }
         });
         
@@ -85,18 +85,23 @@ public class Main {
         
         filename= String.format("%s.%s.%tY%<tm%<td-%<tH%<tM%<tS.log", 
             "udpstatstracker", localHostAddress, new Date());
-        logger.setLevel(Level.ALL);
-        logger.setUseParentHandlers(false);
-        
+
         try {
+            Level logLevel= Level.parse(properties.getProperty(propLogLevel));
             logFileHandler= new FileHandler(filename);
+            logConsoleHandler= new ConsoleHandler();
+            
             logFileHandler.setFormatter(new SimpleFormatter());
-            logFileHandler.setLevel(Level.parse(properties.getProperty(propLogLevel)));
+            logFileHandler.setLevel(logLevel);
+            logConsoleHandler.setLevel(logLevel);
             
             for(Handler handler: logger.getHandlers()) {
                 logger.removeHandler(handler);
             }
             logger.addHandler(logFileHandler);
+            logger.addHandler(logConsoleHandler);
+            logger.setLevel(Level.ALL);
+            logger.setUseParentHandlers(false);
         } catch (IOException|SecurityException ex) {
             logger.warning(ex.getMessage());
             logger.warning("Logging to output stream...");

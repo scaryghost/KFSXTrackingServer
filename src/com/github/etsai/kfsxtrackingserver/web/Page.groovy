@@ -86,7 +86,7 @@ public abstract class Page {
         def content= extensions[extension]
         def header= "HTTP/1.0 ${code} ${returnCodes[code]}\nConnection: close\nDate: ${date}\nContent-Type: ${content}\n\n"
         
-        Common.loggger.finest("HTTP Response: ${header}")
+        Common.logger.finest("HTTP Response: ${header}")
         output.writeBytes(header)
         if (request != "HEAD")
             output.writeBytes(body)
