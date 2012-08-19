@@ -16,6 +16,7 @@ import java.util.logging.Level
  * @author eric
  */
 public class MatchPacket extends Packet {
+    public static final def packetVersion= 1
     public static final def keyMap= "map"
     public static final def keyDifficulty= "difficulty"
     public static final def keyLength= "length"
@@ -26,6 +27,11 @@ public class MatchPacket extends Packet {
 
     public MatchPacket(String protocol, int version, String[] parts) {
         super(protocol, version)
+        
+        if (version != packetVersion) {
+            def msg= "Packet version required: ${packetVersion}.  Version received: ${version}"
+            throw new RuntimeException(msg)
+        }
         
         def deaths= [:]
         if (parts[7] != "") {
