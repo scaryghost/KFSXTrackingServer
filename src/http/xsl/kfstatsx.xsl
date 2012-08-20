@@ -106,7 +106,12 @@
                                 </xsl:attribute>
                             </div>
                         </td>
-                        <td><xsl:value-of select="@value" /></td>
+                        <td>
+                            <xsl:attribute name="title">
+                                <xsl:value-of select="@hint" />
+                            </xsl:attribute>
+                            <xsl:value-of select="@value" />
+                        </td>
                     </tr>
                 </xsl:for-each>
             </tbody>

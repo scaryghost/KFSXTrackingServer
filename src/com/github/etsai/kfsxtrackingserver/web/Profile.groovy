@@ -6,6 +6,7 @@
 package com.github.etsai.kfsxtrackingserver.web
 
 import static com.github.etsai.kfsxtrackingserver.Common.statsData
+import com.github.etsai.kfsxtrackingserver.Time
 
 /**
  *
@@ -43,6 +44,12 @@ public class Profile extends Page {
                                 def attr= [:]
                                 attr["name"]= stat
                                 attr["value"]= value
+                                
+                                if (cat == "perks") {
+                                    attr["hint"]= new Time(attr["value"].toInteger()).toString()
+                                } else if (attr["name"].contains("time")) {
+                                    attr["value"]= new Time(attr["value"].toInteger()).toString()
+                                }                
                                 xmlBuilder.'entry'(attr)
                             }
 

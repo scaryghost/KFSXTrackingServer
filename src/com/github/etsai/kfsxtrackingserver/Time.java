@@ -22,7 +22,7 @@ public class Time {
      */
     public Time(long seconds) {
         this.seconds= (int) (seconds % 60);
-        minutes= (int) (seconds / 60);
+        minutes= (int) (seconds / 60) % 60;
         hours= (int) (seconds / 3600) % 24;
         days= (int) ((seconds / 3600) / 24);
     }

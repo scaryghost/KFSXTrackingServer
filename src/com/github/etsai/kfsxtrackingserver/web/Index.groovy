@@ -78,9 +78,16 @@ public class Index extends Page {
             categories.each {cat, stats ->
                 xmlBuilder.'stats'(category: cat) {
                     stats.sort{it.getStat()}.each {stat ->
+                        def key, val
                         def attrs= [:]
                         attrs["name"]= stat.getStat()
                         attrs["value"]= stat.getValue()
+                        
+                        if (cat == "perks") {
+                            attrs["hint"]= new Time(attrs["value"].toInteger()).toString()
+                        } else if (attrs["name"].contains("time")) {
+                            attrs["value"]= new Time(attrs["value"].toInteger()).toString()
+                        }
                         'entry'(attrs)
                     }
                 }
