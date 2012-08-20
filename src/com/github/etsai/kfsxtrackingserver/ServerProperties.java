@@ -41,7 +41,7 @@ public class ServerProperties {
             defaults.setProperty(propHttpPort, "8080");
             defaults.setProperty(propPassword, "server");
             defaults.setProperty(propDbName, "kfsxdb.sqlite");
-            defaults.setProperty(propDbWritePeriod, "60000");
+            defaults.setProperty(propDbWritePeriod, "1800000");
             defaults.setProperty(propSteamPollingPeriod, "21600000");
             defaults.setProperty(propLogLevel, "INFO");
         }
