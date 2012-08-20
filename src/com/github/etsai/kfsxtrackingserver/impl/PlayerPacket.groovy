@@ -26,7 +26,7 @@ public class PlayerPacket extends Packet {
     public PlayerPacket(String protocol, int version, String[] parts) {
         super(protocol, version)
         
-        if (version != playerVersion) {
+        if (version != packetVersion) {
             def msg= "Packet version required: ${packetVersion}.  Version received: ${version}"
             throw new RuntimeException(msg)
         }
