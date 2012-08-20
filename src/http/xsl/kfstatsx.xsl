@@ -12,27 +12,48 @@
 
 <xsl:variable name="nav" >
     <table width="630" class="graph" cellspacing="6" cellpadding="0">
-            <thead>
-                <tr>
-                    <td>
-                        <a id="displayText" href="javascript:toggle('left');">&#171;</a>
-                    </td>
-                    <td>
-                        <div style="overflow: auto">
-                            <div style="width:50%;float:left">
-                                <a href="index.xml">Home</a> 
-                            </div>
-                            <div>
-                                <a href="records.xml">Records</a>
-                            </div>
+        <thead>
+            <tr>
+                <td>
+                    <a id="displayText" href="javascript:toggle('left');">&#171;</a>
+                </td>
+                <td>
+                    <div style="overflow: auto">
+                        <div style="width:50%;float:left">
+                            <a href="index.xml">Home</a> 
                         </div>
-                    </td>
-                    <td style="text-align:right">
-                        <a id="displayText" href="javascript:toggle('right');">&#187;</a>
-                    </td>
-                </tr>
-            </thead>
-        </table>
+                        <div>
+                            <a href="records.xml">Records</a>
+                        </div>
+                    </div>
+                </td>
+                <td style="text-align:right">
+                    <a id="displayText" href="javascript:toggle('right');">&#187;</a>
+                </td>
+            </tr>
+        </thead>
+    </table>
+</xsl:variable>
+
+<xsl:variable name="altnav" >
+    <table width="630" class="graph" cellspacing="6" cellpadding="0">
+        <thead>
+            <tr>
+                <td></td>
+                <td>
+                    <div style="overflow: auto">
+                        <div style="width:50%;float:left">
+                            <a href="index.xml">Home</a> 
+                        </div>
+                        <div>
+                            <a href="records.xml">Records</a>
+                        </div>
+                    </div>
+                </td>
+                <td></td>
+            </tr>
+        </thead>
+    </table>
 </xsl:variable>
 
 <xsl:template match="stats[@category='player']|stats[@category='actions']|stats[@category='totals']">

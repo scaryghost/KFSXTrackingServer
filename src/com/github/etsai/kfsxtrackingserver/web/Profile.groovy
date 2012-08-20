@@ -26,23 +26,27 @@ public class Profile extends Page {
             def profileAttr= [:]
             def steamIdInfo= Records.getSteamId(steamid)
             
-            profileAttr["steamid"]= steamid
-            profileAttr["name"]= steamIdInfo.name
-            profileAttr["avatar"]= steamIdInfo.avatarMedium
-            profileAttr["wins"]= record.getWins()
-            profileAttr["losses"]= record.getLosses()
-            profileAttr["disconnects"]= record.getDisconnects()
-            
-            'profile'(profileAttr) {
-                statsData.getPlayerStats(steamid).each {cat, player ->
-                    'stats'(category: cat) {
-                        player.getStats().sort{it.key}.each {stat, value ->
-                            def attr= [:]
-                            attr["name"]= stat
-                            attr["value"]= value
-                            xmlBuilder.'entry'(attr)
+            if (record == null) {
+                'error'("No stats available for steamdID64: ${steamid}")
+            } else {
+                profileAttr["steamid"]= steamid
+                profileAttr["name"]= steamIdInfo.name
+                profileAttr["avatar"]= steamIdInfo.avatarMedium
+                profileAttr["wins"]= record.getWins()
+                profileAttr["losses"]= record.getLosses()
+                profileAttr["disconnects"]= record.getDisconnects()
+
+                'profile'(profileAttr) {
+                    statsData.getPlayerStats(steamid).each {cat, player ->
+                        'stats'(category: cat) {
+                            player.getStats().sort{it.key}.each {stat, value ->
+                                def attr= [:]
+                                attr["name"]= stat
+                                attr["value"]= value
+                                xmlBuilder.'entry'(attr)
+                            }
+
                         }
-                        
                     }
                 }
             }

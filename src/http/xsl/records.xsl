@@ -9,6 +9,7 @@
 -->
 
 <xsl:stylesheet xmlns:xsl="http://www.w3.org/1999/XSL/Transform" version="1.0">
+<xsl:include href="kfstatsx.xsl"/>
 
 <xsl:template match="kfstatsx">
 <html>
@@ -20,15 +21,16 @@
     </head>
     <body>
         <center>
+            <xsl:copy-of select="$altnav" />
             <div style="background-color: #C8C8C8;width:630px" >
-                <form action='profile.xml' method='get'>
-                    <p style="text-align: left">Enter player's <a href="http://steamidconverter.com/" target="_blank">steamID64: </a>
+                <br/>
+                <form action='profile.xml' method='get' style="text-align:left">
+                    Enter player's <a href="http://steamidconverter.com/" target="_blank">steamID64: </a>
                     <input type='text' name='steamid' />
                     <input type='submit' value='Search Player' />
-                    </p>
                 </form>
-                <form action="records.xml" method="get">
-                    <p style="text-align: left">Goto page 
+                <form action="records.xml" method="get" style="text-align:left">
+                    Goto page 
                     <input type='text' name='page'>
                         <xsl:attribute name="value">
                             <xsl:value-of select="records/@page"/>
@@ -54,7 +56,6 @@
                         </xsl:attribute>
                         &#187;
                     </a>
-                    </p>
                 </form>
                 <xsl:apply-templates select="records"/>
             </div>

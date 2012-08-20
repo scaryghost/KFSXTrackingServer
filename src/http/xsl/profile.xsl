@@ -23,11 +23,18 @@
     <body>
         <center>
             <xsl:copy-of select="$nav" />
+            <xsl:apply-templates select="error" />
             <xsl:apply-templates select="profile" />
             <xsl:apply-templates select="profile/stats" />
         </center>
     </body>
 </html>
+</xsl:template>
+
+<xsl:template match="error">
+    <div style="background-color: #C8C8C8;width:630px" >
+        <xsl:value-of select="."/>
+    </div>
 </xsl:template>
 
 <xsl:template match="profile">
