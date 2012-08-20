@@ -12,20 +12,6 @@ import com.github.etsai.kfsxtrackingserver.Common
  * @author etsai
  */
 public class Records extends Page {
-    private static def steamIdInfo= Collections.synchronizedMap([:])
-    
-    public static def getSteamId(def steamid) {
-        def steamInfo= steamIdInfo[steamid]
-        if (steamInfo == null) {
-            steamIdInfo[steamid]= new SteamIdInfo(steamid)
-        } else if (!steamInfo.isExpired()) {
-            steamIdInfo[steamid]= null
-            steamIdInfo[steamid]= new SteamIdInfo(steamid)
-            Common.logger.info("SteamID64: ${steamid} expired.  Repolling steamcommunity")
-        }
-        return steamIdInfo[steamid]
-    }
-    
     public static final def KEY_PAGE= "page"
     public static final def KEY_ROWS= "rows"
     public static final def DEFAULT_PAGE= 0
@@ -53,11 +39,11 @@ public class Records extends Page {
             'records'(page: page, rows: rows) {
                 (start .. end).each {index ->
                     def record= allRecords[index]
-                    def steamIdInfo= getSteamId(record.getSteamId())
+                    def steamIdInfo= SteamIdInfo.getSteamIDInfo(record.getSteamId())
                     def attr= [:]
                     
                     attr["pos"]= index+1
-                    attr["steamid"]= steamIdInfo.steamid
+                    attr["steamid"]= steamIdInfo.steamID64
                     attr["name"]= steamIdInfo.name
                     attr["wins"]= record.getWins()
                     attr["losses"]= record.getLosses()

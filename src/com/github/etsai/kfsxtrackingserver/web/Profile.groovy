@@ -25,7 +25,7 @@ public class Profile extends Page {
         
         xmlBuilder.kfstatsx() {
             def profileAttr= [:]
-            def steamIdInfo= Records.getSteamId(steamid)
+            def steamIdInfo= SteamIdInfo.getSteamIDInfo(steamid)
             
             if (record == null) {
                 'error'("No stats available for steamdID64: ${steamid}")

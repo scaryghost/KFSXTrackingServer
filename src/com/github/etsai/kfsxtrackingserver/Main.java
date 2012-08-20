@@ -7,6 +7,7 @@ package com.github.etsai.kfsxtrackingserver;
 import static com.github.etsai.kfsxtrackingserver.Common.logger;
 import static com.github.etsai.kfsxtrackingserver.Common.properties;
 import static com.github.etsai.kfsxtrackingserver.ServerProperties.*;
+import com.github.etsai.kfsxtrackingserver.web.SteamIdInfo.SteamIDUpdater;
 import java.io.IOException;
 import java.net.InetAddress;
 import java.net.UnknownHostException;
@@ -44,6 +45,22 @@ public class Main {
         Thread udpTh= new Thread(new UDPListener(Integer.valueOf(properties.getProperty(propUdpPort))));
         Thread httpTh= new Thread(new HTTPListener(Integer.valueOf(properties.getProperty(propHttpPort))));
                 
+        logger.log(Level.INFO,"Loading stats from databse: {0}", properties.getProperty(propDbName));
+        Class.forName("org.sqlite.JDBC");
+        String dbUri= String.format("jdbc:sqlite:%s", properties.getProperty(propDbName));
+        Connection conn= DriverManager.getConnection(dbUri);
+        conn.setAutoCommit(false);
+        Common.statsData= Data.load(conn);
+        
+        Timer timer = new Timer();
+        Data.writer= new com.github.etsai.kfsxtrackingserver.impl.DataWriterImpl(conn);
+        Long dbWritePeriod= Long.valueOf(properties.getProperty(propDbWritePeriod));
+        timer.scheduleAtFixedRate(Data.writer, dbWritePeriod, dbWritePeriod);
+        timer.scheduleAtFixedRate(new SteamIDUpdater(), 0, Integer.valueOf(properties.getProperty(propSteamPollingPeriod)));
+        
+        Runtime.getRuntime().addShutdownHook( 
+            new Thread(Data.writer)
+        );
         Runtime.getRuntime().addShutdownHook(new Thread() {
             @Override
             public void run() {
@@ -53,21 +70,7 @@ public class Main {
             }
         });
         
-        Class.forName("org.sqlite.JDBC");
-        String dbUri= String.format("jdbc:sqlite:%s", properties.getProperty(propDbName));
-        Connection conn= DriverManager.getConnection(dbUri);
-        conn.setAutoCommit(false);
         
-        Timer timer = new Timer();
-        Data.writer= new com.github.etsai.kfsxtrackingserver.impl.DataWriterImpl(conn);
-        Long dbWritePeriod= Long.valueOf(properties.getProperty(propDbWritePeriod));
-        timer.scheduleAtFixedRate(Data.writer, dbWritePeriod, dbWritePeriod);
-        Runtime.getRuntime().addShutdownHook( 
-            new Thread(Data.writer)
-        );
-        
-        logger.log(Level.INFO,"Loading stats from databse: {0}", properties.getProperty(propDbName));
-        Common.statsData= Data.load(conn);
         udpTh.start();
         httpTh.start();
     }
