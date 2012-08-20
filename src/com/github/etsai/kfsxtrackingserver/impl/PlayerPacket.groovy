@@ -15,7 +15,7 @@ import java.util.logging.Level
  * @author eric
  */
 public class PlayerPacket extends Packet {
-    public static final def playerVersion= 1
+    public static final def packetVersion= 1
     public static final String keyPlayerId= "playerid"
     public static final String keyGroup= "group"
     public static final String keyStats= "stats"
@@ -27,7 +27,7 @@ public class PlayerPacket extends Packet {
         super(protocol, version)
         
         if (version != playerVersion) {
-            def msg= "Packet version required: ${playerVersion}.  Version received: ${version}"
+            def msg= "Packet version required: ${packetVersion}.  Version received: ${version}"
             throw new RuntimeException(msg)
         }
         def playerStats= [:]
