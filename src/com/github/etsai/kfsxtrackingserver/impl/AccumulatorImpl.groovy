@@ -7,9 +7,9 @@ package com.github.etsai.kfsxtrackingserver.impl
 
 import static com.github.etsai.kfsxtrackingserver.Common.statsData
 import static com.github.etsai.kfsxtrackingserver.Common.logger
+import static com.github.etsai.kfsxtrackingserver.Packet.Type
 import com.github.etsai.kfsxtrackingserver.Accumulator
 import com.github.etsai.kfsxtrackingserver.Packet
-import com.github.etsai.kfsxtrackingserver.Packet.Type
 import java.util.logging.Level
 
 /**

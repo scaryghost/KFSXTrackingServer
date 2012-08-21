@@ -4,8 +4,8 @@
  */
 package com.github.etsai.kfsxtrackingserver;
 
-import com.github.etsai.kfsxtrackingserver.stats.*;
 import static com.github.etsai.kfsxtrackingserver.Common.logger;
+import com.github.etsai.kfsxtrackingserver.stats.*;
 import java.sql.Connection;
 import java.sql.ResultSet;
 import java.sql.SQLException;
