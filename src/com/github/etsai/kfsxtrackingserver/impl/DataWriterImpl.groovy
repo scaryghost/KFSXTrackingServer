@@ -116,8 +116,8 @@ public class DataWriterImpl extends DataWriter {
     
     @Override
     public void run() {
-        if (saveDeaths) {
-            logger.fine("Saving deaths")
+        if (saveAggregate) {
+            logger.fine("Saving aggregate player stats")
             statsData.getAggregateStats().each {aggregate ->
                 def ps= preparedStatements[aggregateSql]
                 def id= aggregate.getId()
@@ -131,8 +131,8 @@ public class DataWriterImpl extends DataWriter {
                 ps.addBatch()
             }
         }
-        if (saveAggregate) {
-            logger.fine("Saving aggregate player stats")
+        if (saveDeaths) {
+            logger.fine("Saving deaths")
             statsData.getDeaths().each {death ->
                 def ps= preparedStatements[deathSql]
                 def id= death.getId()
@@ -162,7 +162,7 @@ public class DataWriterImpl extends DataWriter {
                 ps.addBatch()
             }
         }
-        
+
         preparedStatements.each {sql, ps ->
             ps.executeBatch()
         }
