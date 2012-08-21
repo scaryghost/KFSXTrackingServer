@@ -23,6 +23,7 @@ public class ServerProperties {
     public static final String propDbName= "db.name";
     public static final String propDbWritePeriod= "db.write.period";
     public static final String propSteamPollingPeriod= "steam.polling.period";
+    public static final String propSteamPollingNThreads= "steam.polling.nThreads";
     public static final String propLogLevel= "log.level";
     
     public synchronized static Properties load(String filename) throws IOException {
@@ -44,6 +45,7 @@ public class ServerProperties {
             defaults.setProperty(propDbWritePeriod, "1800000");
             defaults.setProperty(propSteamPollingPeriod, "21600000");
             defaults.setProperty(propLogLevel, "INFO");
+            defaults.setProperty(propSteamPollingNThreads, "100");
         }
         return defaults;
     }
