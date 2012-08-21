@@ -87,7 +87,7 @@ public class Main {
         }
         
         filename= String.format("%s.%s.%tY%<tm%<td-%<tH%<tM%<tS.log", 
-            "udpstatstracker", localHostAddress, new Date());
+            "kfsxtrackingserver", localHostAddress, new Date());
 
         try {
             Level logLevel= Level.parse(properties.getProperty(propLogLevel));
