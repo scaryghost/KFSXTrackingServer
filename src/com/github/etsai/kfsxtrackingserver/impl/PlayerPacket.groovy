@@ -15,6 +15,7 @@ import java.util.logging.Level
  * @author eric
  */
 public class PlayerPacket extends Packet {
+    public static final def blankID= ""
     public static final def packetVersion= 1
     public static final String keyPlayerId= "playerid"
     public static final String keyGroup= "group"
@@ -40,10 +41,14 @@ public class PlayerPacket extends Packet {
 
         if (parts[1].length() < 17) {
             def offset= new BigInteger("76561197960265728")
-            def linuxId= new BigInteger(parts[1])
+            if (parts[1] == "") {
+                id= blankID
+            } else {
+                def linuxId= new BigInteger(parts[1])
 
-            linuxId+= offset
-            id= linuxId.toString()
+                linuxId+= offset
+                id= linuxId.toString()
+            }
         } else {
             id= parts[1]
         }

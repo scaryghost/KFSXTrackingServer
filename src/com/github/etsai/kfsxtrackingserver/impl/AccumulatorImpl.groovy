@@ -13,7 +13,7 @@ import com.github.etsai.kfsxtrackingserver.Packet
 import java.util.logging.Level
 
 /**
- *
+ * Implements the Accumulator interface
  * @author etsai
  */
 public class AccumulatorImpl implements Accumulator {
@@ -60,17 +60,27 @@ public class AccumulatorImpl implements Accumulator {
                         break
                     case Type.Player:
                         def id= packet.getData(PlayerPacket.keyPlayerId)
-                        def seqnum= packet.getSeqnum()
+                        
+                        if (id == PlayerPacket.blankID) {
+                            logger.info("Blank ID received.  Adding to aggregate stats only")
+                            def group= packet.getData(PlayerPacket.keyGroup)
+                            packet.getData(PlayerPacket.keyStats).each {stat, value ->
+                                if (stat != "")
+                                    statsData.accumulateAggregateStat(stat, value.toInteger(), group)
+                            }
+                        } else {
+                            def seqnum= packet.getSeqnum()
 
-                        if (receivedPackets[id] == null) {
-                            receivedPackets[id]= []
-                        }
-                        receivedPackets[id][seqnum]= packet
-                        def completed= receivedPackets[id].last().isLast() && 
-                            receivedPackets[id].inject(true) {acc, val -> acc && (val != null) }
-                        if (completed) {
-                            savePlayer(id)
-                            receivedPackets[id]= null
+                            if (receivedPackets[id] == null) {
+                                receivedPackets[id]= []
+                            }
+                            receivedPackets[id][seqnum]= packet
+                            def completed= receivedPackets[id].last().isLast() && 
+                                receivedPackets[id].inject(true) {acc, val -> acc && (val != null) }
+                            if (completed) {
+                                savePlayer(id)
+                                receivedPackets[id]= null
+                            }
                         }
                         break
                     default:
@@ -87,7 +97,8 @@ public class AccumulatorImpl implements Accumulator {
                 statsData.accumulateRecord(steamid, packet.getData(PlayerPacket.keyStats)["result"].toInteger())
             } else {
                 packet.getData(PlayerPacket.keyStats).each {stat, value ->
-                    statsData.accumulateAggregateStat(stat, value.toInteger(), group)
+                    if (stat != "")
+                        statsData.accumulateAggregateStat(stat, value.toInteger(), group)
                     statsData.accumulatePlayerStat(steamid, stat, value.toInteger(), group)
                 }
             }
