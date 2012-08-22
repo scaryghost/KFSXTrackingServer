@@ -12,7 +12,6 @@ import static com.github.etsai.kfsxtrackingserver.Packet.Type
 import com.github.etsai.kfsxtrackingserver.impl.MatchPacket
 import com.github.etsai.kfsxtrackingserver.impl.PlayerPacket
 import java.util.logging.Level
-import java.util.TimerTask
 
 /**
  * Accumulates and holds packets for processing
@@ -20,37 +19,6 @@ import java.util.TimerTask
  */
 public class Accumulator implements Runnable {
     private static def receivedPackets= Collections.synchronizedMap([:])
-    static class PacketChecker extends TimerTask {
-        public def steamID64
-        
-        @Override
-        public void run() {
-            def packets= receivedPackets[steamID64]
-            if (packets != null) {
-                def completed= packets.last().isLast() && 
-                    packets.inject(true) {acc, val -> acc && (val != null) }
-                if (completed) {
-                    logger.info("Saving stats for player: ${steamID64}")
-                    packets.each {packet ->
-                        def group= packet.getData(PlayerPacket.keyGroup)
-
-                        if (group == "match") {
-                            statsData.accumulateRecord(steamID64, packet.getData(PlayerPacket.keyStats)["result"].toInteger())
-                        } else {
-                            packet.getData(PlayerPacket.keyStats).each {stat, value ->
-                                if (stat != "")
-                                    statsData.accumulateAggregateStat(stat, value, group)
-                                statsData.accumulatePlayerStat(steamID64, stat, value, group)
-                            }
-                        }
-                    }
-                } else {
-                    logger.info("Discarding packets for player: ${steamID64}")
-                }
-                receivedPackets[steamID64]= null
-            }
-        }
-    }
     
     private final def data
     public Accumulator(String data) {
@@ -93,9 +61,18 @@ public class Accumulator implements Runnable {
 
                         if (receivedPackets[id] == null) {
                             receivedPackets[id]= Collections.synchronizedList([])
-                            timer.schedule(new PacketChecker(steamID64:id), 5000L)
                         }
-                        receivedPackets[id][seqnum]= packet
+                        def packets= receivedPackets[id]
+                        
+                        synchronized(packets) {
+                            packets[seqnum]= packet
+                            def completed= packets.last().isLast() && 
+                                packets.inject(true) {acc, val -> acc && (val != null) }
+                            if (completed) {
+                                savePackets(id, packets)
+                                receivedPackets[id]= null
+                            }
+                        }
                     }
                     break
                 default:
@@ -104,6 +81,23 @@ public class Accumulator implements Runnable {
             }
         } catch (Exception ex) {
             logger.log(Level.SEVERE, null, ex)
+        }
+    }
+    
+    private def savePackets(def steamID64, def packets) {
+        logger.info("Saving stats for player: ${steamID64}")
+        packets.each {packet ->
+            def group= packet.getData(PlayerPacket.keyGroup)
+
+            if (group == "match") {
+                statsData.accumulateRecord(steamID64, packet.getData(PlayerPacket.keyStats)["result"].toInteger())
+            } else {
+                packet.getData(PlayerPacket.keyStats).each {stat, value ->
+                    if (stat != "")
+                        statsData.accumulateAggregateStat(stat, value, group)
+                    statsData.accumulatePlayerStat(steamID64, stat, value, group)
+                }
+            }
         }
     }
 }
