@@ -60,13 +60,13 @@ public class AccumulatorImpl implements Accumulator {
                         break
                     case Type.Player:
                         def id= packet.getData(PlayerPacket.keyPlayerId)
-                        
-                        if (id == PlayerPacket.blankID) {
+                        def group= packet.getData(PlayerPacket.keyGroup)
+
+                        if (id == PlayerPacket.blankID && group != "match") {
                             logger.info("Blank ID received.  Adding to aggregate stats only")
-                            def group= packet.getData(PlayerPacket.keyGroup)
                             packet.getData(PlayerPacket.keyStats).each {stat, value ->
                                 if (stat != "")
-                                    statsData.accumulateAggregateStat(stat, value.toInteger(), group)
+                                    statsData.accumulateAggregateStat(stat, value, group)
                             }
                         } else {
                             def seqnum= packet.getSeqnum()
@@ -90,6 +90,7 @@ public class AccumulatorImpl implements Accumulator {
             }
     }
     private void savePlayer(def steamid) {
+        logger.info("Saving stats for player: ${steamid}")
         receivedPackets[steamid].each {packet ->
             def group= packet.getData(PlayerPacket.keyGroup)
             
@@ -98,8 +99,8 @@ public class AccumulatorImpl implements Accumulator {
             } else {
                 packet.getData(PlayerPacket.keyStats).each {stat, value ->
                     if (stat != "")
-                        statsData.accumulateAggregateStat(stat, value.toInteger(), group)
-                    statsData.accumulatePlayerStat(steamid, stat, value.toInteger(), group)
+                        statsData.accumulateAggregateStat(stat, value, group)
+                    statsData.accumulatePlayerStat(steamid, stat, value, group)
                 }
             }
         }

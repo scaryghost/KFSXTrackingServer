@@ -34,11 +34,9 @@ public class MatchPacket extends Packet {
         }
         
         def deaths= [:]
-        if (parts[7] != "") {
-            parts[7].split(",").each {death ->
-                def keyVal= death.split("=")
-                deaths[keyVal[0]]= keyVal[1]
-            }
+        parts[7].tokenize(",").each {death ->
+            def keyVal= death.split("=")
+            deaths[keyVal[0]]= keyVal[1].toInteger()
         }
 
         data= [:]
