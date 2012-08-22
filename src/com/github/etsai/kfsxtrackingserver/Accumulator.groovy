@@ -91,13 +91,11 @@ public class Accumulator implements Runnable {
                     } else {
                         def seqnum= packet.getSeqnum()
 
-                        synchronized(this) {
-                            if (receivedPackets[id] == null) {
-                                receivedPackets[id]= []
-                                timer.schedule(new PacketChecker(steamID64:id), 5000L)
-                            }
-                            receivedPackets[id][seqnum]= packet
+                        if (receivedPackets[id] == null) {
+                            receivedPackets[id]= Collections.synchronizedList([])
+                            timer.schedule(new PacketChecker(steamID64:id), 5000L)
                         }
+                        receivedPackets[id][seqnum]= packet
                     }
                     break
                 default:
