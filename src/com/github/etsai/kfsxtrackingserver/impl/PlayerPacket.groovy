@@ -64,7 +64,8 @@ public class PlayerPacket extends Packet {
         }
         body.tokenize(",").each {stats ->
             def keyVal= stats.split("=")
-            playerStats[keyVal[0]]= keyVal[1].toInteger()
+            def val= data[keyGroup] == "match" ? keyVal[1] : keyVal[1].toInteger()
+            playerStats[keyVal[0]]= val
         }
         data[keyStats]= playerStats
     }

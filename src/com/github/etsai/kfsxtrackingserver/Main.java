@@ -6,6 +6,7 @@ package com.github.etsai.kfsxtrackingserver;
 
 import static com.github.etsai.kfsxtrackingserver.Common.logger;
 import static com.github.etsai.kfsxtrackingserver.Common.properties;
+import static com.github.etsai.kfsxtrackingserver.Common.timer;
 import static com.github.etsai.kfsxtrackingserver.ServerProperties.*;
 import com.github.etsai.kfsxtrackingserver.web.SteamIdInfo.SteamIDUpdater;
 import java.io.IOException;
@@ -15,7 +16,6 @@ import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.SQLException;
 import java.util.Date;
-import java.util.Timer;
 import java.util.logging.*;
 
 /**
@@ -52,7 +52,6 @@ public class Main {
         conn.setAutoCommit(false);
         Common.statsData= Data.load(conn);
         
-        Timer timer = new Timer();
         Data.writer= new com.github.etsai.kfsxtrackingserver.impl.DataWriterImpl(conn);
         Long dbWritePeriod= Long.valueOf(properties.getProperty(propDbWritePeriod));
         timer.scheduleAtFixedRate(Data.writer, dbWritePeriod, dbWritePeriod);

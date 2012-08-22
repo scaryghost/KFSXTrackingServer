@@ -7,8 +7,6 @@ package com.github.etsai.kfsxtrackingserver.web
 
 import static com.github.etsai.kfsxtrackingserver.ServerProperties.*
 import com.github.etsai.kfsxtrackingserver.Common
-import java.util.concurrent.Executors
-import java.util.concurrent.TimeUnit
 import java.util.TimerTask
 import java.util.logging.Level
 import java.nio.charset.Charset
@@ -72,13 +70,10 @@ public class SteamIdInfo {
     public static class SteamIDUpdater extends TimerTask {
         @Override
         public void run() {
-            def pool= Executors.newFixedThreadPool(Common.properties[propSteamPollingNThreads].toInteger())
             Common.statsData.getRecords().each {record ->
                 def poller= new SteamPoller(steamID64: record.getSteamId())
-                pool.submit poller
+                Common.pool.submit poller
             }
-            pool.shutdown()
-            pool.awaitTermination(10, TimeUnit.SECONDS)
         }
     }
     
