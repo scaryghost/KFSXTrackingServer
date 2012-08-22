@@ -4,12 +4,12 @@
  */
 package com.github.etsai.kfsxtrackingserver;
 
-import static com.github.etsai.kfsxtrackingserver.Common.logger;
-import static com.github.etsai.kfsxtrackingserver.Common.properties;
-import static com.github.etsai.kfsxtrackingserver.Common.timer;
+import static com.github.etsai.kfsxtrackingserver.Common.*;
 import static com.github.etsai.kfsxtrackingserver.ServerProperties.*;
 import com.github.etsai.kfsxtrackingserver.web.SteamIdInfo.SteamIDUpdater;
+import java.io.File;
 import java.io.IOException;
+import java.io.PrintStream;
 import java.net.InetAddress;
 import java.net.UnknownHostException;
 import java.sql.Connection;
@@ -23,8 +23,8 @@ import java.util.logging.*;
  * @author etsai
  */
 public class Main {
-    private static FileHandler logFileHandler;
     private static ConsoleHandler logConsoleHandler;
+    private static PrintStream loggedStream;
     
     /**
      * @param args the command line arguments
@@ -64,8 +64,8 @@ public class Main {
             @Override
             public void run() {
                 logger.info("Shutting down server");
-                logFileHandler.close();
                 logConsoleHandler.close();
+                loggedStream.close();
             }
         });
         
@@ -75,38 +75,41 @@ public class Main {
     }
     
     public static void initLogging() {
-        String filename;
         String localHostAddress;
-        
+            
         try {
             localHostAddress= InetAddress.getLocalHost().getHostName();
         } catch (UnknownHostException ex) {
             logger.warning(ex.getMessage());
             localHostAddress= "unknown";
         }
-        
-        filename= String.format("%s.%s.%tY%<tm%<td-%<tH%<tM%<tS.log", 
-            "kfsxtrackingserver", localHostAddress, new Date());
-
+            
         try {
+            String filename;
+            File logFile;
+            filename= String.format("%s.%s.%tY%<tm%<td-%<tH%<tM%<tS.log", 
+                "kfsxtrackingserver", localHostAddress, new Date());
+            
+            logFile= new File(filename);
+            loggedStream = new PrintStream(logFile);
+            oldStdOut= System.out;
+            oldStdErr= System.err;
+            System.setOut(loggedStream);
+            System.setErr(loggedStream);
+            
             Level logLevel= Level.parse(properties.getProperty(propLogLevel));
-            logFileHandler= new FileHandler(filename);
-            logConsoleHandler= new ConsoleHandler();
-            
-            logFileHandler.setFormatter(new SimpleFormatter());
-            logFileHandler.setLevel(logLevel);
-            logConsoleHandler.setLevel(logLevel);
-            
             for(Handler handler: logger.getHandlers()) {
                 logger.removeHandler(handler);
             }
-            logger.addHandler(logFileHandler);
-            logger.addHandler(logConsoleHandler);
+            logConsoleHandler= new ConsoleHandler();
+            logConsoleHandler.setLevel(logLevel);
             logger.setLevel(Level.ALL);
+            logger.addHandler(logConsoleHandler);
             logger.setUseParentHandlers(false);
-        } catch (IOException|SecurityException ex) {
-            logger.warning(ex.getMessage());
-            logger.warning("Logging to output stream...");
+        } catch (IOException ex) {
+            logger.log(Level.WARNING, "Output will not be saved to file...", ex);
         }
+
+        
     }
 }

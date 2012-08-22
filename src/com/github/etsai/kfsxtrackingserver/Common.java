@@ -1,5 +1,6 @@
 package com.github.etsai.kfsxtrackingserver;
 
+import java.io.PrintStream;
 import java.util.Properties;
 import java.util.Timer;
 import java.util.concurrent.ExecutorService;
@@ -22,4 +23,5 @@ public class Common {
     public static Data statsData;
     public static ExecutorService pool= Executors.newCachedThreadPool();
     public static Timer timer = new Timer();
+    public static PrintStream oldStdOut, oldStdErr;
 }
