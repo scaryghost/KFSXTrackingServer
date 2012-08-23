@@ -8,6 +8,7 @@ import static com.github.etsai.kfsxtrackingserver.Common.*;
 import static com.github.etsai.kfsxtrackingserver.ServerProperties.*;
 import com.github.etsai.kfsxtrackingserver.web.SteamIdInfo.SteamIDUpdater;
 import java.io.File;
+import java.io.FileWriter;
 import java.io.IOException;
 import java.io.PrintStream;
 import java.net.InetAddress;
@@ -24,7 +25,7 @@ import java.util.logging.*;
  */
 public class Main {
     private static ConsoleHandler logConsoleHandler;
-    private static PrintStream loggedStream;
+    private static FileWriter logWriter;
     
     /**
      * @param args the command line arguments
@@ -64,8 +65,6 @@ public class Main {
             @Override
             public void run() {
                 logger.info("Shutting down server");
-                logConsoleHandler.close();
-                loggedStream.close();
             }
         });
         
@@ -85,17 +84,14 @@ public class Main {
         }
             
         try {
-            String filename;
-            File logFile;
-            filename= String.format("%s.%s.%tY%<tm%<td-%<tH%<tM%<tS.log", 
+            String filename= String.format("%s.%s.%tY%<tm%<td-%<tH%<tM%<tS.log", 
                 "kfsxtrackingserver", localHostAddress, new Date());
             
-            logFile= new File(filename);
-            loggedStream = new PrintStream(logFile);
+            logWriter= new FileWriter(new File(filename));
             oldStdOut= System.out;
             oldStdErr= System.err;
-            System.setOut(loggedStream);
-            System.setErr(loggedStream);
+            System.setOut(new PrintStream(new TeeLogger(logWriter, oldStdOut)));
+            System.setErr(new PrintStream(new TeeLogger(logWriter, oldStdErr)));
             
             Level logLevel= Level.parse(properties.getProperty(propLogLevel));
             for(Handler handler: logger.getHandlers()) {
@@ -106,6 +102,7 @@ public class Main {
             logger.setLevel(Level.ALL);
             logger.addHandler(logConsoleHandler);
             logger.setUseParentHandlers(false);
+            logger.log(Level.INFO, "Log file stored at: {0}", filename);   
         } catch (IOException ex) {
             logger.log(Level.WARNING, "Output will not be saved to file...", ex);
         }
