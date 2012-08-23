@@ -20,7 +20,7 @@ public class SteamIdInfo {
     private static def polledSteamIDs= Collections.synchronizedMap([:])
     
     public static def getSteamIDInfo(def steamID64) {
-        if (polledSteamIDs[steamID64] == null) {
+        if (polledSteamIDs[steamID64] == null || polledSteamIDs[steamID64].repoll) {
             def th= new Thread(new SteamPoller(steamID64:steamID64))
             th.start()
             th.join()
@@ -59,7 +59,7 @@ public class SteamIdInfo {
             } catch (Exception ex) {
                 Common.logger.log(Level.SEVERE, "Error polling steamcommunity.com", ex)
                 
-                newId.name= "null"
+                newId.repoll= true
                 if (polledSteamIDs[steamID64] == null) {
                     polledSteamIDs[steamID64]= newId
                 }
@@ -77,7 +77,7 @@ public class SteamIdInfo {
         }
     }
     
-    private def valid, expired
+    private def valid, repoll= false
     public final def steamID64
     public def name, avatarFull, avatarMedium, avatarSmall
     
@@ -89,8 +89,8 @@ public class SteamIdInfo {
         return valid
     }
     
-    public boolean isExpired() {
-        return expired.compareTo(Calendar.getInstance()) > 0
+    public boolean repoll() {
+        return repoll
     }
 }
 

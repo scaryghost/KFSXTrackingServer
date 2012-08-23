@@ -7,10 +7,11 @@ package com.github.etsai.kfsxtrackingserver
 
 import static com.github.etsai.kfsxtrackingserver.Common.statsData
 import static com.github.etsai.kfsxtrackingserver.Common.logger
-import static com.github.etsai.kfsxtrackingserver.Common.timer
+import static com.github.etsai.kfsxtrackingserver.Common.pool
 import static com.github.etsai.kfsxtrackingserver.Packet.Type
 import com.github.etsai.kfsxtrackingserver.impl.MatchPacket
 import com.github.etsai.kfsxtrackingserver.impl.PlayerPacket
+import com.github.etsai.kfsxtrackingserver.web.SteamIdInfo.SteamPoller
 import java.util.logging.Level
 
 /**
@@ -86,6 +87,9 @@ public class Accumulator implements Runnable {
     
     private def savePackets(def steamID64, def packets) {
         logger.info("Saving stats for player: ${steamID64}")
+        
+        def poller= new SteamPoller(steamID64: steamID64)
+        pool.submit(poller)
         packets.each {packet ->
             def group= packet.getData(PlayerPacket.keyGroup)
 
