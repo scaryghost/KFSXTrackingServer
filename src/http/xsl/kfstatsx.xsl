@@ -10,6 +10,15 @@
 
 <xsl:stylesheet xmlns:xsl="http://www.w3.org/1999/XSL/Transform" version="1.0">
 
+<xsl:variable name="head">
+<head>
+    <meta http-equiv="Content-Type" content="text/html; charset=ISO-8859-1"/>
+    <title>KFTrackingServer v1.0</title>
+    <link rel="stylesheet" type="text/css" href="http/css/kfstatsx.css" />
+    <script type="text/javascript" src="http/js/kfstatsx.js" ></script>
+</head>
+</xsl:variable>
+
 <xsl:variable name="nav" >
     <table width="630" class="graph" cellspacing="6" cellpadding="0">
         <thead>

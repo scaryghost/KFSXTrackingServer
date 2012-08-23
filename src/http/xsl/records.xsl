@@ -13,12 +13,7 @@
 
 <xsl:template match="kfstatsx">
 <html>
-    <head>
-        <meta http-equiv="Content-Type" content="text/html; charset=ISO-8859-1"/>
-        <title>KFStatsX v1.0</title>
-        <link rel="stylesheet" type="text/css" href="http/css/kfstatsx.css" />
-        <script type="text/javascript" src="http/js/kfstatsx.js" ></script>
-    </head>
+    <xsl:copy-of select="$head" />
     <body>
         <center>
             <xsl:copy-of select="$altnav" />
