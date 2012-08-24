@@ -20,7 +20,7 @@ public class ServerProperties {
     public static final String propUdpPort= "udp.port";
     public static final String propHttpPort= "http.port";
     public static final String propPassword= "password";
-    public static final String propStatsMsgTTL= "60000";
+    public static final String propStatsMsgTTL= "stats.msg.ttl";
     public static final String propDbName= "db.name";
     public static final String propDbWritePeriod= "db.write.period";
     public static final String propSteamPollingPeriod= "steam.polling.period";
