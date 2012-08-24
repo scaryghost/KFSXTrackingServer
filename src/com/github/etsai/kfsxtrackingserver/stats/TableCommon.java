@@ -4,31 +4,35 @@
  */
 package com.github.etsai.kfsxtrackingserver.stats;
 
+import java.util.concurrent.atomic.AtomicInteger;
+
 /**
- *
+ * Common functions used by the other classes
  * @author etsai
  */
 public abstract class TableCommon {
     private final int id;
-    private int wins= 0;
-    private int losses= 0;
+    private AtomicInteger wins;
+    private AtomicInteger losses;
     
     protected TableCommon(int id) {
         this.id= id;
+        wins= new AtomicInteger();
+        losses= new AtomicInteger();
     }
     public int getId() {
         return id;
     }
     public int getWins() {
-        return wins;
+        return wins.get();
     }
     public int getLosses() {
-        return losses;
+        return losses.get();
     }
     public void addWins(int offset) {
-        wins+= offset;
+        wins.getAndAdd(offset);
     }
     public void addLosses(int offset) {
-        losses+= offset;
+        losses.getAndAdd(offset);
     }
 }

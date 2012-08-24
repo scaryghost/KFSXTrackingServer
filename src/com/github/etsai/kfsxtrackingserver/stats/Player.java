@@ -12,8 +12,8 @@ import java.util.Map;
 import java.util.Set;
 
 /**
- *
- * @author eric
+ * Stores a collection of stats for a player ID and a category group
+ * @author etsai
  */
 public class Player {
     private final int id;
@@ -48,16 +48,16 @@ public class Player {
     public String getCategory() {
         return category;
     }
-    public Set<String> getStatKeys() {
+    public synchronized Set<String> getStatKeys() {
         return Collections.unmodifiableSet(stats.keySet());
     }
-    public Integer getStat(String stat) {
+    public synchronized Integer getStat(String stat) {
         return stats.get(stat);
     }
-    public Map<String, Integer> getStats() {
+    public synchronized Map<String, Integer> getStats() {
         return Collections.unmodifiableMap(stats);
     }
-    public void accumulate(String stat, int offset) {
+    public synchronized void accumulate(String stat, int offset) {
         Integer value;
         
         if (!stats.containsKey(stat)) {

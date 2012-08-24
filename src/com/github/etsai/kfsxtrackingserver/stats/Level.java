@@ -9,7 +9,7 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 
 /**
- *
+ * Tracks wins, losses, and play time of each level
  * @author etsai
  */
 public class Level extends TableCommon {
@@ -33,13 +33,13 @@ public class Level extends TableCommon {
     public String getName() {
         return name;
     }
-    public Time getTime() {
+    public synchronized Time getTime() {
         return time;
     }
-    public void addTime(String offset) {
+    public synchronized void addTime(String offset) {
         time.add(offset);
     }
-    public void addTime(Time offset) {
+    public synchronized void addTime(Time offset) {
         time.add(offset);
     }
 }

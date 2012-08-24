@@ -6,26 +6,27 @@ package com.github.etsai.kfsxtrackingserver.stats;
 
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.util.concurrent.atomic.AtomicLong;
 
 /**
- *
+ * Tallies the death count
  * @author etsai
  */
 public class Death {
     public static Death build(ResultSet rs) throws SQLException {
         Death death= new Death(rs.getInt("id"), rs.getString("name"));
-        
-        death.value= rs.getInt("count");
+        death.value.getAndSet(rs.getInt("count"));
         return death;
     }
     
     private final int id;
     private final String stat;
-    private long value;
+    private AtomicLong value;
 
     public Death(int id, String stat) {
         this.id= id;
         this.stat= stat;
+        value= new AtomicLong();
     }
     
     public int getId() {
@@ -36,10 +37,10 @@ public class Death {
     }
     
     public String getValue() {
-        return String.valueOf(value);
+        return value.toString();
     }
     
     public void addValue(int offset) {
-        value+= offset;
+        value.getAndAdd(offset);
     }
 }

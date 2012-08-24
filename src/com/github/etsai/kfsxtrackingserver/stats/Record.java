@@ -6,36 +6,37 @@ package com.github.etsai.kfsxtrackingserver.stats;
 
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.util.concurrent.atomic.AtomicInteger;
 
 /**
- *
+ * Stores the wins, losses, and disconnects for each player
  * @author etsai
  */
 public class Record extends TableCommon {
     public static Record build(ResultSet rs) throws SQLException {
         Record record= new Record(rs.getString("steamid"));
         
-        record.disconnects= rs.getInt("disconnects");
+        record.disconnects.getAndSet(rs.getInt("disconnects"));
         record.addLosses(rs.getInt("losses"));
         record.addWins(rs.getInt("wins"));
         return record;
     }
     
     private final String steamid;
-    private int disconnects;
+    private AtomicInteger disconnects;
     
     public Record(String steamid) {
         super(steamid.hashCode());
         this.steamid= steamid;
-        disconnects= 0;
+        disconnects= new AtomicInteger();
     }
     public String getSteamId() {
         return steamid;
     }
-    public int getDisconnects() {
-        return disconnects;
+    public synchronized int getDisconnects() {
+        return disconnects.get();
     }
-    public void addDisconnects(int offset) {
-        disconnects+= offset;
+    public synchronized void addDisconnects(int offset) {
+        disconnects.getAndAdd(offset);
     }
 }

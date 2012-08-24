@@ -16,7 +16,7 @@ import java.util.HashMap;
 import java.util.Map;
 
 /**
- * Interface for accessing and modifying the server data
+ * Class for accessing and modifying player and match data
  * @author etsai
  */
 public class Data {
@@ -93,12 +93,12 @@ public class Data {
         return String.format("%s-%s",steamid, category).hashCode();
     }
     
-    private Map<Integer, Difficulty> difficulties= new HashMap<>();
-    private Map<Integer, Level> levels= new HashMap<>();
-    private Map<String, Record> records= new HashMap<>();
-    private Map<Integer, Aggregate> aggregate= new HashMap<>();
-    private Map<Integer, Death> deaths= new HashMap<>();
-    private Map<String, Map<String, Player>> playerStats= new HashMap<>();
+    private final Map<Integer, Difficulty> difficulties= new HashMap<>();
+    private final Map<Integer, Level> levels= new HashMap<>();
+    private final Map<String, Record> records= new HashMap<>();
+    private final Map<Integer, Aggregate> aggregate= new HashMap<>();
+    private final Map<Integer, Death> deaths= new HashMap<>();
+    private final Map<String, Map<String, Player>> playerStats= new HashMap<>();
     
     public Difficulty getDifficulty(String name, String length) {
         return difficulties.get(genDifficultyKey(name, length));
@@ -110,10 +110,12 @@ public class Data {
         Difficulty tempDiff;
         Integer id= genDifficultyKey(name, length);
         
-        if (!difficulties.containsKey(id)) {
-            tempDiff= new Difficulty(id.intValue(), name, length);
-        } else {
-            tempDiff= difficulties.get(id);
+        synchronized(difficulties) {
+            if (!difficulties.containsKey(id)) {
+                tempDiff= new Difficulty(id.intValue(), name, length);
+            } else {
+                tempDiff= difficulties.get(id);
+            }
         }
         switch (result) {
             case 1:
@@ -127,8 +129,11 @@ public class Data {
         }
         tempDiff.addWave(wave);
         tempDiff.addTime(timeLength);
-        difficulties.put(id, tempDiff);
-        writer.addDiffId(name, length);
+        
+        synchronized(difficulties) {
+            difficulties.put(id, tempDiff);
+            writer.addDiffId(name, length);
+        }
     }
     
     public Level getLevel(String name) {
@@ -141,10 +146,12 @@ public class Data {
         Level tempLevel;
         Integer id= genLevelKey(name);
         
-        if (!levels.containsKey(id)) {
-            tempLevel= new Level(id.intValue(), name);
-        } else {
-            tempLevel= levels.get(id);
+        synchronized(levels) {
+            if (!levels.containsKey(id)) {
+                tempLevel= new Level(id.intValue(), name);
+            } else {
+                tempLevel= levels.get(id);
+            }
         }
         switch (result) {
             case 1:
@@ -157,8 +164,11 @@ public class Data {
                 throw new RuntimeException("Unrecognized result value: "+result);
         }
         tempLevel.addTime(timeLength);
-        levels.put(id, tempLevel);
-        writer.addLevelId(name);
+        
+        synchronized(levels) {
+            levels.put(id, tempLevel);
+            writer.addLevelId(name);
+        }
     }
     
     public Record getRecord(String steamid) {
@@ -170,10 +180,12 @@ public class Data {
     public void accumulateRecord(String steamid, int result) {
         Record tempRecord;
         
-        if (!records.containsKey(steamid)) {
-            tempRecord= new Record(steamid);
-        } else {
-            tempRecord= records.get(steamid);
+        synchronized(records) {
+            if (!records.containsKey(steamid)) {
+                tempRecord= new Record(steamid);
+            } else {
+                tempRecord= records.get(steamid);
+            }
         }
         switch (result) {
             case 0:
@@ -188,8 +200,11 @@ public class Data {
             default:
                 throw new RuntimeException("Unrecognized result value: "+result);
         }
-        records.put(steamid, tempRecord);
-        writer.addRecordId(steamid);
+        
+        synchronized(records) {
+            records.put(steamid, tempRecord);
+            writer.addRecordId(steamid);
+        }
     }
     
     public Collection<Aggregate> getAggregateStats() {
@@ -199,14 +214,19 @@ public class Data {
         Integer id= genAggregateKey(stat, category);
         Aggregate tempAggregate;
         
-        if (!aggregate.containsKey(id)) {
-            tempAggregate= new Aggregate(id.intValue(), stat, category);
-        } else {
-            tempAggregate= aggregate.get(id);
+        synchronized(aggregate) {
+            if (!aggregate.containsKey(id)) {
+                tempAggregate= new Aggregate(id.intValue(), stat, category);
+            } else {
+                tempAggregate= aggregate.get(id);
+            }
         }
         tempAggregate.addValue(offset);
-        aggregate.put(id, tempAggregate);
-        writer.addAggregate(stat, category);
+        
+        synchronized(aggregate) {
+            aggregate.put(id, tempAggregate);
+            writer.addAggregate(stat, category);
+        }
     }
     
     public Collection<Death> getDeaths() {
@@ -216,31 +236,46 @@ public class Data {
         Integer id= stat.hashCode();
         Death tempDeath;
         
-        if (!deaths.containsKey(id)) {
-            tempDeath= new Death(id, stat);
-        } else {
-            tempDeath= deaths.get(id);
+        synchronized(deaths) {
+            if (!deaths.containsKey(id)) {
+                tempDeath= new Death(id, stat);
+            } else {
+                tempDeath= deaths.get(id);
+            }
         }
         tempDeath.addValue(offset);
-        deaths.put(id, tempDeath);
         writer.addDeath(stat);
+        
+        synchronized(deaths) {
+            deaths.put(id, tempDeath);
+        }
     }
     
     public Map<String, Player> getPlayerStats(String steamid) {
         return Collections.unmodifiableMap(playerStats.get(steamid));
     }
     public void accumulatePlayerStat(String steamid, String stat, int offset, String category) {
-        if (!playerStats.containsKey(steamid)) {
-            playerStats.put(steamid, new HashMap());
-        }
-        Map<String, Player> categories= playerStats.get(steamid);
-        if (!categories.containsKey(category)) {
-            categories.put(category, new Player(genPlayerKey(steamid, category), steamid));
-        }
-        Player temp= categories.get(category);
+        Map<String, Player> categories;
+        Player temp;
         
-        temp.accumulate(stat, offset);
-        categories.put(category, temp);
-        writer.addPlayer(steamid);
+        synchronized(playerStats) {
+            if (!playerStats.containsKey(steamid)) {
+                playerStats.put(steamid, new HashMap());
+            }
+            categories= playerStats.get(steamid);
+        }
+        
+        synchronized(categories) {
+            if (!categories.containsKey(category)) {
+                categories.put(category, new Player(genPlayerKey(steamid, category), steamid));
+            }
+            temp= categories.get(category);
+            temp.accumulate(stat, offset);
+        }
+        
+        synchronized(playerStats) {
+            categories.put(category, temp);
+            writer.addPlayer(steamid);
+        }
     }
 }

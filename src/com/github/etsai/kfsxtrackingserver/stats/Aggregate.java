@@ -8,7 +8,7 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 
 /**
- *
+ * Stores the collective sum of the player stats
  * @author etsai
  */
 public class Aggregate extends Death {
