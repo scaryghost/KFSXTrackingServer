@@ -77,7 +77,6 @@ public class Accumulator implements Runnable {
                         
                         synchronized(receivedPackets) {
                             if (receivedPackets[id] == null) {
-                                println "Hello world!"
                                 receivedPackets[id]= []
                                 timer.schedule(new PacketCleaner(steamID64: id), 
                                         properties[propStatsMsgTTL].toLong())
