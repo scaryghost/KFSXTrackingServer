@@ -19,7 +19,7 @@ import java.util.TimerTask
  * @author etsai
  */
 public class Accumulator implements Runnable {
-    private static def receivedPackets= [:]
+    private static final def receivedPackets= [:]
     
     static class PacketCleaner extends TimerTask {
         public def steamID64
