@@ -20,6 +20,7 @@ public class ServerProperties {
     public static final String propUdpPort= "udp.port";
     public static final String propHttpPort= "http.port";
     public static final String propPassword= "password";
+    public static final String propStatsMsgTTL= "60000";
     public static final String propDbName= "db.name";
     public static final String propDbWritePeriod= "db.write.period";
     public static final String propSteamPollingPeriod= "steam.polling.period";
@@ -40,6 +41,7 @@ public class ServerProperties {
             defaults.setProperty(propUdpPort, "6000");
             defaults.setProperty(propHttpPort, "8080");
             defaults.setProperty(propPassword, "server");
+            defaults.setProperty(propStatsMsgTTL, "60000");
             defaults.setProperty(propDbName, "kfsxdb.sqlite");
             defaults.setProperty(propDbWritePeriod, "1800000");
             defaults.setProperty(propSteamPollingPeriod, "21600000");

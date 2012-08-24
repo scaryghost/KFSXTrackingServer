@@ -5,21 +5,35 @@
 
 package com.github.etsai.kfsxtrackingserver
 
-import static com.github.etsai.kfsxtrackingserver.Common.statsData
-import static com.github.etsai.kfsxtrackingserver.Common.logger
-import static com.github.etsai.kfsxtrackingserver.Common.pool
+import static com.github.etsai.kfsxtrackingserver.Common.*
+import static com.github.etsai.kfsxtrackingserver.ServerProperties.*
 import static com.github.etsai.kfsxtrackingserver.Packet.Type
 import com.github.etsai.kfsxtrackingserver.impl.MatchPacket
 import com.github.etsai.kfsxtrackingserver.impl.PlayerPacket
 import com.github.etsai.kfsxtrackingserver.web.SteamIdInfo.SteamPoller
 import java.util.logging.Level
+import java.util.TimerTask
 
 /**
  * Accumulates and holds packets for processing
  * @author etsai
  */
 public class Accumulator implements Runnable {
-    private static def receivedPackets= Collections.synchronizedMap([:])
+    private static def receivedPackets= [:]
+    
+    static class PacketCleaner extends TimerTask {
+        public def steamID64
+        
+        @Override
+        public void run() {
+            synchronized(receivedPackets) {
+                if (receivedPackets[steamID64] != null) {
+                    logger.info("Discarding packets for steamID64: ${steamID64}")
+                    receivedPackets[steamID64]= null
+                }
+            }
+        }
+    }
     
     private final def data
     public Accumulator(String data) {
@@ -59,11 +73,17 @@ public class Accumulator implements Runnable {
                         }
                     } else {
                         def seqnum= packet.getSeqnum()
-
-                        if (receivedPackets[id] == null) {
-                            receivedPackets[id]= Collections.synchronizedList([])
+                        def packets
+                        
+                        synchronized(receivedPackets) {
+                            if (receivedPackets[id] == null) {
+                                println "Hello world!"
+                                receivedPackets[id]= []
+                                timer.schedule(new PacketCleaner(steamID64: id), 
+                                        properties[propStatsMsgTTL].toLong())
+                            }
+                            packets= receivedPackets[id]
                         }
-                        def packets= receivedPackets[id]
                         
                         synchronized(packets) {
                             packets[seqnum]= packet
