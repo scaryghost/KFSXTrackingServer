@@ -15,7 +15,7 @@ public class Aggregate extends Death {
     public static Aggregate build(ResultSet rs) throws SQLException {
         Aggregate aggregate= new Aggregate(rs.getInt("id"), rs.getString("stat"), 
                 rs.getString("category"));
-        aggregate.addValue(Integer.valueOf(rs.getString("value")));
+        aggregate.addValue(Long.valueOf(rs.getString("value")));
         return aggregate;
     }
     private final String category;

@@ -40,7 +40,7 @@ public class Death {
         return value.toString();
     }
     
-    public void addValue(int offset) {
+    public void addValue(long offset) {
         value.getAndAdd(offset);
     }
 }
