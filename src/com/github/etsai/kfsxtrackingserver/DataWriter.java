@@ -4,6 +4,7 @@
  */
 package com.github.etsai.kfsxtrackingserver;
 
+import com.github.etsai.kfsxtrackingserver.stats.*;
 import java.util.TimerTask;
 
 /**
@@ -11,10 +12,10 @@ import java.util.TimerTask;
  * @author etsai
  */
 public abstract class DataWriter extends TimerTask {
-    public abstract void addDiffId(String name, String length);
-    public abstract void addLevelId(String name);
-    public abstract void addRecordId(String steamid);
-    public abstract void addDeath(String death);
-    public abstract void addAggregate(String stat, String category);
-    public abstract void addPlayer(String steamid);
+    public abstract void addDiff(Difficulty diff);
+    public abstract void addLevel(Level level);
+    public abstract void addRecord(Record record);
+    public abstract void addDeath(Death death);
+    public abstract void addAggregate(Aggregate aggr);
+    public abstract void addPlayer(Player player);
 }

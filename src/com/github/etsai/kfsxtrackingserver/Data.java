@@ -71,7 +71,7 @@ public class Data {
         rs= statement.executeQuery("select * from player");
         while(rs.next()) {
             Player player= Player.build(rs);
-            String steamid= player.getSteamId();
+            String steamid= player.getSteamID64();
             if (!data.playerStats.containsKey(steamid)) {
                 data.playerStats.put(steamid, new HashMap());
             }
@@ -132,7 +132,7 @@ public class Data {
         
         synchronized(difficulties) {
             difficulties.put(id, tempDiff);
-            writer.addDiffId(name, length);
+            writer.addDiff(tempDiff);
         }
     }
     
@@ -167,24 +167,24 @@ public class Data {
         
         synchronized(levels) {
             levels.put(id, tempLevel);
-            writer.addLevelId(name);
+            writer.addLevel(tempLevel);
         }
     }
     
-    public Record getRecord(String steamid) {
-        return records.get(steamid);
+    public Record getRecord(String steamID64) {
+        return records.get(steamID64);
     }
     public Collection<Record> getRecords() {
         return Collections.unmodifiableCollection(records.values());
     }
-    public void accumulateRecord(String steamid, int result) {
+    public void accumulateRecord(String steamID64, int result) {
         Record tempRecord;
         
         synchronized(records) {
-            if (!records.containsKey(steamid)) {
-                tempRecord= new Record(steamid);
+            if (!records.containsKey(steamID64)) {
+                tempRecord= new Record(steamID64);
             } else {
-                tempRecord= records.get(steamid);
+                tempRecord= records.get(steamID64);
             }
         }
         switch (result) {
@@ -202,8 +202,8 @@ public class Data {
         }
         
         synchronized(records) {
-            records.put(steamid, tempRecord);
-            writer.addRecordId(steamid);
+            records.put(steamID64, tempRecord);
+            writer.addRecord(tempRecord);
         }
     }
     
@@ -225,7 +225,7 @@ public class Data {
         
         synchronized(aggregate) {
             aggregate.put(id, tempAggregate);
-            writer.addAggregate(stat, category);
+            writer.addAggregate(tempAggregate);
         }
     }
     
@@ -244,38 +244,38 @@ public class Data {
             }
         }
         tempDeath.addValue(offset);
-        writer.addDeath(stat);
         
         synchronized(deaths) {
             deaths.put(id, tempDeath);
+            writer.addDeath(tempDeath);
         }
     }
     
-    public Map<String, Player> getPlayerStats(String steamid) {
-        return Collections.unmodifiableMap(playerStats.get(steamid));
+    public Map<String, Player> getPlayerStats(String steamID64) {
+        return Collections.unmodifiableMap(playerStats.get(steamID64));
     }
-    public void accumulatePlayerStat(String steamid, String stat, int offset, String category) {
+    public void accumulatePlayerStat(String steamID64, String stat, int offset, String category) {
         Map<String, Player> categories;
-        Player temp;
+        Player tempPlayer;
         
         synchronized(playerStats) {
-            if (!playerStats.containsKey(steamid)) {
-                playerStats.put(steamid, new HashMap());
+            if (!playerStats.containsKey(steamID64)) {
+                playerStats.put(steamID64, new HashMap());
             }
-            categories= playerStats.get(steamid);
+            categories= playerStats.get(steamID64);
         }
         
         synchronized(categories) {
             if (!categories.containsKey(category)) {
-                categories.put(category, new Player(genPlayerKey(steamid, category), steamid));
+                categories.put(category, new Player(genPlayerKey(steamID64, category), steamID64, category));
             }
-            temp= categories.get(category);
-            temp.accumulate(stat, offset);
+            tempPlayer= categories.get(category);
+            tempPlayer.accumulate(stat, offset);
         }
         
         synchronized(playerStats) {
-            categories.put(category, temp);
-            writer.addPlayer(steamid);
+            categories.put(category, tempPlayer);
+            writer.addPlayer(tempPlayer);
         }
     }
 }
