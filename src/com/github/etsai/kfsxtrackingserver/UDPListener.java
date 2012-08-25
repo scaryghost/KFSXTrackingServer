@@ -36,7 +36,7 @@ public class UDPListener implements Runnable {
             while(true) {
                 try {
                     socket.receive(packet);
-                    String data= new String(packet.getData(), 0, packet.getLength()).toLowerCase();
+                    String data= new String(packet.getData(), 0, packet.getLength());
                     logger.info(String.format("Received UDP packet from %s:%d", 
                             packet.getAddress().getHostAddress(), packet.getPort()));
                     pool.submit(new Accumulator(data));

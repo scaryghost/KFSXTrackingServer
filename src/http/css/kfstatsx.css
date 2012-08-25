@@ -17,10 +17,6 @@ td+td,th+th {
     background-color: #C8C8C8;
 }
 
-.graph td {
-    text-transform: capitalize;
-}
-
 .graph th {
     text-transform: capitalize;
 }

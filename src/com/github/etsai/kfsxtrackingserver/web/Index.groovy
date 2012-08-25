@@ -15,9 +15,9 @@ public class Index extends Page {
                 totalPlayTime.add(diff.getTime())
             }
             'stats'(category:"totals") {
-                'entry'(name:"games", value:totalGames)
-                'entry'(name:"play time", value:totalPlayTime)
-                'entry'(name:"player count", value:statsData.getRecords().size())
+                'entry'(name:"Games", value:totalGames)
+                'entry'(name:"Play Time", value:totalPlayTime)
+                'entry'(name:"Player Count", value:statsData.getRecords().size())
             }
             'stats'(category:"difficulties") {
                 def wins= 0, losses= 0, time= new Time(0)

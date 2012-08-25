@@ -40,7 +40,7 @@ public class MatchPacket extends Packet {
         }
 
         data= [:]
-        data[keyMap]= parts[1]
+        data[keyMap]= parts[1].toLowerCase()
         data[keyDifficulty]= parts[2]
         data[keyLength]= parts[3]
         data[keyTime]= new Time(Integer.valueOf(parts[4]))
