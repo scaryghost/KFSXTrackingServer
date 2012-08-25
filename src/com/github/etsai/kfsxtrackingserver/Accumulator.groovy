@@ -65,11 +65,13 @@ public class Accumulator implements Runnable {
                     def id= packet.getData(PlayerPacket.keyPlayerId)
                     def group= packet.getData(PlayerPacket.keyGroup)
 
-                    if (id == PlayerPacket.blankID && group != "match") {
-                        logger.info("Blank ID received.  Adding to aggregate stats only")
-                        packet.getData(PlayerPacket.keyStats).each {stat, value ->
-                            if (stat != "")
-                                statsData.accumulateAggregateStat(stat, value, group)
+                    if (id == PlayerPacket.blankID) {
+                        if (group != "match") {
+                            logger.info("Blank ID received.  Adding to aggregate stats only")
+                            packet.getData(PlayerPacket.keyStats).each {stat, value ->
+                                if (stat != "")
+                                    statsData.accumulateAggregateStat(stat, value, group)
+                            }
                         }
                     } else {
                         def seqnum= packet.getSeqnum()
