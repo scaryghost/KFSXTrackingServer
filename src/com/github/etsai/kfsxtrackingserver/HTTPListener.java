@@ -1,6 +1,7 @@
 package com.github.etsai.kfsxtrackingserver;
 
 import static com.github.etsai.kfsxtrackingserver.Common.logger;
+import static com.github.etsai.kfsxtrackingserver.Common.pool;
 import com.github.etsai.kfsxtrackingserver.web.Page;
 import java.io.BufferedReader;
 import java.io.DataOutputStream;
@@ -27,11 +28,10 @@ public class HTTPListener implements Runnable {
             
             while(true) {
                 Socket connection= httpSocket.accept();
-                Thread th= new Thread(new Handler(connection));
                 logger.info(String.format("Received TCP connection from %s:%d", 
                         connection.getInetAddress().getHostAddress(), connection.getPort()));
                 
-                th.start();
+                pool.submit(new Handler(connection));
             }
         } catch (IOException ex) {
             logger.log(Level.SEVERE, null, ex);
