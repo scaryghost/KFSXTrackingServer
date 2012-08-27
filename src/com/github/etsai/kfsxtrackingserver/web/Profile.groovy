@@ -47,7 +47,7 @@ public class Profile extends Page {
                                 
                                 if (cat == "perks") {
                                     attr["hint"]= new Time(attr["value"].toInteger()).toString()
-                                } else if (attr["name"].contains("time")) {
+                                } else if (attr["name"].toLowerCase().contains("time")) {
                                     attr["value"]= new Time(attr["value"].toInteger()).toString()
                                 }                
                                 xmlBuilder.'entry'(attr)

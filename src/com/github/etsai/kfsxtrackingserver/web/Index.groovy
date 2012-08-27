@@ -85,7 +85,7 @@ public class Index extends Page {
                         
                         if (cat == "perks") {
                             attrs["hint"]= new Time(attrs["value"].toInteger()).toString()
-                        } else if (attrs["name"].contains("time")) {
+                        } else if (attrs["name"].toLowerCase().contains("time")) {
                             attrs["value"]= new Time(attrs["value"].toInteger()).toString()
                         }
                         'entry'(attrs)
