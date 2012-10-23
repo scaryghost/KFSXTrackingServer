@@ -49,18 +49,18 @@ public class Accumulator implements Runnable {
             def packet= Packet.parse(data);
             switch(packet.getType()) {
                 case Type.Match:
-                    writer.writeMatcData(packet)
+                    writer.writeMatchData(packet)
                     break
                 case Type.Player:
                     def id= packet.getData(PlayerPacket.keyPlayerId)
-                    def group= packet.getData(PlayerPacket.keyGroup)
+                    def category= packet.getData(PlayerPacket.keyCategory)
 
                     if (id == PlayerPacket.blankID) {
-                        if (group != "match") {
+                        if (category != "match") {
                             logger.info("Blank ID received.  Adding to aggregate stats only")
                             packet.getData(PlayerPacket.keyStats).each {stat, value ->
                                 if (stat != "")
-                                    statsData.accumulateAggregateStat(stat, value, group)
+                                    statsData.accumulateAggregateStat(stat, value, category)
                             }
                         }
                     } else {

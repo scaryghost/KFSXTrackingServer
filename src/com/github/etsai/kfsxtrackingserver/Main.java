@@ -44,9 +44,9 @@ public class Main {
                 
         logger.log(Level.INFO,"Loading stats from databse: {0}", properties.getProperty(propDbName));
         Class.forName("org.sqlite.JDBC");
-        Common.sqlDb= Sql.newInstance(String.format("jdbc:sqlite:%s", properties.getProperty(propDbName)));
+        Common.sql= Sql.newInstance(String.format("jdbc:sqlite:%s", properties.getProperty(propDbName)));
         
-        timer.scheduleAtFixedRate(new SteamIDUpdater(), 0, Integer.valueOf(properties.getProperty(propSteamPollingPeriod)));
+        //timer.scheduleAtFixedRate(new SteamIDUpdater(), 0, Integer.valueOf(properties.getProperty(propSteamPollingPeriod)));
         
         Runtime.getRuntime().addShutdownHook(new Thread() {
             @Override

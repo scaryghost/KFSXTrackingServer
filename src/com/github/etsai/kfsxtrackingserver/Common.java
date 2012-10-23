@@ -23,6 +23,6 @@ public class Common {
     public static Properties properties;
     public static ExecutorService pool= Executors.newCachedThreadPool();
     public static Timer timer = new Timer();
-    public static Sql sqlDb;
+    public static Sql sql;
     public static PrintStream oldStdOut, oldStdErr;
 }
