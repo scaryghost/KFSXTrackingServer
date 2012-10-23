@@ -6,17 +6,13 @@ package com.github.etsai.kfsxtrackingserver;
 
 import static com.github.etsai.kfsxtrackingserver.Common.*;
 import static com.github.etsai.kfsxtrackingserver.ServerProperties.*;
+import com.github.etsai.utils.logging.TeeLogger;
 import com.github.etsai.kfsxtrackingserver.web.SteamIdInfo.SteamIDUpdater;
-import java.io.File;
+import groovy.sql.Sql;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.io.PrintStream;
-import java.net.InetAddress;
-import java.net.UnknownHostException;
-import java.sql.Connection;
-import java.sql.DriverManager;
 import java.sql.SQLException;
-import java.util.Date;
 import java.util.logging.*;
 
 /**
@@ -48,19 +44,10 @@ public class Main {
                 
         logger.log(Level.INFO,"Loading stats from databse: {0}", properties.getProperty(propDbName));
         Class.forName("org.sqlite.JDBC");
-        String dbUri= String.format("jdbc:sqlite:%s", properties.getProperty(propDbName));
-        Connection conn= DriverManager.getConnection(dbUri);
-        conn.setAutoCommit(false);
-        Common.statsData= Data.load(conn);
+        Common.sqlDb= Sql.newInstance(String.format("jdbc:sqlite:%s", properties.getProperty(propDbName)));
         
-        Data.writer= new com.github.etsai.kfsxtrackingserver.impl.DataWriterImpl(conn);
-        Long dbWritePeriod= Long.valueOf(properties.getProperty(propDbWritePeriod));
-        timer.scheduleAtFixedRate(Data.writer, dbWritePeriod, dbWritePeriod);
         timer.scheduleAtFixedRate(new SteamIDUpdater(), 0, Integer.valueOf(properties.getProperty(propSteamPollingPeriod)));
         
-        Runtime.getRuntime().addShutdownHook( 
-            new Thread(Data.writer)
-        );
         Runtime.getRuntime().addShutdownHook(new Thread() {
             @Override
             public void run() {
@@ -68,30 +55,17 @@ public class Main {
             }
         });
         
-        
         udpTh.start();
         httpTh.start();
     }
     
     public static void initLogging() {
-        String localHostAddress;
-            
         try {
-            localHostAddress= InetAddress.getLocalHost().getHostName();
-        } catch (UnknownHostException ex) {
-            logger.warning(ex.getMessage());
-            localHostAddress= "unknown";
-        }
-            
-        try {
-            String filename= String.format("%s.%s.%tY%<tm%<td-%<tH%<tM%<tS.log", 
-                "kfsxtrackingserver", localHostAddress, new Date());
-            
-            logWriter= new FileWriter(new File(filename));
+            logWriter= TeeLogger.getFileWriter("kfsxtracking");
             oldStdOut= System.out;
             oldStdErr= System.err;
-            System.setOut(new PrintStream(new TeeLogger(logWriter, oldStdOut)));
-            System.setErr(new PrintStream(new TeeLogger(logWriter, oldStdErr)));
+            System.setOut(new PrintStream(new TeeLogger(logWriter, oldStdOut), true));
+            System.setErr(new PrintStream(new TeeLogger(logWriter, oldStdErr), true));
             
             Level logLevel= Level.parse(properties.getProperty(propLogLevel));
             for(Handler handler: logger.getHandlers()) {
