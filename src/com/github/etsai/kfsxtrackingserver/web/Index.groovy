@@ -1,7 +1,7 @@
 package com.github.etsai.kfsxtrackingserver.web
 
 import static com.github.etsai.kfsxtrackingserver.Common.statsData
-import com.github.etsai.kfsxtrackingserver.Time
+import com.github.etsai.utils.Time
 import groovy.xml.MarkupBuilder
 
 public class Index extends Page {

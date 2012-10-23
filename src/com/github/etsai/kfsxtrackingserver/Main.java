@@ -75,8 +75,7 @@ public class Main {
             logConsoleHandler.setLevel(logLevel);
             logger.setLevel(Level.ALL);
             logger.addHandler(logConsoleHandler);
-            logger.setUseParentHandlers(false);
-            logger.log(Level.INFO, "Log file stored at: {0}", filename);   
+            logger.setUseParentHandlers(false);   
         } catch (IOException ex) {
             logger.log(Level.WARNING, "Output will not be saved to file...", ex);
         }
