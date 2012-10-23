@@ -36,8 +36,10 @@ public class Accumulator implements Runnable {
     }
     
     private final def data
-    public Accumulator(String data) {
+    private final def writer
+    public Accumulator(String data, DataWriter writer) {
         this.data= data
+        this.writer= writer
     }
     
     @Override
@@ -47,19 +49,7 @@ public class Accumulator implements Runnable {
             def packet= Packet.parse(data);
             switch(packet.getType()) {
                 case Type.Match:
-                    def levelName= packet.getData(MatchPacket.keyMap)
-                    def time= packet.getData(MatchPacket.keyTime)
-                    def diff= packet.getData(MatchPacket.keyDifficulty)
-                    def length= packet.getData(MatchPacket.keyLength)
-                    def wave= packet.getData(MatchPacket.keyWave).toInteger()
-                    def result= packet.getData(MatchPacket.keyResult).toInteger()
-
-                    logger.finer("Match data: ${levelName}, ${time}, ${diff}, ${length}, ${wave}, ${result}")
-                    statsData.accumulateLevel(levelName, result, time)
-                    statsData.accumulateDifficulty(diff, length, result, wave, time)
-                    packet.getData(MatchPacket.keyDeaths).each {stat, value ->
-                        statsData.accumulateDeath(stat, value.toInteger())
-                    }
+                    writer.writeMatcData(packet)
                     break
                 case Type.Player:
                     def id= packet.getData(PlayerPacket.keyPlayerId)
@@ -91,8 +81,8 @@ public class Accumulator implements Runnable {
                             def completed= packets.last().isLast() && 
                                 packets.inject(true) {acc, val -> acc && (val != null) }
                             if (completed) {
-                                savePackets(id, packets)
-                                receivedPackets[id]= null
+                                receivedPackets.remove(id)
+                                writer.writePlayerData(packets)
                             }
                         }
                     }
@@ -103,26 +93,6 @@ public class Accumulator implements Runnable {
             }
         } catch (Exception ex) {
             logger.log(Level.SEVERE, null, ex)
-        }
-    }
-    
-    private def savePackets(def steamID64, def packets) {
-        logger.info("Saving stats for player: ${steamID64}")
-        
-        def poller= new SteamPoller(steamID64: steamID64)
-        pool.submit(poller)
-        packets.each {packet ->
-            def group= packet.getData(PlayerPacket.keyGroup)
-
-            if (group == "match") {
-                statsData.accumulateRecord(steamID64, packet.getData(PlayerPacket.keyStats)["result"].toInteger())
-            } else {
-                packet.getData(PlayerPacket.keyStats).each {stat, value ->
-                    if (stat != "")
-                        statsData.accumulateAggregateStat(stat, value, group)
-                    statsData.accumulatePlayerStat(steamID64, stat, value, group)
-                }
-            }
         }
     }
 }

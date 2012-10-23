@@ -28,6 +28,7 @@ public class UDPListener implements Runnable {
     @Override
     public synchronized void run() {
         try {
+            DataWriter writer= new DataWriter();
             byte[] buffer= new byte[bufferSize];
             DatagramSocket socket= new DatagramSocket(port);
             DatagramPacket packet= new DatagramPacket(buffer, buffer.length);
@@ -39,7 +40,7 @@ public class UDPListener implements Runnable {
                     String data= new String(packet.getData(), 0, packet.getLength());
                     logger.info(String.format("Received UDP packet from %s:%d", 
                             packet.getAddress().getHostAddress(), packet.getPort()));
-                    pool.submit(new Accumulator(data));
+                    pool.submit(new Accumulator(data, writer));
                 } catch (IOException ex) {
                     logger.log(Level.SEVERE, "Error reading data on UDP socket", ex);
                 }

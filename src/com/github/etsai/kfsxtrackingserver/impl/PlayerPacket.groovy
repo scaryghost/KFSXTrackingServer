@@ -18,7 +18,7 @@ public class PlayerPacket extends Packet {
     public static final def blankID= ""
     public static final def packetVersion= 1
     public static final String keyPlayerId= "playerid"
-    public static final String keyGroup= "group"
+    public static final String keyCategory= "category"
     public static final String keyStats= "stats"
     
     private def seqnum
@@ -54,8 +54,8 @@ public class PlayerPacket extends Packet {
         }
 
         data[keyPlayerId]= id
-        data[keyGroup]= parts[3]
-        if (data[keyGroup] == "match") {
+        data[keyCategory]= parts[3]
+        if (data[keyCategory] == "match") {
             def items= ["map=${parts[4]}", "difficulty=${parts[5]}", "length=${parts[6]}", 
                 "result=${parts[7]}", "wave=${parts[8]}"]
             body= items.join(",")
@@ -64,7 +64,7 @@ public class PlayerPacket extends Packet {
         }
         body.tokenize(",").each {stats ->
             def keyVal= stats.split("=")
-            def val= data[keyGroup] == "match" ? keyVal[1] : keyVal[1].toInteger()
+            def val= data[keyCategory] == "match" ? keyVal[1] : keyVal[1].toInteger()
             playerStats[keyVal[0]]= val
         }
         data[keyStats]= playerStats

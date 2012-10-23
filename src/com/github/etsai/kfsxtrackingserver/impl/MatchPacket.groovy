@@ -8,7 +8,6 @@ package com.github.etsai.kfsxtrackingserver.impl
 import static com.github.etsai.kfsxtrackingserver.Common.logger
 import static com.github.etsai.kfsxtrackingserver.Packet.Type
 import com.github.etsai.kfsxtrackingserver.Packet
-import com.github.etsai.kfsxtrackingserver.Time
 import java.util.logging.Level
 
 /**
@@ -43,7 +42,7 @@ public class MatchPacket extends Packet {
         data[keyMap]= parts[1].toLowerCase()
         data[keyDifficulty]= parts[2]
         data[keyLength]= parts[3]
-        data[keyTime]= new Time(Integer.valueOf(parts[4]))
+        data[keyTime]= Integer.valueOf(parts[4])
         data[keyResult]= Integer.valueOf(parts[5])
         data[keyWave]= Integer.valueOf(parts[6])
         data[keyDeaths]= deaths        
