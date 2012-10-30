@@ -1,6 +1,7 @@
 package com.github.etsai.kfsxtrackingserver.web
 
 import static com.github.etsai.kfsxtrackingserver.Common.statsData
+import static com.github.etsai.kfsxtrackingserver.Common.sql
 import com.github.etsai.utils.Time
 import groovy.xml.MarkupBuilder
 
@@ -8,85 +9,77 @@ public class Index extends Page {
     public String fillBody(def xmlBuilder) {
         xmlBuilder.kfstatsx() {
             def totalGames= 0
-            def totalPlayTime= new Time(0)
+            def totalPlayTime= 0
             
-            statsData.getDifficulties().each {diff ->
-                totalGames+= diff.getWins() + diff.getLosses()
-                totalPlayTime.add(diff.getTime())
+            sql.eachRow('select * from difficulties') {row ->
+                totalGames+= row.wins + row.losses
+                totalPlayTime+= row.time
             }
-            'stats'(category:"totals") {
-                'entry'(name:"Games", value:totalGames)
-                'entry'(name:"Play Time", value:totalPlayTime)
-                'entry'(name:"Player Count", value:statsData.getRecords().size())
+            sql.eachRow('SELECT count(*) FROM records') {row ->
+                'stats'(category:"totals") {
+                    'entry'(name:"Games", value:totalGames)
+                    'entry'(name:"Play Time", value:new Time(totalPlayTime))
+                    'entry'(name:"Player Count", value:row[0])
+                }
             }
+            
             'stats'(category:"difficulties") {
-                def wins= 0, losses= 0, time= new Time(0)
-                statsData.getDifficulties().sort{"${it.getName()}/${it.getLength()}"}.each {diff ->
+                def wins= 0, losses= 0, time= 0
+                sql.eachRow('SELECT * from difficulties') {row ->
                     def attr= [:]
-                    def accum= [diff.getWins(), diff.getLosses(), diff.getTime()]
+                    def accum= [row.wins, row.losses, row.time]
                     wins+= accum[0]
                     losses+= accum[1]
-                    time.add(accum[2])
+                    time+= accum[2]
                     
-                    attr["name"]= diff.getName()
-                    attr["length"]= diff.getLength()
+                    attr["name"]= row.name
+                    attr["length"]= row.length
                     attr["wins"]= accum[0]
                     attr["losses"]= accum[1]
-                    attr["wave"]= String.format("%.2f",diff.getWave() / (accum[0] + accum[1]))
+                    attr["wave"]= String.format("%.2f",row.wave / (accum[0] + accum[1]))
                     attr["time"]= accum[2].toString()
                     'entry'(attr)
-                    
-                    totalGames+= (accum[0] + accum[1])
-                    
                 }
                 'total'(name: "Total", length: "", wins: wins, losses:losses, 
-                        wave: "", time:time.toString())
+                        wave: "", time:new Time(time))
             }
             'stats'(category:"levels") {
-                def wins= 0, losses= 0, time= new Time(0)
-                statsData.getLevels().sort{it.getName()}.each {level ->
+                def wins= 0, losses= 0, time= 0
+                sql.eachRow('SELECT * FROM levels') {row ->
                     def attr= [:]
-                    def accum= [level.getWins(), level.getLosses(), level.getTime()]
+                    def accum= [row.wins, row.losses, row.time]
                     
                     wins+= accum[0]
                     losses+= accum[1]
-                    time.add(accum[2])
-                    attr["name"]= level.getName()
+                    time+= accum[2]
+                    attr["name"]= row.name
                     attr["wins"]= accum[0]
                     attr["losses"]= accum[1]
                     attr["time"]= accum[2].toString()
                     'entry'(attr)
                 }
-                'total'(name: "Total", wins: wins, losses:losses, time:time.toString())
+                'total'(name: "Total", wins: wins, losses:losses, time:new Time(time))
             }
-            'stats'(category:"deaths") {                
-                statsData.getDeaths().sort{it.getStat()}.each {death ->
+            'stats'(category:"deaths") {
+                sql.eachRow('SELECT * FROM deaths') {row ->
                     def attr= [:]
-                    attr["name"]= death.getStat()
-                    attr["value"]= death.getValue()
+                    attr["name"]= row.name
+                    attr["value"]= row.count
                     'entry'(attr)
                 }
             }
-            def categories= [:]
-            statsData.getAggregateStats().each {stat ->
-                def cat= stat.getCategory()
-                if (categories[cat] == null) {
-                    categories[cat]= []
-                }
-                categories[cat] << stat
-            }
-            categories.each {cat, stats ->
-                xmlBuilder.'stats'(category: cat) {
-                    stats.sort{it.getStat()}.each {stat ->
+            sql.eachRow('SELECT category FROM aggregate GROUP BY category') {row1 ->
+                xmlBuilder.'stats'(category: row1.category) {
+                    sql.eachRow("SELECT * from aggregate where category='${row1.category}'") {row2 ->
                         def key, val
                         def attrs= [:]
-                        attrs["name"]= stat.getStat()
-                        attrs["value"]= stat.getValue()
-                        
-                        if (cat == "perks") {
-                            attrs["hint"]= new Time(attrs["value"].toInteger()).toString()
+                        attrs["name"]= row2.stat
+                        attrs["value"]= row2.value
+
+                        if (row1.category == "perks") {
+                            attrs["hint"]= new Time(attrs["value"]).toString()
                         } else if (attrs["name"].toLowerCase().contains("time")) {
-                            attrs["value"]= new Time(attrs["value"].toInteger()).toString()
+                            attrs["value"]= new Time(attrs["value"]).toString()
                         }
                         'entry'(attrs)
                     }

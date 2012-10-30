@@ -5,7 +5,7 @@
 
 package com.github.etsai.kfsxtrackingserver.web
 
-import static com.github.etsai.kfsxtrackingserver.Common.statsData
+import static com.github.etsai.kfsxtrackingserver.Common.sql
 import com.github.etsai.utils.Time
 
 /**
@@ -14,50 +14,51 @@ import com.github.etsai.utils.Time
  */
 public class Profile extends Page {
     public static final KEY_STEAMID= "steamid"
-    private final def steamid
+    private final def steamid64
     
     public Profile(def queries) {
-        steamid= queries[KEY_STEAMID]
+        steamid64= queries[KEY_STEAMID]
     }
     
     public String fillBody(def xmlBuilder) {
-        def record= statsData.getRecord(steamid)
+        def profileAttr= null
+        def steamIdInfo= SteamIdInfo.getSteamIDInfo(steamid64)
+        
+        sql.eachRow("SELECT * FROM records where steamid64='$steamid64'") {row ->
+            profileAttr= [:]
+            profileAttr["steamid"]= steamid64
+            profileAttr["name"]= steamIdInfo.name
+            profileAttr["avatar"]= steamIdInfo.avatarMedium
+            profileAttr["wins"]= row.wins
+            profileAttr["losses"]= row.losses
+            profileAttr["disconnects"]= row.disconnects
+        }
         
         xmlBuilder.kfstatsx() {
-            def profileAttr= [:]
-            def steamIdInfo= SteamIdInfo.getSteamIDInfo(steamid)
-            
-            if (record == null) {
-                'error'("No stats available for steamdID64: ${steamid}")
+            if (profileAttr == null) {
+                'error'("No stats available for steamdID64: ${steamid64}")
             } else {
-                profileAttr["steamid"]= steamid
-                profileAttr["name"]= steamIdInfo.name
-                profileAttr["avatar"]= steamIdInfo.avatarMedium
-                profileAttr["wins"]= record.getWins()
-                profileAttr["losses"]= record.getLosses()
-                profileAttr["disconnects"]= record.getDisconnects()
-
                 'profile'(profileAttr) {
-                    statsData.getPlayerStats(steamid).each {cat, player ->
-                        'stats'(category: cat) {
-                            player.getStats().sort{it.key}.each {stat, value ->
+                    sql.eachRow("SELECT category FROM player where steamid64='$steamid64' group by category") {row1 ->
+                        'stats'(category: row1.category) {
+                            sql.eachRow("SELECT * FROM player where steamid64='$steamid64' AND category='${row1[0]}'") {row ->
                                 def attr= [:]
-                                attr["name"]= stat
-                                attr["value"]= value
-                                
-                                if (cat == "perks") {
-                                    attr["hint"]= new Time(attr["value"].toInteger()).toString()
+                                attr["name"]= row.stat
+                                attr["value"]= row.value
+
+                                if (row1.category == "perks") {
+                                    attr["hint"]= new Time(attr["value"]).toString()
                                 } else if (attr["name"].toLowerCase().contains("time")) {
-                                    attr["value"]= new Time(attr["value"].toInteger()).toString()
+                                    attr["value"]= new Time(attr["value"]).toString()
                                 }                
                                 xmlBuilder.'entry'(attr)
                             }
-
                         }
                     }
                 }
             }
         }
+        
     }
 }
 

@@ -5,7 +5,7 @@
 
 package com.github.etsai.kfsxtrackingserver.web
 
-import com.github.etsai.kfsxtrackingserver.Common
+import static com.github.etsai.kfsxtrackingserver.Common.sql
 
 /**
  *
@@ -24,36 +24,37 @@ public class Records extends Page {
     }
     
     public String fillBody(def xmlBuilder) {
-        def allRecords= Common.statsData.getRecords().toArray()
         def start= page * rows
         def end= start + rows
-        def numRecords= allRecords.size()
         
-        if (numRecords == 0) {
-            start= 0
-            end= 0
-        } else {
-            if (start >= numRecords) {
-                start= [0, numRecords - (numRecords % rows)].max()
-                page= (start / numRecords).toInteger() + 1
+        sql.eachRow("SELECT count(*) FROM records") {row ->
+            if (row[0] == 0) {
+                start= 0
+                end= 0
+            } else {
+                if (start >= row[0]) {
+                    start= [0, row[0] - (row[0] % rows)].max()
+                    page= (start / row[0]).toInteger() + 1
+                }
+                if (end >= row[0]) end= row[0]
             }
-            if (end >= numRecords) end= numRecords
         }
         
         xmlBuilder.kfstatsx() {
             'records'(page: page, rows: rows) {
-                (start ..< end).each {index ->
-                    def record= allRecords[index]
-                    def steamIdInfo= SteamIdInfo.getSteamIDInfo(record.getSteamId())
+                def pos= start
+                sql.eachRow("SELECT * FROM records LIMIT $start, ${start - end}") {row ->
+                    def steamIdInfo= SteamIdInfo.getSteamIDInfo(row.steamid64)
                     def attr= [:]
                     
-                    attr["pos"]= index+1
+                    attr["pos"]= pos + 1
                     attr["steamid"]= steamIdInfo.steamID64
                     attr["name"]= steamIdInfo.name
-                    attr["wins"]= record.getWins()
-                    attr["losses"]= record.getLosses()
-                    attr["disconnects"]= record.getDisconnects()
+                    attr["wins"]= row.wins
+                    attr["losses"]= row.losses
+                    attr["disconnects"]= row.disconnects
                     xmlBuilder.'record'(attr)
+                    pos++
                 }
             }
         }
