@@ -67,16 +67,6 @@ public class SteamIdInfo {
         }
     }
     
-    public static class SteamIDUpdater extends TimerTask {
-        @Override
-        public void run() {
-            Common.statsData.getRecords().each {record ->
-                def poller= new SteamPoller(steamID64: record.getSteamId())
-                Common.pool.submit poller
-            }
-        }
-    }
-    
     private def valid, repoll= false
     public final def steamID64
     public def name, avatarFull, avatarMedium, avatarSmall

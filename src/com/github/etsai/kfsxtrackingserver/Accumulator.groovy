@@ -13,6 +13,7 @@ import com.github.etsai.kfsxtrackingserver.impl.PlayerPacket
 import com.github.etsai.kfsxtrackingserver.web.SteamIdInfo.SteamPoller
 import java.util.logging.Level
 import java.util.TimerTask
+import java.util.Timer
 
 /**
  * Accumulates and holds packets for processing
@@ -20,6 +21,7 @@ import java.util.TimerTask
  */
 public class Accumulator implements Runnable {
     private static final def receivedPackets= [:]
+    private static def timer= new Timer()
     
     static class PacketCleaner extends TimerTask {
         public def steamID64
@@ -44,6 +46,8 @@ public class Accumulator implements Runnable {
     
     @Override
     public void run() {
+        def id
+        
         try {
             logger.finest(data);
             def packet= Packet.parse(data);
@@ -52,7 +56,7 @@ public class Accumulator implements Runnable {
                     writer.writeMatchData(packet)
                     break
                 case Type.Player:
-                    def id= packet.getData(PlayerPacket.keyPlayerId)
+                    id= packet.getData(PlayerPacket.keyPlayerId)
                     def category= packet.getData(PlayerPacket.keyCategory)
 
                     if (id == PlayerPacket.blankID) {
@@ -91,6 +95,10 @@ public class Accumulator implements Runnable {
                     logger.info("Unrecognized packet type: ${packet.getType()}")
                     break
             }
+        } catch (IllegalStateException ex) {
+            timer= new Timer()
+            timer.schedule(new PacketCleaner(steamID64: id), 
+                    properties[propStatsMsgTTL].toLong())
         } catch (Exception ex) {
             logger.log(Level.SEVERE, null, ex)
         }

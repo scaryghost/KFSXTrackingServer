@@ -7,7 +7,6 @@ package com.github.etsai.kfsxtrackingserver;
 import static com.github.etsai.kfsxtrackingserver.Common.*;
 import static com.github.etsai.kfsxtrackingserver.ServerProperties.*;
 import com.github.etsai.utils.logging.TeeLogger;
-import com.github.etsai.kfsxtrackingserver.web.SteamIdInfo.SteamIDUpdater;
 import groovy.sql.Sql;
 import java.io.FileWriter;
 import java.io.IOException;
@@ -45,8 +44,6 @@ public class Main {
         logger.log(Level.INFO,"Loading stats from databse: {0}", properties.getProperty(propDbName));
         Class.forName("org.sqlite.JDBC");
         Common.sql= Sql.newInstance(String.format("jdbc:sqlite:%s", properties.getProperty(propDbName)));
-        
-        //timer.scheduleAtFixedRate(new SteamIDUpdater(), 0, Integer.valueOf(properties.getProperty(propSteamPollingPeriod)));
         
         Runtime.getRuntime().addShutdownHook(new Thread() {
             @Override
