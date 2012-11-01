@@ -18,8 +18,8 @@ public class Main {
      */
     public static void main(String[] args) throws ClassNotFoundException, SQLException {
         Class.forName("org.sqlite.JDBC");
-        Sql src= Sql.newInstance(String.format("jdbc:sqlite:%s", "kfsxdb.sqlite"));
-        Sql dest= Sql.newInstance(String.format("jdbc:sqlite:%s", "kfsxdb-2.0.sqlite"));
+        Sql src= Sql.newInstance(String.format("jdbc:sqlite:%s", args[0]));
+        Sql dest= Sql.newInstance(String.format("jdbc:sqlite:%s", args[1]));
         
         long start= System.currentTimeMillis();
         DBEditor.convert(src, dest);
