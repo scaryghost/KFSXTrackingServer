@@ -30,14 +30,14 @@ public class DataWriter {
         sql.withTransaction {
             sql.withBatch {stmt ->
                 packet.getData(MatchPacket.keyDeaths).each {stat, value ->
-                    stmt.addBatch("insert or ignore into deaths values ('$stat', 0);")
+                    stmt.addBatch("insert or ignore into deaths (name) values ('$stat');")
                     stmt.addBatch("update deaths set count= count + $value where name='$stat'")
                 }
                 
-                stmt.addBatch("insert or ignore into difficulties values('$diff', '$length', 0, 0, 0, 0)")
+                stmt.addBatch("insert or ignore into difficulties (name, length )values('$diff', '$length')")
                 stmt.addBatch("""update difficulties set wins= wins + $wins, losses= losses + $losses, wave= wave + $wave, 
                     time= time + $time where name= '$diff' and length= '$length'""")
-                stmt.addBatch("insert or ignore into levels values('$levelName', 0, 0, 0)")
+                stmt.addBatch("insert or ignore into levels (name) values('$levelName')")
                 stmt.addBatch("""update levels set wins= wins + $wins, losses= losses + $losses, time= time + $time where name='$levelName'""")
             }
         }
@@ -52,9 +52,9 @@ public class DataWriter {
                     def steamID64= packet.getData(PlayerPacket.keyPlayerId)
                     if (category != "match") {
                         packet.getData(PlayerPacket.keyStats).each {stat, value ->
-                            stmt.addBatch("insert or ignore into aggregate values ('$stat', '$category', 0);")
+                            stmt.addBatch("insert or ignore into aggregate (stat, category) values ('$stat', '$category');")
                             stmt.addBatch("update aggregate set value= value + $value where stat='$stat' and category='$category'")
-                            stmt.addBatch("insert or ignore into player values('$steamID64', '$stat', '$category', 0)")
+                            stmt.addBatch("insert or ignore into player (steamid64, stat, category) values('$steamID64', '$stat', '$category')")
                             stmt.addBatch("update player set value=value + $value where stat='$stat' and category='$category'")
                         }
                     } else {
@@ -65,9 +65,9 @@ public class DataWriter {
                         def wave= packet.getData(PlayerPacket.keyStats)["wave"].toInteger()
                         def resultStr= ["disconnected", "lost", "won"]
 
-                        stmt.addBatch("insert or ignore into records values ('$steamID64', 0, 0, 0);")
+                        stmt.addBatch("insert or ignore into records (steamid64) values ('$steamID64');")
                         stmt.addBatch("update records set wins= wins + ${result == 2 ? 1 : 0}, losses= losses + ${result == 1 ? 1 : 0}, disconnects= disconnects + ${result == 0 ? 1 : 0} where steamid64='$steamID64'")
-                        stmt.addBatch("insert into sessions values ('$steamID64', '$map', '$diff', '$length', '${resultStr[result]}', $wave, NULL);")
+                        stmt.addBatch("insert into sessions (steamid64, level, difficulty, length, result, wave) values ('$steamID64', '$map', '$diff', '$length', '${resultStr[result]}', $wave);")
                     }
                 }
             }
