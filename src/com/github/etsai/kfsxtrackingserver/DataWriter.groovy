@@ -52,10 +52,14 @@ public class DataWriter {
                     def steamID64= packet.getData(PlayerPacket.keyPlayerId)
                     if (category != "match") {
                         packet.getData(PlayerPacket.keyStats).each {stat, value ->
-                            stmt.addBatch("insert or ignore into aggregate (stat, category) values ('$stat', '$category');")
-                            stmt.addBatch("update aggregate set value= value + $value where stat='$stat' and category='$category'")
-                            stmt.addBatch("insert or ignore into player (steamid64, stat, category) values('$steamID64', '$stat', '$category')")
-                            stmt.addBatch("update player set value=value + $value where stat='$stat' and category='$category'")
+                            if (stat != "") {
+                                stmt.addBatch("insert or ignore into aggregate (stat, category) values ('$stat', '$category');")
+                                stmt.addBatch("update aggregate set value= value + $value where stat='$stat' and category='$category'")
+                                if (steamID64 != PlayerPacket.blankID) {
+                                    stmt.addBatch("insert or ignore into player (steamid64, stat, category) values('$steamID64', '$stat', '$category')")
+                                    stmt.addBatch("update player set value=value + $value where stat='$stat' and category='$category'")
+                                }
+                            }
                         }
                     } else {
                         def result= packet.getData(PlayerPacket.keyStats)["result"].toInteger()
