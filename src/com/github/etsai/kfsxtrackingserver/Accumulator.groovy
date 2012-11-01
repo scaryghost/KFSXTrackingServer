@@ -31,7 +31,7 @@ public class Accumulator implements Runnable {
             synchronized(receivedPackets) {
                 if (receivedPackets[steamID64] != null) {
                     logger.info("Discarding packets for steamID64: ${steamID64}")
-                    receivedPackets[steamID64]= null
+                    receivedPackets.remove(steamID64)
                 }
             }
         }
