@@ -5,9 +5,10 @@
 
 package com.github.etsai.kfsxtrackingserver
 
-import static com.github.etsai.kfsxtrackingserver.Common.*;
+import static com.github.etsai.kfsxtrackingserver.Common.*
 import com.github.etsai.kfsxtrackingserver.impl.MatchPacket
 import com.github.etsai.kfsxtrackingserver.impl.PlayerPacket
+import com.github.etsai.kfsxtrackingserver.impl.PlayerPacket.MatchInfo
 import groovy.sql.Sql;
 
 /**
@@ -16,63 +17,57 @@ import groovy.sql.Sql;
  */
 public class DataWriter {
     public synchronized void writeMatchData(MatchPacket packet) {
-        def levelName= packet.getData(MatchPacket.keyMap)
-        def time= packet.getData(MatchPacket.keyTime)
-        def diff= packet.getData(MatchPacket.keyDifficulty)
-        def length= packet.getData(MatchPacket.keyLength)
-        def wave= packet.getData(MatchPacket.keyWave)
-        def result= packet.getData(MatchPacket.keyResult)
-        def wins= (result == 2) ? 1 : 0
-        def losses= (result != 2) ? 1 : 0
+        def result= packet.getResult()
+        def wins= (result == MatchPacket.Result.WIN) ? 1 : 0
+        def losses= (result == MatchPacket.Result.LOSS) ? 1 : 0
 
-        logger.finer("Match data: [${levelName}, ${diff}, ${length}, ${wave}, ${result}, ${time}]")
+        logger.finer("Match data: $packet")
         
         sql.withTransaction {
-            sql.withBatch {stmt ->
-                packet.getData(MatchPacket.keyDeaths).each {stat, value ->
-                    stmt.addBatch("insert or ignore into deaths (name) values ('$stat');")
-                    stmt.addBatch("update deaths set count= count + $value where name='$stat'")
-                }
-                
-                stmt.addBatch("insert or ignore into difficulties (name, length )values('$diff', '$length')")
-                stmt.addBatch("""update difficulties set wins= wins + $wins, losses= losses + $losses, wave= wave + $wave, 
-                    time= time + $time where name= '$diff' and length= '$length'""")
-                stmt.addBatch("insert or ignore into levels (name) values('$levelName')")
-                stmt.addBatch("""update levels set wins= wins + $wins, losses= losses + $losses, time= time + $time where name='$levelName'""")
+            packet.getStats().each {stat, value ->
+                sql.execute("insert or ignore into deaths (name) values (?);", [stat])
+                sql.execute("update deaths set count= count + ? where name=?", [value, stat])
             }
+            sql.execute("insert or ignore into difficulties (name, length) values(?, ?)", 
+                [packet.getDifficulty(), packet.getLength()])
+            sql.execute("""update difficulties set wins= wins + ?, losses= losses + ?, wave= wave + ?, 
+                time= time + ? where name= ? and length= ?""", 
+                [wins, losses, packet.getWave(), packet.getElapsedTime(), packet.getDifficulty(), packet.getLength()])
+            sql.execute("insert or ignore into levels (name) values(?)", [packet.getLevelName()])
+            sql.execute("""update levels set wins= wins + ?, losses= losses + ?, 
+                time= time + ? where name=?""", 
+                [wins, losses, packet.getElapsedTime(), packet.getLevelName()])
         }
     }
     
     public synchronized void writePlayerData(Iterable<PlayerPacket> packets) {
         def start= System.nanoTime()
         sql.withTransaction {
-            sql.withBatch {stmt ->
-                packets.each {packet ->
-                    def category= packet.getData(PlayerPacket.keyCategory)
-                    def steamID64= packet.getData(PlayerPacket.keyPlayerId)
-                    if (category != "match") {
-                        packet.getData(PlayerPacket.keyStats).each {stat, value ->
-                            if (stat != "") {
-                                stmt.addBatch("insert or ignore into aggregate (stat, category) values ('$stat', '$category');")
-                                stmt.addBatch("update aggregate set value= value + $value where stat='$stat' and category='$category'")
-                                if (steamID64 != PlayerPacket.blankID) {
-                                    stmt.addBatch("insert or ignore into player (steamid64, stat, category) values('$steamID64', '$stat', '$category')")
-                                    stmt.addBatch("update player set value=value + $value where stat='$stat' and category='$category'")
-                                }
+            packets.each {packet ->
+                def category= packet.getCategory()
+                def steamID64= packet.getSteamID64()
+                if (category != "match") {
+                    packet.getStats().each {stat, value ->
+                        if (stat != "") {
+                            sql.execute("insert or ignore into aggregate (stat, category) values (?,?);", [stat, category])
+                            sql.execute("update aggregate set value= value + ? where stat=? and category=?", [value, stat, category])
+                            if (steamID64 != "") {
+                                sql.execute("insert or ignore into player (steamid64, stat, category) values(?, ?, ?)", 
+                                    [steamID64, stat, category])
+                                sql.execute("update player set value=value + ? where steamid64=? and stat=? and category=?", 
+                                    [value, steamID64, stat, category])
                             }
                         }
-                    } else {
-                        def result= packet.getData(PlayerPacket.keyStats)["result"].toInteger()
-                        def map= packet.getData(PlayerPacket.keyStats)["map"]
-                        def diff= packet.getData(PlayerPacket.keyStats)["difficulty"]
-                        def length= packet.getData(PlayerPacket.keyStats)["length"]
-                        def wave= packet.getData(PlayerPacket.keyStats)["wave"].toInteger()
-                        def resultStr= ["disconnected", "lost", "won"]
-
-                        stmt.addBatch("insert or ignore into records (steamid64) values ('$steamID64');")
-                        stmt.addBatch("update records set wins= wins + ${result == 2 ? 1 : 0}, losses= losses + ${result == 1 ? 1 : 0}, disconnects= disconnects + ${result == 0 ? 1 : 0} where steamid64='$steamID64'")
-                        stmt.addBatch("insert into sessions (steamid64, level, difficulty, length, result, wave) values ('$steamID64', '$map', '$diff', '$length', '${resultStr[result]}', $wave);")
                     }
+                } else {
+                    def matchInfo= packet.getMatchInfo()
+
+                    sql.execute("insert or ignore into records (steamid64) values (?);", [steamID64])
+                    sql.execute("update records set wins= wins + ?, losses= losses + ?, disconnects= disconnects + ? where steamid64=?", 
+                        [matchInfo.result == MatchInfo.Result.WIN ? 1 : 0, matchInfo.result == MatchInfo.Result.LOSS ? 1 : 0, 
+                        matchInfo.result == MatchInfo.Result.DISCONNECT ? 1 : 0, steamID64])
+                    sql.execute("insert into sessions (steamid64, level, difficulty, length, result, wave) values (?,?,?,?,?,?)",
+                        [steamID64, matchInfo.level, matchInfo.difficulty, matchInfo.length, matchInfo.result.toString().toLowerCase(), matchInfo.wave])
                 }
             }
         }

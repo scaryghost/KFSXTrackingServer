@@ -50,47 +50,42 @@ public class Accumulator implements Runnable {
         
         try {
             logger.finest(data);
-            def packet= Packet.parse(data);
-            switch(packet.getType()) {
-                case Type.Match:
-                    writer.writeMatchData(packet)
-                    break
-                case Type.Player:
-                    id= packet.getData(PlayerPacket.keyPlayerId)
-                    def category= packet.getData(PlayerPacket.keyCategory)
+            def packet= Packet.parse(data, properties[propPassword]);
+            if (packet instanceof MatchPacket) {
+                    writer.writeMatchData((MatchPacket)packet)
+            } else if (packet instanceof PlayerPacket) {
+                def playerPacket= (PlayerPacket)packet
+                id= playerPacket.getSteamID64()
+                def category= playerPacket.getCategory()
 
-                    if (id == PlayerPacket.blankID) {
-                        if (category != "match") {
-                            logger.info("Blank ID received.  Adding to aggregate stats only")
-                            writer.writePlayerData([packet])
+                if (id == "") {
+                    if (category != "match") {
+                        logger.info("Blank ID received.  Adding to aggregate stats only")
+                        writer.writePlayerData([playerPacket])
+                    }
+                } else {
+                    def seqNo= playerPacket.getSeqNo()
+                    def packets
+
+                    synchronized(receivedPackets) {
+                        if (receivedPackets[id] == null) {
+                            receivedPackets[id]= []
+                            timer.schedule(new PacketCleaner(steamID64: id), 
+                                    properties[propStatsMsgTTL].toLong())
                         }
-                    } else {
-                        def seqnum= packet.getSeqnum()
-                        def packets
-                        
-                        synchronized(receivedPackets) {
-                            if (receivedPackets[id] == null) {
-                                receivedPackets[id]= []
-                                timer.schedule(new PacketCleaner(steamID64: id), 
-                                        properties[propStatsMsgTTL].toLong())
-                            }
-                            packets= receivedPackets[id]
-                        }
-                        
-                        synchronized(packets) {
-                            packets[seqnum]= packet
-                            def completed= packets.last().isLast() && 
-                                packets.inject(true) {acc, val -> acc && (val != null) }
-                            if (completed) {
-                                receivedPackets.remove(id)
-                                writer.writePlayerData(packets)
-                            }
+                        packets= receivedPackets[id]
+                    }
+
+                    synchronized(packets) {
+                        packets[seqNo]= playerPacket
+                        def completed= packets.last().isClose() && 
+                            packets.inject(true) {acc, val -> acc && (val != null) }
+                        if (completed) {
+                            receivedPackets.remove(id)
+                            writer.writePlayerData(packets)
                         }
                     }
-                    break
-                default:
-                    logger.info("Unrecognized packet type: ${packet.getType()}")
-                    break
+                }
             }
         } catch (IllegalStateException ex) {
             timer= new Timer()

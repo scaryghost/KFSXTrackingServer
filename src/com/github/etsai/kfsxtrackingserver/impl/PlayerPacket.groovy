@@ -5,79 +5,108 @@
 
 package com.github.etsai.kfsxtrackingserver.impl
 
-import static com.github.etsai.kfsxtrackingserver.Common.logger
-import static com.github.etsai.kfsxtrackingserver.Packet.Type
 import com.github.etsai.kfsxtrackingserver.Packet
-import java.util.logging.Level
 
 /**
- *
- * @author eric
+ * Represents a player message
+ * @author etsai
  */
 public class PlayerPacket extends Packet {
-    public static final def blankID= ""
-    public static final def packetVersion= 1
-    public static final String keyPlayerId= "playerid"
-    public static final String keyCategory= "category"
-    public static final String keyStats= "stats"
+    static class MatchInfo {
+        public enum Result {
+            WIN, LOSS, DISCONNECT
+        }
+
+        public def level
+        public def difficulty
+        public def length
+        public def wave
+        public def result
+
     
-    private def seqnum
-    private def last
+        @Override
+        public String toString() {
+            return [level, difficulty, length, wave, result].toString()
+        }
+    }
     
-    public PlayerPacket(String protocol, int version, String[] parts) {
-        super(protocol, version)
+    /** Protocol name for player stats */ 
+    public static String PROTOCOL= "kfstatsx-player"
+    /** Current protocol version */
+    public static Integer VERSION= 1
+    /** Offset for converting between linux and windows steamID64 */
+    public static Long linuxOffset= 76561197960265728
+    
+    private final def steamID64
+    private final def category
+    private final def matchInfo
+    
+    /**
+     * Constructs object given the pipe separated string of stat information
+     */
+    public PlayerPacket(def parts) {
+        super((parts[3] == "match") ? "" : parts[4])
         
-        if (version != packetVersion) {
-            def msg= "Packet version required: ${packetVersion}.  Version received: ${version}"
-            throw new RuntimeException(msg)
+        steamID64= parts[1]
+        if (steamID64 == "") {
+            steamID64= null
+        } else if (steamID64.length() < 17) {
+            steamID64= (steamID64.toLong() + linuxOffset).toString()
         }
-        def playerStats= [:]
-        def body
-        def id
+        category= parts[3]
+        
+        if (category == "match") {
+            matchInfo= new MatchInfo(level: parts[4].toLowerCase(), difficulty: parts[5], 
+                length: parts[6], wave: parts[8].toInteger())
 
-        data= [:]
-        seqnum= Integer.valueOf(parts[2])
-        last= parts[parts.length-1].equals("_close")
-
-        if (parts[1].length() < 17) {
-            def offset= new BigInteger("76561197960265728")
-            if (parts[1] == "") {
-                id= blankID
-            } else {
-                def linuxId= new BigInteger(parts[1])
-
-                linuxId+= offset
-                id= linuxId.toString()
+            switch(parts[7].toInteger()) {
+                case 0:
+                    matchInfo.result= MatchInfo.Result.DISCONNECT
+                    break
+                case 1:
+                    matchInfo.result= MatchInfo.Result.LOSS
+                    break
+                case 2:
+                    matchInfo.result= MatchInfo.Result.WIN
+                    break
+                default:
+                    throw new RuntimeException("Unrecognized result: ${parts[7]}")
             }
-        } else {
-            id= parts[1]
         }
-
-        data[keyPlayerId]= id
-        data[keyCategory]= parts[3]
-        if (data[keyCategory] == "match") {
-            def items= ["map=${parts[4]}", "difficulty=${parts[5]}", "length=${parts[6]}", 
-                "result=${parts[7]}", "wave=${parts[8]}"]
-            body= items.join(",")
-        } else {
-            body= parts.size() > 4 ? parts[4] : ""
-        }
-        body.tokenize(",").each {stats ->
-            def keyVal= stats.split("=")
-            def val= data[keyCategory] == "match" ? keyVal[1] : keyVal[1].toInteger()
-            playerStats[keyVal[0]]= val
-        }
-        data[keyStats]= playerStats
     }
     
-    public Type getType() {
-        return Type.Player
+    /**
+     * Get the steamID64 of the player stat.  If the field was blank, null is returned
+     * @return SteamID64 or null if blank
+     */
+    public String getSteamID64() {
+        return steamID64
     }
-    public int getSeqnum() {
-        return seqnum
+    /**
+     * Get the stat category the set of stats belong to
+     * @return Stat category
+     */
+    public String getCategory() {
+        return category
     }
-    public boolean isLast() {
-        return last
-    }	
-}
+    /**
+     * Get match information stored by the stat packet.  If category is not "match", null is returned
+     * @return Match information, or null if packet is not in the "match" category
+     */
+    public MatchInfo getMatchInfo() {
+        return matchInfo
+    }
 
+    /**
+     * Generate string representation of the object
+     * @return String representation
+     */
+    @Override
+    public String toString() {
+        def attrs= [steamID64, seqNo, category,]
+        if (matchInfo == null) {
+            return attrs << stats
+        }
+        return attrs << matchInfo
+    }
+}
