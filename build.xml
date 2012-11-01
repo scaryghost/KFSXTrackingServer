@@ -76,16 +76,22 @@
         <os family="unix"/>
     </condition>
     
+    <property name="version.path" value="com/github/etsai/kfsxtrackingserver" />
+    
     <target name="-pre-init" depends="override-properties-unix" />
     <target name="override-properties-unix" if="isUnix">
         <property environment="env" />
-        <fail unless="env.GROOVY_HOME">GROOVY_HOME must be set</fail>
+        <fail unless="env.JAVA_LIBS">JAVA_LIBS env variable must be set</fail>
+        <fail unless="env.GROOVY_HOME">GROOVY_HOME env variable must be set</fail>
         <property name="user.properties.file" value="linux_build.properties" />
     </target>
-
-    <target name="-post-jar">
-        <copy todir="${dist.dir}/http" >
-            <fileset dir="${src.dir}/http" />
-        </copy>
+    
+    <target name="-pre-compile">
+        <taskdef name="describe" classname="com.github.etsai.utils.ant.taskdef.Describe" 
+                 classpath=" ${libs.etsaijavautils.classpath}" />
+        <describe versionproperty="git.version" />
+        <delete file="${src.dir}/${version.path}/Version.java" />
+        <copy file="${src.dir}/${version.path}/Version.template" tofile="${src.dir}/${version.path}/Version.java" />
+        <replace file="${src.dir}/${version.path}/Version.java" token="@@@" value="${git.version}" />
     </target>
 </project>

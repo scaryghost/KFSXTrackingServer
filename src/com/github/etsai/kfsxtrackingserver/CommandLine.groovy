@@ -3,19 +3,18 @@
  * and open the template in the editor.
  */
 
-package com.github.etsai.kfsxtrackingserver.impl
+package com.github.etsai.kfsxtrackingserver
 
-import com.github.etsai.kfsxtrackingserver.CommandLine
 import groovy.util.CliBuilder
 
 /**
  * Groovy implementation of the CommandLine abstract class
  * @author etsai
  */
-public class CommandLineImpl extends CommandLine {
+public class CommandLine {
     private def options;
     
-    public CommandLineImpl(String[] args) {
+    public CommandLine (String[] args) {
         def cli= new CliBuilder(usage:"cli.groovy")
         cli.stopAtNonOption= false
         cli.propertyfile(args:1, argName:'file', 'Reads in server properties from the file')
@@ -27,9 +26,9 @@ public class CommandLineImpl extends CommandLine {
             System.exit(1)
         }
         if (options.version) {
-            println "KFSXTrackingServer version 1.0"
-            println "Match protocol version: ${MatchPacket.packetVersion}"
-            println "Player protocol version: ${PlayerPacket.packetVersion}"
+            println "KFSXTrackingServer - Version ${Version.gitTag}"
+            println "Match protocol version: ${MatchPacket.VERSION}"
+            println "Player protocol version: ${PlayerPacket.VERSION}"
             System.exit(0)
         }
         if (options.help) {

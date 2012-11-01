@@ -26,7 +26,7 @@ public class Main {
      * @param args the command line arguments
      */
     public static void main(String[] args) throws ClassNotFoundException, SQLException {
-        CommandLine clom= CommandLine.parse(args);
+        CommandLine clom= new CommandLine(args);
         
         try {
             properties= ServerProperties.load(clom.getPropertiesFilename());
