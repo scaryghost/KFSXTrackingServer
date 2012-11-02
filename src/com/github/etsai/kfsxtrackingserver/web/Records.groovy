@@ -48,7 +48,7 @@ public class Records extends Page {
                     def attr= [:]
                     
                     attr["pos"]= pos + 1
-                    attr["steamid"]= steamIdInfo.steamID64
+                    attr["steamid"]= row.steamid64
                     attr["name"]= steamIdInfo.name
                     attr["wins"]= row.wins
                     attr["losses"]= row.losses

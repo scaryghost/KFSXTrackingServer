@@ -5,7 +5,6 @@
 
 package com.github.etsai.kfsxtrackingserver.web
 
-import static com.github.etsai.kfsxtrackingserver.ServerProperties.*
 import com.github.etsai.kfsxtrackingserver.Common
 import java.util.TimerTask
 import java.util.logging.Level
@@ -16,16 +15,22 @@ import java.nio.charset.Charset
  * @author etsai
  */
 public class SteamIdInfo {
-    public static final def charset= "US-ASCII"
-    private static def polledSteamIDs= Collections.synchronizedMap([:])
+    public def name, avatar
     
-    public static def getSteamIDInfo(def steamID64) {
-        if (polledSteamIDs[steamID64] == null || polledSteamIDs[steamID64].repoll) {
-            def th= new Thread(new SteamPoller(steamID64:steamID64))
+    public synchronized static def getSteamIDInfo(def steamID64) {
+        def row= Common.sql.firstRow("select * from steaminfo where steamid64=?", [steamID64])
+        
+        if (row == null) {
+            def th= new Thread(new SteamPoller(steamID64: steamID64))
             th.start()
             th.join()
-        } 
-        return polledSteamIDs[steamID64]
+            
+            row= Common.sql.firstRow("select * from steaminfo where steamid64=?", [steamID64])
+            if (row == null) {
+                return new SteamIdInfo()
+            }
+        }
+        return new SteamIdInfo(name: row.name, avatar: row.avatar)
     }
     
     static class SteamPoller implements Runnable {
@@ -33,54 +38,31 @@ public class SteamIdInfo {
         
         @Override
         public void run() {
-            def newId= new SteamIdInfo(steamID64)
             
             Common.logger.info("Polling steamcommunity for steamID64: ${steamID64}")
-            try  {
+            try {
                 def url= new URL("http://steamcommunity.com/profiles/${steamID64}?xml=1")
                 def content= url.getContent().readLines().join("\n")
                 def steamXmlRoot= new XmlSlurper().parseText(content)
+                def name, avatar
             
-                newId.valid= true
                 if (steamXmlRoot.error != "") {
-                    newId.valid= false
+                    throw new RuntimeException("Invalid steamID64: $steamID64")
                 } else if (steamXmlRoot.privacyMessage != "") {
-                    newId.name= "null"
+                    name= "---Profile not setup---"
                 } else {
                     def tempName= steamXmlRoot.steamID.text()
-
-                    newId.name= new String(tempName.getBytes(Charset.availableCharsets()[charset]))
-                    newId.avatarFull= steamXmlRoot.avatarFull.text()
-                    newId.avatarMedium= steamXmlRoot.avatarMedium.text()
-                    newId.avatarSmall= steamXmlRoot.avatarIcon.text()
+                    name= new String(tempName.getBytes(Charset.availableCharsets()["US-ASCII"]))
+                    avatar= steamXmlRoot.avatarMedium
                 }
                 
-                polledSteamIDs[steamID64]= newId
+                    Common.sql.execute("insert or ignore into steaminfo values (?, ?, ?);", [steamID64, "null", "null"])
+                    Common.sql.execute("update steaminfo set name=?, avatar=? where steamid64=?", [name, avatar, steamID64])
+                
             } catch (Exception ex) {
                 Common.logger.log(Level.SEVERE, "Error polling steamcommunity.com", ex)
-                
-                newId.repoll= true
-                if (polledSteamIDs[steamID64] == null) {
-                    polledSteamIDs[steamID64]= newId
-                }
             }
         }
-    }
-    
-    private def valid, repoll= false
-    public final def steamID64
-    public def name, avatarFull, avatarMedium, avatarSmall
-    
-    private SteamIdInfo(String steamID64) {
-        this.steamID64= steamID64
-    }
-    
-    public boolean isValid() {
-        return valid
-    }
-    
-    public boolean repoll() {
-        return repoll
     }
 }
 

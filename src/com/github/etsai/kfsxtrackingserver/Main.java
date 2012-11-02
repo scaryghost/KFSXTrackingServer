@@ -44,10 +44,12 @@ public class Main {
         logger.log(Level.INFO,"Loading stats from databse: {0}", properties.getProperty(propDbName));
         Class.forName("org.sqlite.JDBC");
         Common.sql= Sql.newInstance(String.format("jdbc:sqlite:%s", properties.getProperty(propDbName)));
+        Common.sql.execute("CREATE  TEMP  TABLE \"steaminfo\" (\"steamid64\" TEXT PRIMARY KEY  NOT NULL , \"name\" TEXT, \"avatar\" TEXT)");
         
         Runtime.getRuntime().addShutdownHook(new Thread() {
             @Override
             public void run() {
+                Common.sql.close();
                 logger.info("Shutting down server");
             }
         });
