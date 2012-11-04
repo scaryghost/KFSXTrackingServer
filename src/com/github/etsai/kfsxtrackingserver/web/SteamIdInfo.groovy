@@ -17,7 +17,7 @@ import java.nio.charset.Charset
 public class SteamIdInfo {
     public def name, avatar
     
-    public synchronized static def getSteamIDInfo(def steamID64) {
+    public synchronized static def getSteamIDInfo(def steamID64) throws RuntimeException {
         def row= Common.sql.firstRow("select * from steaminfo where steamid64=?", [steamID64])
         
         if (row == null) {

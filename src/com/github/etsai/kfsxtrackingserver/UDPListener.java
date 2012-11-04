@@ -6,7 +6,6 @@
 package com.github.etsai.kfsxtrackingserver;
 
 import static com.github.etsai.kfsxtrackingserver.Common.logger;
-import static com.github.etsai.kfsxtrackingserver.Common.pool;
 import java.io.IOException;
 import java.net.DatagramPacket;
 import java.net.DatagramSocket;
@@ -19,7 +18,7 @@ import java.util.logging.Level;
  */
 public class UDPListener implements Runnable {
     private final Integer port;
-    public static final Integer bufferSize= 1024;
+    public static final Integer bufferSize= 32767;
     
     public UDPListener(Integer port) {
         this.port= port;
@@ -39,7 +38,7 @@ public class UDPListener implements Runnable {
                     String data= new String(packet.getData(), 0, packet.getLength());
                     logger.info(String.format("Received UDP packet from %s:%d", 
                             packet.getAddress().getHostAddress(), packet.getPort()));
-                    pool.submit(new Accumulator(data));
+                    Accumulator.accumulate(data);
                 } catch (IOException ex) {
                     logger.log(Level.SEVERE, "Error reading data on UDP socket", ex);
                 }

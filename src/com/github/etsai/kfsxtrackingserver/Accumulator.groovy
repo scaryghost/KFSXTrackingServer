@@ -5,11 +5,10 @@
 
 package com.github.etsai.kfsxtrackingserver
 
-import static com.github.etsai.kfsxtrackingserver.Common.*
-import static com.github.etsai.kfsxtrackingserver.ServerProperties.*
-import static com.github.etsai.kfsxtrackingserver.Packet.Type
+import com.github.etsai.kfsxtrackingserver.Common
 import com.github.etsai.kfsxtrackingserver.impl.MatchPacket
 import com.github.etsai.kfsxtrackingserver.impl.PlayerPacket
+import com.github.etsai.kfsxtrackingserver.web.SteamIdInfo
 import java.util.logging.Level
 import java.util.TimerTask
 import java.util.Timer
@@ -18,37 +17,17 @@ import java.util.Timer
  * Accumulates and holds packets for processing
  * @author etsai
  */
-public class Accumulator implements Runnable {
+public class Accumulator {
     private static final def receivedPackets= [:]
     private static def timer= new Timer()
-    public static DataWriter writer
+    public static def writer
     public static Long statMsgTTL
     
-    static class PacketCleaner extends TimerTask {
-        public def steamID64
-        
-        @Override
-        public void run() {
-            synchronized(receivedPackets) {
-                if (receivedPackets[steamID64] != null) {
-                    logger.info("Discarding packets for steamID64: ${steamID64}")
-                    receivedPackets.remove(steamID64)
-                }
-            }
-        }
-    }
-    
-    private final def data
-    public Accumulator(String data) {
-        this.data= data
-    }
-    
-    @Override
-    public void run() {
+    public synchronized static def accumulate(String data) {
         def id
         
         try {
-            logger.finest(data);
+            Common.logger.finest(data);
             def packet= Packet.parse(data);
             if (packet instanceof MatchPacket) {
                 writer.writeMatchData((MatchPacket)packet)
@@ -59,7 +38,7 @@ public class Accumulator implements Runnable {
 
                 if (id == "") {
                     if (category != "match") {
-                        logger.info("Blank ID received.  Adding to aggregate stats only")
+                        Common.logger.info("Blank ID received.  Adding to aggregate stats only")
                         writer.writePlayerData([playerPacket])
                     }
                 } else {
@@ -74,14 +53,12 @@ public class Accumulator implements Runnable {
                         packets= receivedPackets[id]
                     }
 
-                    synchronized(packets) {
-                        packets[seqNo]= playerPacket
-                        def completed= packets.last().isClose() && 
-                            packets.inject(true) {acc, val -> acc && (val != null) }
-                        if (completed) {
-                            receivedPackets.remove(id)
-                            writer.writePlayerData(packets)
-                        }
+                    packets[seqNo]= playerPacket
+                    def completed= packets.last().isClose() && 
+                        packets.inject(true) {acc, val -> acc && (val != null) }
+                    if (completed) {
+                        receivedPackets.remove(id)
+                        Common.pool.submit(new PlayerPacketsSaver(packets: packets, steamID64: id))
                     }
                 }
             }
@@ -89,7 +66,36 @@ public class Accumulator implements Runnable {
             timer= new Timer()
             timer.schedule(new PacketCleaner(steamID64: id), statMsgTTL)
         } catch (Exception ex) {
-            logger.log(Level.SEVERE, null, ex)
+            Common.logger.log(Level.SEVERE, null, ex)
+        }
+    }
+    
+    static class PacketCleaner extends TimerTask {
+        public def steamID64
+        
+        @Override
+        public void run() {
+            synchronized(receivedPackets) {
+                if (receivedPackets[steamID64] != null) {
+                    Common.logger.info("Discarding packets for steamID64: ${steamID64}")
+                    receivedPackets.remove(steamID64)
+                }
+            }
+        }
+    }
+    
+    static class PlayerPacketsSaver implements Runnable {
+        public def packets
+        public def steamID64
+        
+        @Override
+        public void run() {
+            try {
+                SteamIdInfo.getSteamIDInfo(steamID64)
+                writer.writePlayerData(packets)
+            } catch (RuntimeException ex) {
+                Common.logger.info(ex.getMessage())
+            }
         }
     }
 }
