@@ -1,12 +1,10 @@
 package com.github.etsai.kfsxtrackingserver.web
 
-import static com.github.etsai.kfsxtrackingserver.Common.statsData
 import static com.github.etsai.kfsxtrackingserver.Common.sql
 import com.github.etsai.utils.Time
-import groovy.xml.MarkupBuilder
 
-public class Index extends Page {
-    public String fillBody(def xmlBuilder) {
+public class Index {
+    public static String fillBody(def xmlBuilder) {
         xmlBuilder.kfstatsx() {
             def totalGames= 0
             def totalPlayTime= 0
@@ -70,7 +68,7 @@ public class Index extends Page {
             }
             sql.eachRow('SELECT category FROM aggregate GROUP BY category') {row1 ->
                 xmlBuilder.'stats'(category: row1.category) {
-                    sql.eachRow("SELECT * from aggregate where category='${row1.category}'") {row2 ->
+                    sql.eachRow("SELECT * from aggregate where category=?", [row1.category]) {row2 ->
                         def key, val
                         def attrs= [:]
                         attrs["name"]= row2.stat

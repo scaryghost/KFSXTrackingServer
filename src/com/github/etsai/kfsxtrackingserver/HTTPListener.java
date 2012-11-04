@@ -47,15 +47,12 @@ public class HTTPListener implements Runnable {
 
         @Override
         public void run() {
-            try {
-                BufferedReader input = new BufferedReader(new InputStreamReader(connection.getInputStream()));
-                try (DataOutputStream output = new DataOutputStream(connection.getOutputStream())) {
-                    String request= input.readLine();
-                    String[] requestParts= request.split(" ");
-                    
-                    logger.log(Level.FINEST, "HTTP request: {0}", request);
-                    Page.generate(output, requestParts);
-                }
+            try (BufferedReader input= new BufferedReader(new InputStreamReader(connection.getInputStream()))) {
+                String request= input.readLine();
+                String[] requestParts= request.split(" ");
+
+                logger.log(Level.FINEST, "HTTP request: {0}", request);
+                Page.generate(connection.getOutputStream(), requestParts);
             } catch (IOException ex) {
                 logger.log(Level.SEVERE, null, ex);
             }

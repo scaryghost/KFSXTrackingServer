@@ -5,7 +5,7 @@
 
 package com.github.etsai.kfsxtrackingserver.web
 
-import static com.github.etsai.kfsxtrackingserver.Common.sql
+import com.github.etsai.kfsxtrackingserver.Common
 import com.github.etsai.utils.Time
 
 /**
@@ -14,17 +14,13 @@ import com.github.etsai.utils.Time
  */
 public class Profile extends Page {
     public static final KEY_STEAMID= "steamid"
-    private final def steamid64
     
-    public Profile(def queries) {
-        steamid64= queries[KEY_STEAMID]
-    }
-    
-    public String fillBody(def xmlBuilder) {
+    public static String fillBody(def xmlBuilder, def queries) {
+        def steamid64= queries[KEY_STEAMID]
         def profileAttr= null
         def steamIdInfo= SteamIdInfo.getSteamIDInfo(steamid64)
         
-        sql.eachRow("SELECT * FROM records where steamid64=?", [steamid64]) {row ->
+        Common.sql.eachRow("SELECT * FROM records where steamid64=?", [steamid64]) {row ->
             profileAttr= [:]
             profileAttr["steamid"]= steamid64
             profileAttr["name"]= steamIdInfo.name
@@ -39,9 +35,9 @@ public class Profile extends Page {
                 'error'("No stats available for steamdID64: ${steamid64}")
             } else {
                 'profile'(profileAttr) {
-                    sql.eachRow("SELECT category FROM player where steamid64=? group by category", [steamid64]) {row1 ->
+                    Common.sql.eachRow("SELECT category FROM player where steamid64=? group by category", [steamid64]) {row1 ->
                         'stats'(category: row1.category) {
-                            sql.eachRow("SELECT * FROM player where steamid64=? AND category=?", [steamid64, row1[0]]) {row ->
+                            Common.sql.eachRow("SELECT * FROM player where steamid64=? AND category=?", [steamid64, row1[0]]) {row ->
                                 def attr= [:]
                                 attr["name"]= row.stat
                                 attr["value"]= row.value

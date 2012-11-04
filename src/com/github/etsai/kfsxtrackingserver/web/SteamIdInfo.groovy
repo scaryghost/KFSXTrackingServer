@@ -21,24 +21,6 @@ public class SteamIdInfo {
         def row= Common.sql.firstRow("select * from steaminfo where steamid64=?", [steamID64])
         
         if (row == null) {
-            def th= new Thread(new SteamPoller(steamID64: steamID64))
-            th.start()
-            th.join()
-            
-            row= Common.sql.firstRow("select * from steaminfo where steamid64=?", [steamID64])
-            if (row == null) {
-                return new SteamIdInfo()
-            }
-        }
-        return new SteamIdInfo(name: row.name, avatar: row.avatar)
-    }
-    
-    static class SteamPoller implements Runnable {
-        public def steamID64
-        
-        @Override
-        public void run() {
-            
             Common.logger.info("Polling steamcommunity for steamID64: ${steamID64}")
             try {
                 def url= new URL("http://steamcommunity.com/profiles/${steamID64}?xml=1")
@@ -56,13 +38,15 @@ public class SteamIdInfo {
                     avatar= steamXmlRoot.avatarMedium
                 }
                 
-                    Common.sql.execute("insert or ignore into steaminfo values (?, ?, ?);", [steamID64, "null", "null"])
-                    Common.sql.execute("update steaminfo set name=?, avatar=? where steamid64=?", [name, avatar, steamID64])
-                
-            } catch (Exception ex) {
+                Common.sql.execute("insert or ignore into steaminfo values (?, ?, ?);", [steamID64, "null", "null"])
+                Common.sql.execute("update steaminfo set name=?, avatar=? where steamid64=?", [name, avatar, steamID64])
+                return new SteamIdInfo(name: name, avatar: avatar)
+            } catch (IOException ex) {
                 Common.logger.log(Level.SEVERE, "Error polling steamcommunity.com", ex)
+                return new SteamIdInfo()
             }
         }
+        return new SteamIdInfo(name: row.name, avatar: row.avatar)
     }
 }
 

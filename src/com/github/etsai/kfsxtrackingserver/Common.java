@@ -20,7 +20,7 @@ import java.util.logging.Logger;
 public class Common {
     public static final Logger logger= Logger.getLogger("KFSXTrackingServer");
     public static Properties properties;
-    public static ExecutorService pool= Executors.newCachedThreadPool();
+    public static ExecutorService pool= Executors.newFixedThreadPool(12);
     public static Sql sql;
     public static PrintStream oldStdOut, oldStdErr;
 }
