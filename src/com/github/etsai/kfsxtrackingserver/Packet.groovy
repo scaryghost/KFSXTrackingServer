@@ -14,6 +14,8 @@ import java.util.Map;
  * @author etsai
  */
 public abstract class Packet {
+    public static String password
+        
     public enum Type {
         MATCH, PLAYER
     }
@@ -23,7 +25,7 @@ public abstract class Packet {
     protected def close
     protected def stats
     
-    public static Packet parse(String msg, String password) {
+    public static Packet parse(String msg) {
         def parts= msg.split("\\|")
         def packetInfo= parts[0].split(",")
         def packet

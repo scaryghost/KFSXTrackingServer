@@ -2,7 +2,6 @@ package com.github.etsai.kfsxtrackingserver;
 
 import groovy.sql.Sql;
 import java.io.PrintStream;
-import java.util.Properties;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.logging.Logger;
@@ -19,7 +18,6 @@ import java.util.logging.Logger;
  */
 public class Common {
     public static final Logger logger= Logger.getLogger("KFSXTrackingServer");
-    public static Properties properties;
     public static ExecutorService pool= Executors.newFixedThreadPool(12);
     public static Sql sql;
     public static PrintStream oldStdOut, oldStdErr;

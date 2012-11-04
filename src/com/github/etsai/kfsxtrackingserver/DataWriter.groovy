@@ -5,7 +5,6 @@
 
 package com.github.etsai.kfsxtrackingserver
 
-import static com.github.etsai.kfsxtrackingserver.Common.*
 import com.github.etsai.kfsxtrackingserver.impl.MatchPacket
 import com.github.etsai.kfsxtrackingserver.impl.PlayerPacket
 import com.github.etsai.kfsxtrackingserver.impl.PlayerPacket.MatchInfo
@@ -16,6 +15,12 @@ import groovy.sql.Sql;
  * @author etsai
  */
 public class DataWriter {
+    private final def sql
+    
+    public DataWriter(Sql sql) {
+        this.sql= sql
+    }
+    
     public synchronized void writeMatchData(MatchPacket packet) {
         def result= packet.getResult()
         def wins= (result == MatchPacket.Result.WIN) ? 1 : 0

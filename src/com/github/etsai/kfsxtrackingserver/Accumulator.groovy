@@ -21,6 +21,8 @@ import java.util.Timer
 public class Accumulator implements Runnable {
     private static final def receivedPackets= [:]
     private static def timer= new Timer()
+    public static DataWriter writer
+    public static Long statMsgTTL
     
     static class PacketCleaner extends TimerTask {
         public def steamID64
@@ -37,10 +39,8 @@ public class Accumulator implements Runnable {
     }
     
     private final def data
-    private final def writer
-    public Accumulator(String data, DataWriter writer) {
+    public Accumulator(String data) {
         this.data= data
-        this.writer= writer
     }
     
     @Override
@@ -49,9 +49,9 @@ public class Accumulator implements Runnable {
         
         try {
             logger.finest(data);
-            def packet= Packet.parse(data, properties[propPassword]);
+            def packet= Packet.parse(data);
             if (packet instanceof MatchPacket) {
-                    writer.writeMatchData((MatchPacket)packet)
+                writer.writeMatchData((MatchPacket)packet)
             } else if (packet instanceof PlayerPacket) {
                 def playerPacket= (PlayerPacket)packet
                 id= playerPacket.getSteamID64()
@@ -69,8 +69,7 @@ public class Accumulator implements Runnable {
                     synchronized(receivedPackets) {
                         if (receivedPackets[id] == null) {
                             receivedPackets[id]= []
-                            timer.schedule(new PacketCleaner(steamID64: id), 
-                                    properties[propStatsMsgTTL].toLong())
+                            timer.schedule(new PacketCleaner(steamID64: id), statMsgTTL)
                         }
                         packets= receivedPackets[id]
                     }
@@ -88,8 +87,7 @@ public class Accumulator implements Runnable {
             }
         } catch (IllegalStateException ex) {
             timer= new Timer()
-            timer.schedule(new PacketCleaner(steamID64: id), 
-                    properties[propStatsMsgTTL].toLong())
+            timer.schedule(new PacketCleaner(steamID64: id), statMsgTTL)
         } catch (Exception ex) {
             logger.log(Level.SEVERE, null, ex)
         }

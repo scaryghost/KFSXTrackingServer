@@ -5,7 +5,6 @@
 package com.github.etsai.kfsxtrackingserver;
 
 import static com.github.etsai.kfsxtrackingserver.Common.*;
-import static com.github.etsai.kfsxtrackingserver.ServerProperties.*;
 import com.github.etsai.utils.logging.TeeLogger;
 import groovy.sql.Sql;
 import java.io.FileWriter;
@@ -27,24 +26,29 @@ public class Main {
      */
     public static void main(String[] args) throws ClassNotFoundException, SQLException {
         CommandLine clom= new CommandLine(args);
+        ServerProperties props;
         
         try {
-            properties= ServerProperties.load(clom.getPropertiesFilename());
+            props= ServerProperties.load(clom.getPropertiesFilename());
         } catch (IOException ex) {
             logger.warning(ex.getMessage());
             logger.warning("Using default properties...");
-            properties= ServerProperties.getDefaults();
+            props= ServerProperties.getDefaults();
         }
         
-        initLogging();
+        initLogging(props.getLogLevel());
         
-        Thread udpTh= new Thread(new UDPListener(Integer.valueOf(properties.getProperty(propUdpPort))));
-        Thread httpTh= new Thread(new HTTPListener(Integer.valueOf(properties.getProperty(propHttpPort))));
+        Thread udpTh= new Thread(new UDPListener(props.getUdpPort()));
+        Thread httpTh= new Thread(new HTTPListener(props.getHttpPort()));
                 
-        logger.log(Level.INFO,"Loading stats from databse: {0}", properties.getProperty(propDbName));
+        logger.log(Level.INFO,"Loading stats from databse: {0}", props.getDbName());
         Class.forName("org.sqlite.JDBC");
-        Common.sql= Sql.newInstance(String.format("jdbc:sqlite:%s", properties.getProperty(propDbName)));
-        Common.sql.execute("CREATE  TEMP  TABLE \"steaminfo\" (\"steamid64\" TEXT PRIMARY KEY  NOT NULL , \"name\" TEXT, \"avatar\" TEXT)");
+        Common.sql= Sql.newInstance(String.format("jdbc:sqlite:%s", props.getDbName()));
+        Common.sql.execute("CREATE TEMP TABLE \"steaminfo\" (\"steamid64\" TEXT PRIMARY KEY  NOT NULL , \"name\" TEXT, \"avatar\" TEXT)");
+        
+        Accumulator.writer= new DataWriter(Common.sql);
+        Accumulator.statMsgTTL= props.getStatsMsgTTL();
+        Packet.password= props.getPassword();
         
         Runtime.getRuntime().addShutdownHook(new Thread() {
             @Override
@@ -58,7 +62,7 @@ public class Main {
         httpTh.start();
     }
     
-    public static void initLogging() {
+    public static void initLogging(Level logLevel) {
         try {
             logWriter= TeeLogger.getFileWriter("kfsxtracking");
             oldStdOut= System.out;
@@ -66,7 +70,6 @@ public class Main {
             System.setOut(new PrintStream(new TeeLogger(logWriter, oldStdOut), true));
             System.setErr(new PrintStream(new TeeLogger(logWriter, oldStdErr), true));
             
-            Level logLevel= Level.parse(properties.getProperty(propLogLevel));
             for(Handler handler: logger.getHandlers()) {
                 logger.removeHandler(handler);
             }
