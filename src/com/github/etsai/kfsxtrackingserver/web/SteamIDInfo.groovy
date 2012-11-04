@@ -14,7 +14,7 @@ import java.nio.charset.Charset
  *
  * @author etsai
  */
-public class SteamIdInfo {
+public class SteamIDInfo {
     public def name, avatar
     
     public synchronized static def getSteamIDInfo(def steamID64) throws RuntimeException {
@@ -40,13 +40,13 @@ public class SteamIdInfo {
                 
                 Common.sql.execute("insert or ignore into steaminfo values (?, ?, ?);", [steamID64, "null", "null"])
                 Common.sql.execute("update steaminfo set name=?, avatar=? where steamid64=?", [name, avatar, steamID64])
-                return new SteamIdInfo(name: name, avatar: avatar)
+                return new SteamIDInfo(name: name, avatar: avatar)
             } catch (IOException ex) {
                 Common.logger.log(Level.SEVERE, "Error polling steamcommunity.com", ex)
-                return new SteamIdInfo()
+                return new SteamIDInfo()
             }
         }
-        return new SteamIdInfo(name: row.name, avatar: row.avatar)
+        return new SteamIDInfo(name: row.name, avatar: row.avatar)
     }
 }
 

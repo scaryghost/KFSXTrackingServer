@@ -8,7 +8,7 @@ package com.github.etsai.kfsxtrackingserver
 import com.github.etsai.kfsxtrackingserver.Common
 import com.github.etsai.kfsxtrackingserver.impl.MatchPacket
 import com.github.etsai.kfsxtrackingserver.impl.PlayerPacket
-import com.github.etsai.kfsxtrackingserver.web.SteamIdInfo
+import com.github.etsai.kfsxtrackingserver.web.SteamIDInfo
 import java.util.logging.Level
 import java.util.TimerTask
 import java.util.Timer
@@ -91,7 +91,7 @@ public class Accumulator {
         @Override
         public void run() {
             try {
-                SteamIdInfo.getSteamIDInfo(steamID64)
+                SteamIDInfo.getSteamIDInfo(steamID64)
                 writer.writePlayerData(packets)
             } catch (RuntimeException ex) {
                 Common.logger.info(ex.getMessage())

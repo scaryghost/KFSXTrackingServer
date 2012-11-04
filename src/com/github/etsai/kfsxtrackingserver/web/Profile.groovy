@@ -18,7 +18,7 @@ public class Profile extends Page {
     public static String fillBody(def xmlBuilder, def queries) {
         def steamid64= queries[KEY_STEAMID]
         def profileAttr= null
-        def steamIdInfo= SteamIdInfo.getSteamIDInfo(steamid64)
+        def steamIdInfo= SteamIDInfo.getSteamIDInfo(steamid64)
         
         Common.sql.eachRow("SELECT * FROM records where steamid64=?", [steamid64]) {row ->
             profileAttr= [:]

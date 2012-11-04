@@ -40,7 +40,7 @@ public class Records {
             'records'(page: page, rows: rows) {
                 def pos= start
                 Common.sql.eachRow("SELECT * FROM records LIMIT $start, ${end - start}") {row ->
-                    def steamIdInfo= SteamIdInfo.getSteamIDInfo(row.steamid64)
+                    def steamIdInfo= SteamIDInfo.getSteamIDInfo(row.steamid64)
                     def attr= [:]
                     
                     attr["pos"]= pos + 1
