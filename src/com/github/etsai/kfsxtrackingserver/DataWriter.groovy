@@ -26,8 +26,7 @@ public class DataWriter {
         def wins= (result == MatchPacket.Result.WIN) ? 1 : 0
         def losses= (result == MatchPacket.Result.LOSS) ? 1 : 0
 
-        logger.finer("Match data: $packet")
-        
+        Common.logger.finer("Match data: $packet")
         sql.withTransaction {
             packet.getStats().each {stat, value ->
                 sql.execute("insert or ignore into deaths (name) values (?);", [stat])
@@ -46,7 +45,6 @@ public class DataWriter {
     }
     
     public synchronized void writePlayerData(Iterable<PlayerPacket> packets) {
-        def start= System.nanoTime()
         sql.withTransaction {
             packets.each {packet ->
                 def category= packet.getCategory()
@@ -76,7 +74,6 @@ public class DataWriter {
                 }
             }
         }
-        println System.nanoTime() - start
     }
 }
 
