@@ -10,7 +10,6 @@ import static com.github.etsai.kfsxtrackingserver.ServerProperties.*
 import static com.github.etsai.kfsxtrackingserver.Packet.Type
 import com.github.etsai.kfsxtrackingserver.impl.MatchPacket
 import com.github.etsai.kfsxtrackingserver.impl.PlayerPacket
-import com.github.etsai.kfsxtrackingserver.web.SteamIdInfo.SteamPoller
 import java.util.logging.Level
 import java.util.TimerTask
 import java.util.Timer
