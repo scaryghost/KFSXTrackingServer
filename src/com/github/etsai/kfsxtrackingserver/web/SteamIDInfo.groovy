@@ -38,8 +38,7 @@ public class SteamIDInfo {
                     avatar= steamXmlRoot.avatarMedium
                 }
                 
-                Common.sql.execute("insert or ignore into steaminfo values (?, ?, ?);", [steamID64, "null", "null"])
-                Common.sql.execute("update steaminfo set name=?, avatar=? where steamid64=?", [name, avatar, steamID64])
+                Common.sql.execute("insert into steaminfo values (?, ?, ?);", [steamID64, name, avatar])
                 return new SteamIDInfo(name: name, avatar: avatar)
             } catch (IOException ex) {
                 Common.logger.log(Level.SEVERE, "Error polling steamcommunity.com", ex)

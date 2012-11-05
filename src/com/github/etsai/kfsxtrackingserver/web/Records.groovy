@@ -30,7 +30,7 @@ public class Records {
             } else {
                 if (start >= row[0]) {
                     start= [0, row[0] - (row[0] % rows)].max()
-                    page= (start / row[0]).toInteger() + 1
+                    page= (row[0] / rows).toInteger()
                 }
                 if (end >= row[0]) end= row[0]
             }
