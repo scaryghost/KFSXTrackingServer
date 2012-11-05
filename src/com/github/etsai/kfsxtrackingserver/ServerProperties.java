@@ -23,6 +23,7 @@ public class ServerProperties {
     public static final String statsMsgTTL= "stats.msg.ttl";
     public static final String dbName= "db.name";
     public static final String logLevel= "log.level";
+    public static final String numThreads= "num.threads";
     
     public static ServerProperties load(String filename) throws IOException {
         Properties props= new Properties();
@@ -40,6 +41,7 @@ public class ServerProperties {
             props.setProperty(statsMsgTTL, "60000");
             props.setProperty(dbName, "kfsxdb.sqlite");
             props.setProperty(logLevel, "INFO");
+            props.setProperty(numThreads, "12");
             defaults= new ServerProperties(props);
         }
         return defaults;
@@ -67,5 +69,8 @@ public class ServerProperties {
     }
     public Level getLogLevel() {
         return Level.parse(properties.getProperty(logLevel));
+    }
+    public Integer getNumThreads() {
+        return Integer.valueOf(properties.getProperty(numThreads));
     }
 }

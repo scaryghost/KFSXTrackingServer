@@ -11,6 +11,7 @@ import java.io.FileWriter;
 import java.io.IOException;
 import java.io.PrintStream;
 import java.sql.SQLException;
+import java.util.concurrent.Executors;
 import java.util.logging.*;
 
 /**
@@ -37,14 +38,12 @@ public class Main {
         }
         
         initLogging(props.getLogLevel());
-        
-        Thread udpTh= new Thread(new UDPListener(props.getUdpPort()));
-        Thread httpTh= new Thread(new HTTPListener(props.getHttpPort()));
                 
         logger.log(Level.INFO,"Loading stats from databse: {0}", props.getDbName());
         Class.forName("org.sqlite.JDBC");
         Common.sql= Sql.newInstance(String.format("jdbc:sqlite:%s", props.getDbName()));
         Common.sql.execute("CREATE TEMP TABLE \"steaminfo\" (\"steamid64\" TEXT PRIMARY KEY  NOT NULL , \"name\" TEXT, \"avatar\" TEXT)");
+        Common.pool= Executors.newFixedThreadPool(props.getNumThreads());
         
         Accumulator.writer= new DataWriter(Common.sql);
         Accumulator.statMsgTTL= props.getStatsMsgTTL();
@@ -58,8 +57,8 @@ public class Main {
             }
         });
         
-        udpTh.start();
-        httpTh.start();
+        Common.pool.submit(new UDPListener(props.getUdpPort()));
+        Common.pool.submit(new HTTPListener(props.getHttpPort()));
     }
     
     public static void initLogging(Level logLevel) {
