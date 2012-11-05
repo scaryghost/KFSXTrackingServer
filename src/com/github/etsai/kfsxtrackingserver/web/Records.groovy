@@ -39,7 +39,7 @@ public class Records {
         xmlBuilder.kfstatsx() {
             'records'(page: page, rows: rows) {
                 def pos= start
-                Common.sql.eachRow("SELECT * FROM records LIMIT $start, ${end - start}") {row ->
+                Common.sql.eachRow("SELECT * FROM records LIMIT ?,?", [start, end - start]) {row ->
                     def steamIdInfo= SteamIDInfo.getSteamIDInfo(row.steamid64)
                     def attr= [:]
                     
