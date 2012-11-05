@@ -36,7 +36,7 @@ public class Accumulator {
                 id= playerPacket.getSteamID64()
                 def category= playerPacket.getCategory()
 
-                if (id == "") {
+                if (id == null) {
                     if (category != "match") {
                         Common.logger.info("Blank ID received.  Adding to aggregate stats only")
                         writer.writePlayerData([playerPacket])
@@ -90,11 +90,8 @@ public class Accumulator {
         
         @Override
         public void run() {
-            try {
-                SteamIDInfo.getSteamIDInfo(steamID64)
+            if (SteamIDInfo.verifySteamID64(steamID64)) {
                 writer.writePlayerData(packets)
-            } catch (RuntimeException ex) {
-                Common.logger.info(ex.getMessage())
             }
         }
     }
