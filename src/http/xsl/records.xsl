@@ -82,7 +82,7 @@
                     <td style="text-align:left;text-transform: none">
                         <a>
                             <xsl:attribute name="href">
-                                profile.xml?steamid=<xsl:value-of select="@steamid"/>
+                                profile.xml?steamid64=<xsl:value-of select="@steamid64"/>
                             </xsl:attribute>
                             <xsl:value-of select="@name"/>
                         </a>

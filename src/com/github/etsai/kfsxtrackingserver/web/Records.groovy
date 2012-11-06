@@ -44,7 +44,7 @@ public class Records {
                     def attr= [:]
                     
                     attr["pos"]= pos + 1
-                    attr["steamid"]= row.steamid64
+                    attr["steamid64"]= row.steamid64
                     attr["name"]= steamIdInfo.name
                     attr["wins"]= row.wins
                     attr["losses"]= row.losses
