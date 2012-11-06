@@ -12,17 +12,17 @@ import com.github.etsai.utils.Time
  *
  * @author etsai
  */
-public class Profile extends Page {
-    public static final KEY_STEAMID= "steamid"
+public class Profile {
+    public static final KEY_STEAMID64= "steamid64"
     
     public static String fillBody(def xmlBuilder, def queries) {
-        def steamid64= queries[KEY_STEAMID]
+        def steamid64= queries[KEY_STEAMID64]
         def profileAttr= null
         def steamIdInfo= SteamIDInfo.getSteamIDInfo(steamid64)
         
         Common.sql.eachRow("SELECT * FROM records where steamid64=?", [steamid64]) {row ->
             profileAttr= [:]
-            profileAttr["steamid"]= steamid64
+            profileAttr["steamid64"]= steamid64
             profileAttr["name"]= steamIdInfo.name
             profileAttr["avatar"]= steamIdInfo.avatar
             profileAttr["wins"]= row.wins
@@ -49,6 +49,14 @@ public class Profile extends Page {
                                 }                
                                 xmlBuilder.'entry'(attr)
                             }
+                        }
+                    }
+                    'stats'(category: 'sessions') {
+                        Common.sql.eachRow("SELECT * FROM sessions WHERE steamid64=? ORDER BY timestamp DESC", [steamid64]) {row ->
+                            def result= row.toRowResult()
+
+                            result.remove("steamid64")
+                            'entry'(result)
                         }
                     }
                 }

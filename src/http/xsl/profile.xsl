@@ -69,9 +69,9 @@
                     <td>
                         <a target="_blank">
                             <xsl:attribute name="href">
-                                http://steamcommunity.com/profiles/<xsl:value-of select="@steamid" />
+                                http://steamcommunity.com/profiles/<xsl:value-of select="@steamid64" />
                             </xsl:attribute>
-                            <xsl:value-of select="@steamid" />
+                            <xsl:value-of select="@steamid64" />
                         </a>
                     </td>
                 </tr>

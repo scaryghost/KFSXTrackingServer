@@ -65,6 +65,44 @@
     </table>
 </xsl:variable>
 
+<xsl:template match="stats[@category='difficulties']|stats[@category='levels']|stats[@category='sessions']">
+    <div name="item" style="display: none">
+        <table class="graph" width="630" cellspacing="6" cellpadding="0">
+            <thead>
+                <tr>
+                    <th>
+                    <xsl:attribute name="colspan">
+                        <xsl:value-of select="count(entry[1]/@*)" />
+                    </xsl:attribute>
+                    <xsl:value-of select="@category" />
+                    </th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <xsl:for-each select="entry[1]/@*">
+                    <th><xsl:value-of select="name()"/></th>
+                    </xsl:for-each>
+                </tr>
+                <xsl:for-each select="entry">
+                    <tr>
+                        <xsl:for-each select="@*">
+                            <td><xsl:value-of select="."/></td>
+                        </xsl:for-each>
+                    </tr>
+                </xsl:for-each>
+            </tbody>
+            <tfoot>
+                <tr>
+                    <xsl:for-each select="total/@*">
+                        <td><xsl:value-of select="."/></td>
+                    </xsl:for-each>
+                </tr>
+            </tfoot>
+        </table>
+    </div>
+</xsl:template>
+
 <xsl:template match="stats[@category='player']|stats[@category='actions']|stats[@category='totals']">
     <div name="item">
         <xsl:attribute name="style">
