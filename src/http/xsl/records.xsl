@@ -21,7 +21,7 @@
                 <br/>
                 <form action='profile.xml' method='get' style="text-align:left">
                     Enter player's <a href="http://steamidconverter.com/" target="_blank">steamID64: </a>
-                    <input type='text' name='steamid' />
+                    <input type='text' name='steamid64' />
                     <input type='submit' value='Search Player' />
                 </form>
                 <form action="records.xml" method="get" style="text-align:left">
