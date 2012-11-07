@@ -75,8 +75,19 @@
                         </a>
                     </td>
                 </tr>
-
             </tbody>
+            <tfooter>
+                <tr>
+                    <td colspan="3">
+                        <a>
+                            <xsl:attribute name="href">
+                                sessions.xml?steamid64=<xsl:value-of select="@steamid64" />
+                            </xsl:attribute>
+                            View Sessions
+                        </a>
+                    </td>
+                </tr>
+            </tfooter>
         </table>
     </div>
 </xsl:template>

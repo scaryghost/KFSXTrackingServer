@@ -66,7 +66,17 @@
 </xsl:variable>
 
 <xsl:template match="stats[@category='difficulties']|stats[@category='levels']|stats[@category='sessions']">
-    <div name="item" style="display: none">
+    <div name="item">
+        <xsl:attribute name="style">
+            <xsl:choose>
+                <xsl:when test="@category = 'sessions'">
+                    display: block
+                </xsl:when>
+                <xsl:otherwise>
+                    display: none
+                </xsl:otherwise>
+            </xsl:choose>
+        </xsl:attribute>
         <table class="graph" width="630" cellspacing="6" cellpadding="0">
             <thead>
                 <tr>

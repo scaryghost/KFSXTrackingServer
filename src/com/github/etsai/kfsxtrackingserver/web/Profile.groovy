@@ -51,14 +51,6 @@ public class Profile {
                             }
                         }
                     }
-                    'stats'(category: 'sessions') {
-                        Common.sql.eachRow("SELECT * FROM sessions WHERE steamid64=? ORDER BY timestamp DESC", [steamid64]) {row ->
-                            def result= row.toRowResult()
-
-                            result.remove("steamid64")
-                            'entry'(result)
-                        }
-                    }
                 }
             }
         }

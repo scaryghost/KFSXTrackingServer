@@ -60,6 +60,11 @@ public abstract class Page {
                             Profile.fillBody(xml, queries)
                             body= writer.toString()
                             break
+                        case "/sessions.xml":
+                            xml.mkp.pi("xml-stylesheet":[type:"text/xsl",href:"http/xsl/sessions.xsl"])
+                            Sessions.fillBody(xml, queries)
+                            body= writer.toString()
+                            break
                         default:
                             code= 404
                             body= "${code} ${returnCodes[code]}"
