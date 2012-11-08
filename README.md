@@ -1,3 +1,6 @@
+KFSXTrackingServer
+==================
+
 ## Updating From Version 1.0
 If you have just started running a tracking server, this section is irrelevant and you can skip ahead 
 to "Starting The Server".  Otherwise, keep reading.
@@ -8,9 +11,9 @@ will also convert and migrate the data from the v1.0 db to the v2.0 db.  A scrip
 to execute the jar in conversion mode.  From the base directory, execute the convert script, providing 
 the paths to the old and new databases.
 
-Example:
-    # use .bat on Windows
-    share/bin/convert.sh ${path to v1.0 db} share/etc/kfsxdb.sqlite
+Example:  
+    # use .bat on Windows  
+    share/bin/convert.sh ${path to v1.0 db} share/etc/kfsxdb.sqlite  
     
 ### Server Properties
 For v2.0, the following properties have been removed:
@@ -28,9 +31,8 @@ Before starting the server, make sure you look at the properties file: share/etc
 Configure the values to your preferred settings.  Once the properties file has been configured, run 
 the startserver script from the base directory.
 
-Example:
-    share/bin/startserver.sh (or .bat for Windows)
-
+Example:  
+    share/bin/startserver.sh (or .bat for Windows)  
 
 ## Release Notes:
 https://github.com/scaryghost/KFSXTrackingServer/wiki/Release-KFSXTrackingServer-2.0
