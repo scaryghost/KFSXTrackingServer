@@ -16,7 +16,7 @@ public class Index {
             sql.eachRow('SELECT count(*) FROM records') {row ->
                 'stats'(category:"totals") {
                     'entry'(name:"Games", value:totalGames)
-                    'entry'(name:"Play Time", value:new Time(totalPlayTime))
+                    'entry'(name:"Play Time", value:Time.secToStr(totalPlayTime))
                     'entry'(name:"Player Count", value:row[0])
                 }
             }
@@ -26,37 +26,38 @@ public class Index {
                 sql.eachRow('SELECT * from difficulties order by name ASC') {row ->
                     def attr= [:]
                     def accum= [row.wins, row.losses, row.time]
-                    wins+= accum[0]
-                    losses+= accum[1]
-                    time+= accum[2]
+                    wins+= row.wins
+                    losses+= row.losses
+                    time+= row.time
                     
                     attr["name"]= row.name
                     attr["length"]= row.length
-                    attr["wins"]= accum[0]
-                    attr["losses"]= accum[1]
-                    attr["wave"]= String.format("%.2f",row.wave / (accum[0] + accum[1]))
-                    attr["time"]= accum[2].toString()
+                    attr["wins"]= row.wins
+                    attr["losses"]= row.losses
+                    attr["wave"]= String.format("%.2f",row.wave / (row.wins + row.losses))
+                    attr["time"]= Time.secToStr(row.time)
+                    attr["rawtime"]= row.time
                     'entry'(attr)
                 }
                 'total'(name: "Total", length: "", wins: wins, losses:losses, 
-                        wave: "", time:new Time(time))
+                    wave: "", time:Time.secToStr(time))
             }
             'stats'(category:"levels") {
                 def wins= 0, losses= 0, time= 0
                 sql.eachRow('SELECT * FROM levels ORDER BY name ASC') {row ->
                     def attr= [:]
-                    def accum= [row.wins, row.losses, row.time]
                     
-                    wins+= accum[0]
-                    losses+= accum[1]
-                    time+= accum[2]
+                    wins+= row.wins
+                    losses+= row.losses
+                    time+= row.time
                     attr["name"]= row.name
-                    attr["wins"]= accum[0]
-                    attr["losses"]= accum[1]
-                    attr["time"]= accum[2].toString()
+                    attr["wins"]= row.wins
+                    attr["losses"]= row.losses
+                    attr["time"]= Time.secToStr(row.time)
+                    attr["rawtime"]= row.time
                     'entry'(attr)
                 }
-                'total'(name: "Total", wins: wins, losses:losses, time:new Time(time))
+                'total'(name: "Total", wins: wins, losses:losses, time:Time.secToStr(time))
             }
             'stats'(category:"deaths") {
                 sql.eachRow('SELECT * FROM deaths ORDER BY name ASC') {row ->
@@ -75,9 +76,9 @@ public class Index {
                         attrs["value"]= row2.value
 
                         if (row1.category == "perks") {
-                            attrs["hint"]= new Time(attrs["value"]).toString()
+                            attrs["hint"]= Time.secToStr(attrs["value"])
                         } else if (attrs["name"].toLowerCase().contains("time")) {
-                            attrs["value"]= new Time(attrs["value"]).toString()
+                            attrs["value"]= Time.secToStr(attrs["value"])
                         }
                         'entry'(attrs)
                     }
