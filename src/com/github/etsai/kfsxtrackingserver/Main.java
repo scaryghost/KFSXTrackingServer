@@ -7,6 +7,7 @@ package com.github.etsai.kfsxtrackingserver;
 import static com.github.etsai.kfsxtrackingserver.Common.*;
 import com.github.etsai.utils.logging.TeeLogger;
 import groovy.sql.Sql;
+import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.io.PrintStream;
@@ -63,7 +64,7 @@ public class Main {
     
     public static void initLogging(Level logLevel) {
         try {
-            logWriter= TeeLogger.getFileWriter("kfsxtracking");
+            logWriter= TeeLogger.getFileWriter("kfsxtracking", new File("log"));
             oldStdOut= System.out;
             oldStdErr= System.err;
             System.setOut(new PrintStream(new TeeLogger(logWriter, oldStdOut), true));
