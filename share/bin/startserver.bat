@@ -1,1 +1,1 @@
-java -jar dist\KFSXTrackingServer.jar -propertyfile server.properties
+java -jar KFSXTrackingServer.jar -propertyfile share\etc\server.properties
