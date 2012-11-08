@@ -87,8 +87,7 @@
     </target>
     
     <target name="-pre-compile">
-        <taskdef name="describe" classname="com.github.etsai.utils.ant.taskdef.Describe" 
-                 classpath=" ${libs.etsaijavautils.classpath}" />
+        <taskdef name="describe" classname="com.github.etsai.utils.ant.taskdef.Describe" classpath=" ${libs.etsaijavautils.classpath}" />
         <describe versionproperty="git.version" />
         <delete file="${src.dir}/${version.path}/Version.java" />
         <copy file="${src.dir}/${version.path}/Version.template" tofile="${src.dir}/${version.path}/Version.java" />
@@ -99,5 +98,7 @@
         <copy todir="${dist.dir}/http" >
             <fileset dir="${src.dir}/http" />
         </copy>
+        <copy file="README" todir="${dist.dir}"/>
+        <delete file="${dist.dir}/README.TXT" />
     </target>
 </project>
