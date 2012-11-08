@@ -5,6 +5,8 @@
 
 package com.github.etsai.kfsxtrackingserver
 
+import com.github.etsai.kfsxtrackingserver.impl.MatchPacket
+import com.github.etsai.kfsxtrackingserver.impl.PlayerPacket
 import groovy.util.CliBuilder
 
 /**
