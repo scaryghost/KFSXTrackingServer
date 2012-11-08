@@ -6,6 +6,7 @@
 package com.github.etsai.kfsxtrackingserver.convert
 
 import com.github.etsai.utils.Time
+import com.github.etsai.utils.TimeFormatException
 import groovy.sql.Sql
 
 /**
@@ -32,16 +33,25 @@ public class DBEditor {
             println "Converting difficulties"
             dest.withBatch('insert into difficulties values (?, ?, ?, ?, ?, ?)') {ps  ->
                 src.eachRow("select * from difficulties") {row ->
-                    def time= new Time(row.time)
-                    ps.addBatch([row.name, row.length, row.wins, row.losses, row.wave, time.toSeconds()])
+                    try {
+                        def time= new Time(row.time)
+                        ps.addBatch([row.name, row.length, row.wins, row.losses, row.wave, time.toSeconds()])
+                        
+                    } catch (TimeFormatException ex) {
+                        println ex.getMessage()
+                    }
                 }
             }
             
             println "Converting levels"
             dest.withBatch('insert into levels values (?, ?, ?, ?)') {ps ->
                 src.eachRow("select * from levels") {row ->
-                    def time= new Time(row.time)
-                    ps.addBatch([row.name, row.wins, row.losses, time.toSeconds()])
+                    try {
+                        def time= new Time(row.time)
+                        ps.addBatch([row.name, row.wins, row.losses, time.toSeconds()])
+                    } catch (TimeFormatException ex) {
+                        println ex.getMessage()
+                    }
                 }
             }
                 
