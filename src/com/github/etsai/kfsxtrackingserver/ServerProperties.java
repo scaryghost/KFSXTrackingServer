@@ -41,7 +41,7 @@ public class ServerProperties {
             props.setProperty(statsMsgTTL, "60000");
             props.setProperty(dbName, "kfsxdb.sqlite");
             props.setProperty(logLevel, "INFO");
-            props.setProperty(numThreads, "12");
+            props.setProperty(numThreads, "8");
             defaults= new ServerProperties(props);
         }
         return defaults;
