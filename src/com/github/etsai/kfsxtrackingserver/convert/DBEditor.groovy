@@ -10,10 +10,15 @@ import com.github.etsai.utils.TimeFormatException
 import groovy.sql.Sql
 
 /**
- *
- * @author eric
+ * Groovy warpper for executing the sql to convert data from v1.0 to v2.0 database
+ * @author etsai
  */
 public class DBEditor {
+    /**
+     * Convert the data, reading from src and writing to dest
+     * @param   src     Source database to read from
+     * @param   dest    Destination database to write to
+     */
     public static void convert(Sql src, Sql dest) {
         dest.withTransaction {
             println "Converting deaths"
