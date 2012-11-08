@@ -1,13 +1,12 @@
 package com.github.etsai.kfsxtrackingserver.web;
 
-import static com.github.etsai.kfsxtrackingserver.Common.sql
 import com.github.etsai.kfsxtrackingserver.Common
 import com.github.etsai.utils.Time
 import groovy.xml.MarkupBuilder
-import java.util.logging.Level
 import java.io.OutputStream
-import java.util.TimeZone
 import java.text.SimpleDateFormat
+import java.util.logging.Level
+import java.util.TimeZone
 
 public abstract class Page {
     private static def methods= ["GET", "HEAD"]
@@ -39,7 +38,7 @@ public abstract class Page {
                 body= "${code} ${returnCodes[code]}"
             } else {
                 if(extension == "xsl" || extension == "css" || extension == "js"){
-                    body= new File("./dist/${filename}").readLines().join("\n")
+                    body= new File(filename).readLines().join("\n")
                 } else {
                     xml.mkp.xmlDeclaration(version:'1.0')
                     switch (filename) {
