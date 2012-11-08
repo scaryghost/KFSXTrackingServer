@@ -71,6 +71,16 @@ public class ServerProperties {
         return Level.parse(properties.getProperty(logLevel));
     }
     public Integer getNumThreads() {
-        return Integer.valueOf(properties.getProperty(numThreads));
+        if (properties.getProperty(numThreads) == null) {
+            Common.logger.warning("Property " + numThreads + " not set.  Using default value of 4");
+            return 4;
+        }
+        
+        Integer nthreads= Integer.valueOf(properties.getProperty(numThreads));
+        if (nthreads < 4) {
+            Common.logger.log(Level.WARNING, "Need a minimum of 4 threads, only {0} set.  Using default value of 4", nthreads);
+            return 4;
+        }
+        return nthreads;
     }
 }
