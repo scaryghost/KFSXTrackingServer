@@ -23,6 +23,7 @@ public class SteamIDInfo {
         def steamXmlRoot= new XmlSlurper().parseText(content)
         def name, avatar
 
+        Common.logger.finest("Polling steamcommunity for steamID64: ${steamID64}")
         if (steamXmlRoot.error != "") {
             throw new RuntimeException("Invalid steamID64: $steamID64")
         } else if (steamXmlRoot.privacyMessage != "") {
@@ -39,10 +40,11 @@ public class SteamIDInfo {
         def row= Common.sql.firstRow("select * from steaminfo where steamid64=?", [steamID64])
         
         if (row == null) {
-            Common.logger.info("Polling steamcommunity for steamID64: ${steamID64}")
             try {
                 def info= poll(steamID64)
-                Common.sql.execute("insert into steaminfo values (?, ?, ?);", [steamID64, info.name, info.avatar])
+                Common.sql.withTransaction() {
+                    Common.sql.execute("insert into steaminfo values (?, ?, ?);", [steamID64, info.name, info.avatar])
+                }
                 return info
             } catch (IOException ex) {
                 Common.logger.log(Level.SEVERE, "Error polling steamcommunity.com", ex)
@@ -55,8 +57,10 @@ public class SteamIDInfo {
     public static def verifySteamID64(def steamID64) {
         try {
             def info= poll(steamID64)
-            Common.sql.execute("insert or ignore into steaminfo values (?, ?, ?)", [steamID64, "null", "null"])
-            Common.sql.execute("update steaminfo set name=?, avatar=? where steamid64=?", [info.name, info.avatar, steamID64])
+            Common.sql.withTransaction() {
+                Common.sql.execute("insert or ignore into steaminfo values (?, ?, ?)", [steamID64, "null", "null"])
+                Common.sql.execute("update steaminfo set name=?, avatar=? where steamid64=?", [info.name, info.avatar, steamID64])
+            }
             return true;
         } catch (RuntimeException ex) {
             return false;
