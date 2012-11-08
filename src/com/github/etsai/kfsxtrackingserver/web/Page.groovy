@@ -21,7 +21,7 @@ public abstract class Page {
         
         def code= 200, body
         def uri= URI.create(request[1])
-        def filename= uri.getPath()
+        def filename= uri.getPath().substring(1)
         def extension= filename.substring(filename.lastIndexOf(".")+1, filename.length());
         def queries= [:]
         
@@ -42,24 +42,24 @@ public abstract class Page {
                 } else {
                     xml.mkp.xmlDeclaration(version:'1.0')
                     switch (filename) {
-                        case "/":
+                        case "":
                             extension= "xml"
-                        case "/index.xml":
+                        case "index.xml":
                             xml.mkp.pi("xml-stylesheet":[type:"text/xsl",href:"http/xsl/index.xsl"])
                             Index.fillBody(xml)
                             body= writer.toString()
                             break
-                        case "/records.xml":
+                        case "records.xml":
                             xml.mkp.pi("xml-stylesheet":[type:"text/xsl",href:"http/xsl/records.xsl"])
                             Records.fillBody(xml, queries)
                             body= writer.toString()
                             break
-                        case "/profile.xml":
+                        case "profile.xml":
                             xml.mkp.pi("xml-stylesheet":[type:"text/xsl",href:"http/xsl/profile.xsl"])
                             Profile.fillBody(xml, queries)
                             body= writer.toString()
                             break
-                        case "/sessions.xml":
+                        case "sessions.xml":
                             xml.mkp.pi("xml-stylesheet":[type:"text/xsl",href:"http/xsl/sessions.xsl"])
                             Sessions.fillBody(xml, queries)
                             body= writer.toString()
