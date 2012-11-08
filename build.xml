@@ -100,5 +100,10 @@
         </copy>
         <copy file="README" todir="${dist.dir}"/>
         <delete file="${dist.dir}/README.TXT" />
+        <exec executable="cp" >
+            <arg value="-R" />
+            <arg value="share/" />
+            <arg value="${dist.dir}/." />
+        </exec>
     </target>
 </project>
