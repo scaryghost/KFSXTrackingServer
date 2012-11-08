@@ -5,9 +5,9 @@ for %%x in (%*) do Set /A argc+=1
 
 if %argc% LSS 2 (
     @ECHO ON
-    echo "Error - Not enough arguments!"
-    echo "usage: convert.bat [srcdb] [destdb]
-    exit 1
+    echo Error - Not enough arguments!
+    echo usage: convert.bat [srcdb] [destdb]
+    exit /b 1
 )
 
 set cp=KFSXTrackingServer.jar
