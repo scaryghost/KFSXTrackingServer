@@ -98,7 +98,7 @@
         <copy todir="${dist.dir}/http" >
             <fileset dir="${src.dir}/http" />
         </copy>
-        <copy file="README" todir="${dist.dir}"/>
+        <copy file="README.md" todir="${dist.dir}"/>
         <delete file="${dist.dir}/README.TXT" />
         <exec executable="cp" >
             <arg value="-R" />
