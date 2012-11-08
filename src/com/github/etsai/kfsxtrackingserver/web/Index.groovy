@@ -23,7 +23,7 @@ public class Index {
             
             'stats'(category:"difficulties") {
                 def wins= 0, losses= 0, time= 0
-                sql.eachRow('SELECT * from difficulties') {row ->
+                sql.eachRow('SELECT * from difficulties order by name ASC') {row ->
                     def attr= [:]
                     def accum= [row.wins, row.losses, row.time]
                     wins+= accum[0]
@@ -43,7 +43,7 @@ public class Index {
             }
             'stats'(category:"levels") {
                 def wins= 0, losses= 0, time= 0
-                sql.eachRow('SELECT * FROM levels') {row ->
+                sql.eachRow('SELECT * FROM levels ORDER BY name ASC') {row ->
                     def attr= [:]
                     def accum= [row.wins, row.losses, row.time]
                     
@@ -59,7 +59,7 @@ public class Index {
                 'total'(name: "Total", wins: wins, losses:losses, time:new Time(time))
             }
             'stats'(category:"deaths") {
-                sql.eachRow('SELECT * FROM deaths') {row ->
+                sql.eachRow('SELECT * FROM deaths ORDER BY name ASC') {row ->
                     def attr= [:]
                     attr["name"]= row.name
                     attr["value"]= row.count
@@ -68,7 +68,7 @@ public class Index {
             }
             sql.eachRow('SELECT category FROM aggregate GROUP BY category') {row1 ->
                 xmlBuilder.'stats'(category: row1.category) {
-                    sql.eachRow("SELECT * from aggregate where category=?", [row1.category]) {row2 ->
+                    sql.eachRow("SELECT * from aggregate where category=? ORDER BY stat ASC", [row1.category]) {row2 ->
                         def key, val
                         def attrs= [:]
                         attrs["name"]= row2.stat
