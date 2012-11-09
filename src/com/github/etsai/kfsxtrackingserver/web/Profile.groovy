@@ -43,9 +43,9 @@ public class Profile {
                                 attr["value"]= row.value
 
                                 if (row1.category == "perks") {
-                                    attr["hint"]= Time.secToStr(attrs["value"])
+                                    attr["hint"]= Time.secToStr(attr["value"])
                                 } else if (attr["name"].toLowerCase().contains("time")) {
-                                    attr["value"]= Time.secToStr(attrs["value"])
+                                    attr["value"]= Time.secToStr(attr["value"])
                                 }                
                                 xmlBuilder.'entry'(attr)
                             }
