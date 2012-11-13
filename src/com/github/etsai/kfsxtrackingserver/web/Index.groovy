@@ -49,6 +49,7 @@ public class Index {
                     
                     wins+= row.wins
                     losses+= row.losses
+                    //Accidentally didn't set the column type for time in levels table
                     time+= row.time.toInteger()
                     attr["name"]= row.name
                     attr["wins"]= row.wins
