@@ -16,12 +16,13 @@ Example:
     share/bin/convert.sh ${path to v1.0 db} share/etc/kfsxdb.sqlite  
     
 ### Server Properties
-For v2.0, the following properties have been removed:
+For v2.1, the following properties have been removed:
 * steam.polling.period
 * db.write.period
 
 while the following properties have been added:
 * num.threads (must be at least 4)
+* steam.polling.threads (set to 0 to disable)
 
 Also, the database by default now resides in the "share/etc" folder.  Remember to update your current 
 server.properties file before replacing the default one, also located in "share/etc".  
@@ -35,4 +36,4 @@ Example:
     share/bin/startserver.sh (or .bat for Windows)  
 
 ## Release Notes:
-https://github.com/scaryghost/KFSXTrackingServer/wiki/Release-KFSXTrackingServer-2.0
+https://github.com/scaryghost/KFSXTrackingServer/wiki/Release-KFSXTrackingServer-2.1
