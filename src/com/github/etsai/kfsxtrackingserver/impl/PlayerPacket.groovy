@@ -45,7 +45,7 @@ public class PlayerPacket extends Packet {
      * Constructs object given the pipe separated string of stat information
      */
     public PlayerPacket(def parts) {
-        super((parts[3] == "match") ? "" : parts[4])
+        super((parts[3] == "match") ? "" : (parts.size() < 5 ? "" : parts[4]))
         
         steamID64= parts[1]
         if (steamID64 == "") {
