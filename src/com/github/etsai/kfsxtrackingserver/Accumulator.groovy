@@ -58,6 +58,7 @@ public class Accumulator {
                         packets.inject(true) {acc, val -> acc && (val != null) }
                     if (completed) {
                         receivedPackets.remove(id)
+                        Common.logger.info("Savingy packets for steamID64: $id")
                         Common.pool.submit(new PlayerPacketsSaver(packets: packets, steamID64: id))
                     }
                 }
