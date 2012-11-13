@@ -60,6 +60,7 @@ public class Main {
         
         Common.pool.submit(new UDPListener(props.getUdpPort()));
         Common.pool.submit(new HTTPListener(props.getHttpPort()));
+        Common.pool.submit(new SteamPoller(Common.sql));
     }
     
     public static void initLogging(Level logLevel) {
