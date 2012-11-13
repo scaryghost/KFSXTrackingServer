@@ -92,7 +92,7 @@ public class ServerProperties {
                 return null;
             }
             return nthreads;
-        } catch (NullPointerException ex) {
+        } catch (NumberFormatException ex) {
             return null;
         }
         
