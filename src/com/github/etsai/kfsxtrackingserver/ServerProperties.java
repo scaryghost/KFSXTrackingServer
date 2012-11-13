@@ -24,6 +24,7 @@ public class ServerProperties {
     public static final String dbName= "db.name";
     public static final String logLevel= "log.level";
     public static final String numThreads= "num.threads";
+    public static final String steamPollingThreads= "steam.polling.threads";
     
     public static ServerProperties load(String filename) throws IOException {
         Properties props= new Properties();
@@ -42,6 +43,7 @@ public class ServerProperties {
             props.setProperty(dbName, "kfsxdb.sqlite");
             props.setProperty(logLevel, "INFO");
             props.setProperty(numThreads, "8");
+            props.setProperty(steamPollingThreads, "8");
             defaults= new ServerProperties(props);
         }
         return defaults;
@@ -82,5 +84,17 @@ public class ServerProperties {
             return 4;
         }
         return nthreads;
+    }
+    public Integer getSteamPollingThreads() {
+        try {
+            Integer nthreads= Integer.valueOf(properties.getProperty(steamPollingThreads));
+            if (nthreads <= 0) {
+                return null;
+            }
+            return nthreads;
+        } catch (NullPointerException ex) {
+            return null;
+        }
+        
     }
 }

@@ -36,17 +36,19 @@ public class SteamPoller implements Runnable {
     }
     
     private final def sql
+    private final def nThreads
     
-    public SteamPoller(Sql sql) {
+    public SteamPoller(Sql sql, Integer nThreads) {
         this.sql= sql
+        this.nThreads= nThreads
     }
     
     @Override public void run() {
         def count= 1
         
-        Common.logger.info("Polling steamcommunity.com")
+        Common.logger.info("Polling steamcommunity.com with $nThreads threads")
         while(count != 0) {
-            def pool= Executors.newFixedThreadPool(8);
+            def pool= Executors.newFixedThreadPool(nThreads);
             count= 0
             PollerThread.resetCounter()
             sql.eachRow("select steamid64 from records except select steamid64 from steaminfo") {row ->

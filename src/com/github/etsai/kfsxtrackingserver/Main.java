@@ -60,7 +60,12 @@ public class Main {
         
         Common.pool.submit(new UDPListener(props.getUdpPort()));
         Common.pool.submit(new HTTPListener(props.getHttpPort()));
-        Common.pool.submit(new SteamPoller(Common.sql));
+        
+        if (props.getSteamPollingThreads() != null) {
+            Common.pool.submit(new SteamPoller(Common.sql, props.getSteamPollingThreads()));
+        } else {
+            Common.logger.log(Level.WARNING, "Background polling of steamcommunity.com disabled");
+        }
     }
     
     public static void initLogging(Level logLevel) {
