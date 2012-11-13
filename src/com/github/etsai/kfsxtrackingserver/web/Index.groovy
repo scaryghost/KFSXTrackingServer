@@ -49,11 +49,11 @@ public class Index {
                     
                     wins+= row.wins
                     losses+= row.losses
-                    time+= row.time
+                    time+= row.time.toInteger()
                     attr["name"]= row.name
                     attr["wins"]= row.wins
                     attr["losses"]= row.losses
-                    attr["time"]= Time.secToStr(row.time)
+                    attr["time"]= Time.secToStr(row.time.toInteger())
                     attr["rawtime"]= row.time
                     'entry'(attr)
                 }
