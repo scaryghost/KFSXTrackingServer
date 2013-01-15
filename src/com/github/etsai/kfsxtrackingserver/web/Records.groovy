@@ -8,7 +8,7 @@ package com.github.etsai.kfsxtrackingserver.web
 import com.github.etsai.kfsxtrackingserver.Common
 
 /**
- *
+ * Generates the records page
  * @author etsai
  */
 public class Records {
@@ -19,7 +19,7 @@ public class Records {
         group
     };
 
-    public static final def defaults= [(GetKeys.page): 0, (GetKeys.rows): 25, (GetKeys.order): "none", (GetKeys.group): "name"]
+    public static final def defaults= [(GetKeys.page): 0, (GetKeys.rows): 25, (GetKeys.order): "asc", (GetKeys.group): "none"]
 
     public static String fillBody(def xmlBuilder, def queries) {
         def getValues= [:]
@@ -30,7 +30,6 @@ public class Records {
         }
         def page= [getValues[GetKeys.page].toInteger(), defaults[GetKeys.page]].max()
         def rows= getValues[GetKeys.rows].toInteger()
-        def order= queries
         def start= page * rows
         def end= start + rows
         
@@ -48,24 +47,33 @@ public class Records {
         }
         
         xmlBuilder.kfstatsx() {
-            'records'(page: page, rows: rows) {
+            def attrs= [page: page, rows: rows, query: "&group=${getValues[GetKeys.group]}&order=${getValues[GetKeys.order]}"]
+
+            ["name", "wins", "losses", "disconnects"].each {col ->
+                if (col == getValues[GetKeys.group] && getValues[GetKeys.order] == "desc") {
+                    attrs[col]= "asc"
+                } else {
+                    attrs[col]= "desc"
+                }
+            }
+            
+            'records'(attrs) {
                 def pos= start
                 def psValues= [start, end - start] 
-                def sql= "SELECT * FROM records " 
+                def sql= "SELECT r.steamid64,r.wins,r.losses,r.disconnects,s.name FROM records r INNER JOIN steaminfo s ON r.steamid64=s.steamid64 " 
 
-                if (getValues[GetKeys.order] != defaults[GetKeys.order]) {
-                    sql+= "ORDER BY ${getValues[GetKeys.group]} ${getValues[GetKeys.order]}  "
+                if (getValues[GetKeys.group] != defaults[GetKeys.group]) {
+                    sql+= "ORDER BY ${getValues[GetKeys.group]} ${getValues[GetKeys.order]} "
                 }
                 sql+= "LIMIT ?,?"
 
-                Common.logger.info(sql)
+                Common.logger.finest(sql)
                 Common.sql.eachRow(sql, psValues) {row ->
-                    def steamIdInfo= SteamIDInfo.getSteamIDInfo(row.steamid64)
                     def attr= [:]
                     
                     attr["pos"]= pos + 1
                     attr["steamid64"]= row.steamid64
-                    attr["name"]= steamIdInfo.name
+                    attr["name"]= row.name
                     attr["wins"]= row.wins
                     attr["losses"]= row.losses
                     attr["disconnects"]= row.disconnects

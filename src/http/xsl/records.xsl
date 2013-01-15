@@ -41,13 +41,13 @@
                     <input type='submit' value='Update'/>
                     <a id="displayText">
                     <xsl:attribute name="href">
-                        records.xml?page=<xsl:value-of select="(records/@page)-1" />&#38;rows=<xsl:value-of select="records/@rows"/>
+                        records.xml?page=<xsl:value-of select="(records/@page)-1" />&#38;rows=<xsl:value-of select="records/@rows"/><xsl:value-of select="records/@query"/>
                     </xsl:attribute>
                     &#171;
                     </a>
                     <a id="displayText">
                         <xsl:attribute name="href">
-                            records.xml?page=<xsl:value-of select="(records/@page)+1" />&#38;rows=<xsl:value-of select="records/@rows"/>
+                            records.xml?page=<xsl:value-of select="(records/@page)+1" />&#38;rows=<xsl:value-of select="records/@rows"/><xsl:value-of select="records/@query"/>
                         </xsl:attribute>
                         &#187;
                     </a>
@@ -69,10 +69,30 @@
         <tbody>
             <tr>
                 <th style="text-align:right">#</th>
-                <th style="text-align:left">Name</th>
-                <th>Wins</th>
-                <th>Losses</th>
-                <th>Disconnects</th>
+                <th style="text-align:left"><a>
+                    <xsl:attribute name="href">
+                        records.xml?page=<xsl:value-of select="@page" />&#38;rows=<xsl:value-of select="@rows"/>&#38;group=name&#38;order=<xsl:value-of select="@name"/>
+                    </xsl:attribute>
+                    Name
+                </a></th>
+                <th><a>
+                    <xsl:attribute name="href">
+                        records.xml?page=<xsl:value-of select="@page" />&#38;rows=<xsl:value-of select="@rows"/>&#38;group=wins&#38;order=<xsl:value-of select="@wins"/>
+                    </xsl:attribute>
+                    Wins
+                </a></th>
+                <th><a>
+                    <xsl:attribute name="href">
+                        records.xml?page=<xsl:value-of select="@page" />&#38;rows=<xsl:value-of select="@rows"/>&#38;group=losses&#38;order=<xsl:value-of select="@losses"/>
+                    </xsl:attribute>
+                    Losses
+                </a></th>
+                <th><a>
+                    <xsl:attribute name="href">
+                        records.xml?page=<xsl:value-of select="@page" />&#38;rows=<xsl:value-of select="@rows"/>&#38;group=disconnects&#38;order=<xsl:value-of select="@disconnects"/>
+                    </xsl:attribute>
+                    Disconnects
+                </a></th>
             </tr>
             <xsl:for-each select="record">
                 <tr>
