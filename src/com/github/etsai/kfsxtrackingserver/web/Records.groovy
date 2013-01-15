@@ -12,14 +12,25 @@ import com.github.etsai.kfsxtrackingserver.Common
  * @author etsai
  */
 public class Records {
-    public static final def KEY_PAGE= "page"
-    public static final def KEY_ROWS= "rows"
-    public static final def DEFAULT_PAGE= 0
-    public static final def DEFAULT_ROWS= 25
+    public enum GetKeys {
+        page,
+        rows,
+        order,
+        group
+    };
+
+    public static final def defaults= [(GetKeys.page): 0, (GetKeys.rows): 25, (GetKeys.order): "none", (GetKeys.group): "name"]
 
     public static String fillBody(def xmlBuilder, def queries) {
-        def page= queries[KEY_PAGE] == null ? DEFAULT_PAGE : [queries[KEY_PAGE].toInteger(), DEFAULT_PAGE].max()
-        def rows= queries[KEY_ROWS] == null ? DEFAULT_ROWS : queries[KEY_ROWS].toInteger()
+        def getValues= [:]
+
+        GetKeys.values().each {key ->
+            def keyStr= key.toString()
+            getValues[key]= queries[keyStr] == null ? defaults[key] : queries[keyStr]
+        }
+        def page= [getValues[GetKeys.page].toInteger(), defaults[GetKeys.page]].max()
+        def rows= getValues[GetKeys.rows].toInteger()
+        def order= queries
         def start= page * rows
         def end= start + rows
         
@@ -39,7 +50,16 @@ public class Records {
         xmlBuilder.kfstatsx() {
             'records'(page: page, rows: rows) {
                 def pos= start
-                Common.sql.eachRow("SELECT * FROM records LIMIT ?,?", [start, end - start]) {row ->
+                def psValues= [start, end - start] 
+                def sql= "SELECT * FROM records " 
+
+                if (getValues[GetKeys.order] != defaults[GetKeys.order]) {
+                    sql+= "ORDER BY ${getValues[GetKeys.group]} ${getValues[GetKeys.order]}  "
+                }
+                sql+= "LIMIT ?,?"
+
+                Common.logger.info(sql)
+                Common.sql.eachRow(sql, psValues) {row ->
                     def steamIdInfo= SteamIDInfo.getSteamIDInfo(row.steamid64)
                     def attr= [:]
                     
