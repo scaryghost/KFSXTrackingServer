@@ -48,7 +48,17 @@ public class Sessions {
         }
         
         xmlBuilder.kfstatsx() {
-            'stats'(category: "sessions", steamid64: getValues[GetKeys.steamid64], page: page, rows: rows) {
+            def attrs= [category: "sessions", steamid64: getValues[GetKeys.steamid64], page: page, rows: rows, 
+                query: "&group=${getValues[GetKeys.group]}&order=${getValues[GetKeys.order]}"]
+
+            ["level", "difficulty", "length", "result", "wave", "timestamp"].each {col ->
+                if (col == getValues[GetKeys.group] && getValues[GetKeys.order] == "desc") {
+                    attrs[col]= "asc"
+                } else {
+                    attrs[col]= "desc"
+                }
+            }
+            'stats'(attrs) {
                 def sql= "SELECT * FROM sessions WHERE steamid64=? "
 
                 if (getValues[GetKeys.group] != defaults[GetKeys.group]) {
@@ -56,6 +66,7 @@ public class Sessions {
                 }
                 sql+= "LIMIT ?,?"
                 
+                Common.logger.finest(sql)
                 Common.sql.eachRow(sql, [getValues[GetKeys.steamid64], start, end - start]) {row ->
                     def result= row.toRowResult()
                     

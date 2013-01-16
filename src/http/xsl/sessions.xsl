@@ -36,13 +36,13 @@
                     <input type='submit' value='Update'/>
                     <a id="displayText">
                         <xsl:attribute name="href">
-                            sessions.xml?steamid64=<xsl:value-of select="stats/@steamid64" />&#38;page=<xsl:value-of select="(stats/@page)-1" />&#38;rows=<xsl:value-of select="stats/@rows"/>
+                            sessions.xml?steamid64=<xsl:value-of select="stats/@steamid64" />&#38;page=<xsl:value-of select="(stats/@page)-1" />&#38;rows=<xsl:value-of select="stats/@rows"/><xsl:value-of select="records/@query"/>
                         </xsl:attribute>
                     &#171;
                     </a>
                     <a id="displayText">
                         <xsl:attribute name="href">
-                            sessions.xml?steamid64=<xsl:value-of select="stats/@steamid64" />&#38;page=<xsl:value-of select="(stats/@page)+1" />&#38;rows=<xsl:value-of select="stats/@rows"/>
+                            sessions.xml?steamid64=<xsl:value-of select="stats/@steamid64" />&#38;page=<xsl:value-of select="(stats/@page)+1" />&#38;rows=<xsl:value-of select="stats/@rows"/><xsl:value-of select="records/@query"/>
                         </xsl:attribute>
                         &#187;
                     </a>

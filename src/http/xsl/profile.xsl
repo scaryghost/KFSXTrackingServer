@@ -81,7 +81,7 @@
                     <td colspan="3">
                         <a>
                             <xsl:attribute name="href">
-                                sessions.xml?steamid64=<xsl:value-of select="@steamid64" />
+                                sessions.xml?steamid64=<xsl:value-of select="@steamid64" />&#38;group=timestamp&#38;order=desc
                             </xsl:attribute>
                             View Sessions
                         </a>

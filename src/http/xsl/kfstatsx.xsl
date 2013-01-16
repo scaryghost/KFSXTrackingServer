@@ -65,7 +65,75 @@
     </table>
 </xsl:variable>
 
-<xsl:template match="stats[@category='difficulties']|stats[@category='levels']|stats[@category='sessions']">
+<xsl:template match="stats[@category='sessions']" >
+    <table class="graph" width="630" cellspacing="6" cellpadding="0">
+        <thead>
+            <tr>
+                <th>
+                <xsl:attribute name="colspan">
+                    <xsl:value-of select="count(entry[1]/@*)" />
+                </xsl:attribute>
+                <xsl:value-of select="@category" />
+                </th>
+            </tr>
+        </thead>
+        <tbody>
+            <tr>
+            <th style="text-align:left"><a>
+                <xsl:attribute name="href">
+                    sessions.xml?steamid64=<xsl:value-of select="@steamid64" />&#38;page=<xsl:value-of select="@page" />&#38;rows=<xsl:value-of select="@rows"/>&#38;group=level&#38;order=<xsl:value-of select="@level"/>
+                </xsl:attribute>
+                Level
+            </a></th>
+            <th><a>
+                <xsl:attribute name="href">
+                    sessions.xml?steamid64=<xsl:value-of select="@steamid64" />&#38;page=<xsl:value-of select="@page" />&#38;rows=<xsl:value-of select="@rows"/>&#38;group=difficulty&#38;order=<xsl:value-of select="@difficulty"/>
+                </xsl:attribute>
+                Difficulty
+            </a></th>
+            <th><a>
+                <xsl:attribute name="href">
+                    sessions.xml?steamid64=<xsl:value-of select="@steamid64" />&#38;page=<xsl:value-of select="@page" />&#38;rows=<xsl:value-of select="@rows"/>&#38;group=length&#38;order=<xsl:value-of select="@length"/>
+                </xsl:attribute>
+                Length
+            </a></th>
+            <th><a>
+                <xsl:attribute name="href">
+                    sessions.xml?steamid64=<xsl:value-of select="@steamid64" />&#38;page=<xsl:value-of select="@page" />&#38;rows=<xsl:value-of select="@rows"/>&#38;group=result&#38;order=<xsl:value-of select="@result"/>
+                </xsl:attribute>
+                Result
+            </a></th>
+            <th><a>
+                <xsl:attribute name="href">
+                    sessions.xml?steamid64=<xsl:value-of select="@steamid64" />&#38;page=<xsl:value-of select="@page" />&#38;rows=<xsl:value-of select="@rows"/>&#38;group=wave&#38;order=<xsl:value-of select="@wave"/>
+                </xsl:attribute>
+                Wave
+            </a></th>
+            <th><a>
+                <xsl:attribute name="href">
+                    sessions.xml?steamid64=<xsl:value-of select="@steamid64" />&#38;page=<xsl:value-of select="@page" />&#38;rows=<xsl:value-of select="@rows"/>&#38;group=timestamp&#38;order=<xsl:value-of select="@timestamp"/>
+                </xsl:attribute>
+                Timestamp
+            </a></th>
+        </tr>
+            <xsl:for-each select="entry">
+                <tr>
+                    <xsl:for-each select="@*">
+                        <td><xsl:value-of select="."/></td>
+                    </xsl:for-each>
+                </tr>
+            </xsl:for-each>
+        </tbody>
+        <tfoot>
+            <tr>
+                <xsl:for-each select="total/@*">
+                    <td><xsl:value-of select="."/></td>
+                </xsl:for-each>
+            </tr>
+        </tfoot>
+    </table>
+</xsl:template>
+<xsl:template match="stats[@category='difficulties']|stats[@category='levels']">
     <div name="item">
         <xsl:attribute name="style">
             <xsl:choose>
