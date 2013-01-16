@@ -7,24 +7,34 @@ package com.github.etsai.kfsxtrackingserver.web
 import com.github.etsai.kfsxtrackingserver.Common
 
 /**
- *
- * @author eric
+ * Generates the xml for a player's session history
+ * @author etsai
  */
 public class Sessions {
-    public static final def KEY_PAGE= "page"
-    public static final def KEY_ROWS= "rows"
-    public static final def KEY_STEAMID64= "steamid64"
-    public static final def DEFAULT_PAGE= 0
-    public static final def DEFAULT_ROWS= 25
+    public enum GetKeys {
+        page,
+        rows,
+        steamid64,
+        order,
+        group
+    };
+
+    public static final def defaults= [(GetKeys.page): 0, (GetKeys.rows): 25, (GetKeys.order): "asc", (GetKeys.group): "none"]
     
     public static String fillBody(def xmlBuilder, def queries) {
-        def steamid64= queries[KEY_STEAMID64]
-        def page= queries[KEY_PAGE] == null ? DEFAULT_PAGE : [queries[KEY_PAGE].toInteger(), DEFAULT_PAGE].max()
-        def rows= queries[KEY_ROWS] == null ? DEFAULT_ROWS : queries[KEY_ROWS].toInteger()
+        def getValues= [:]
+
+        GetKeys.values().each {key ->
+            def keyStr= key.toString()
+            getValues[key]= queries[keyStr] == null ? defaults[key] : queries[keyStr]
+        }
+
+        def page= [getValues[GetKeys.page].toInteger(), defaults[GetKeys.page]].max()
+        def rows= getValues[GetKeys.rows].toInteger()
         def start= page * rows
         def end= start + rows
         
-        Common.sql.eachRow("SELECT count(*) FROM sessions WHERE steamid64=?", [steamid64]) {row ->
+        Common.sql.eachRow("SELECT count(*) FROM sessions WHERE steamid64=?", [getValues[GetKeys.steamid64]]) {row ->
             if (row[0] == 0) {
                 start= 0
                 end= 0
@@ -38,9 +48,15 @@ public class Sessions {
         }
         
         xmlBuilder.kfstatsx() {
-            'stats'(category: "sessions", steamid64: steamid64, page: page, rows: rows) {
+            'stats'(category: "sessions", steamid64: getValues[GetKeys.steamid64], page: page, rows: rows) {
+                def sql= "SELECT * FROM sessions WHERE steamid64=? "
+
+                if (getValues[GetKeys.group] != defaults[GetKeys.group]) {
+                    sql+= "ORDER BY ${getValues[GetKeys.group]} ${getValues[GetKeys.order]} "
+                }
+                sql+= "LIMIT ?,?"
                 
-                Common.sql.eachRow("SELECT * FROM sessions WHERE steamid64=? ORDER BY timestamp DESC LIMIT ?,?", [steamid64, start, end - start]) {row ->
+                Common.sql.eachRow(sql, [getValues[GetKeys.steamid64], start, end - start]) {row ->
                     def result= row.toRowResult()
                     
                     result.remove("steamid64")
