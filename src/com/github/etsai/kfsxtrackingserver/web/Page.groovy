@@ -54,6 +54,9 @@ public abstract class Page {
                             Records.fillBody(xml, queries)
                             body= writer.toString()
                             break
+                        case "recordsjson.html":
+                            body= RecordsJson.fillBody(queries)
+                            break
                         case "profile.xml":
                             xml.mkp.pi("xml-stylesheet":[type:"text/xsl",href:"http/xsl/profile.xsl"])
                             Profile.fillBody(xml, queries)
@@ -63,6 +66,9 @@ public abstract class Page {
                             xml.mkp.pi("xml-stylesheet":[type:"text/xsl",href:"http/xsl/sessions.xsl"])
                             Sessions.fillBody(xml, queries)
                             body= writer.toString()
+                            break
+                        case "sessionsjson.html":
+                            body= SessionsJson.fillBody(queries)
                             break
                         default:
                             code= 404
