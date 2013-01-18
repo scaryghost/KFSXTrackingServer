@@ -16,23 +16,11 @@ public class SessionsJson {
         def pageSize= params[1].toInteger()
         def start= page * pageSize
         def end= start + pageSize
-        
-        Common.sql.eachRow("SELECT count(*) FROM sessions WHERE steamid64=?", [steamid64]) {row ->
-            if (row[0] == 0) {
-                start= 0
-                end= 0
-            } else {
-                if (start >= row[0]) {
-                    start= [0, row[0] - (row[0] % pageSize)].max()
-                    page= (row[0] / pageSize).toInteger()
-                }
-                if (end >= row[0]) end= row[0]
-            }
-        }
+
+        WebCommon.adjustStartEnd("SELECT count(*) FROM sessions WHERE steamid64=?", [steamid64], start, end)
         
         def psValues= [steamid64, start, end - start] 
         def sql= "SELECT * FROM sessions WHERE steamid64=?" 
-
         if (params.size() >= 4) {
             sql+= "ORDER BY ${columns[params[2].toInteger()]['label']} ${params[3]} "
         }

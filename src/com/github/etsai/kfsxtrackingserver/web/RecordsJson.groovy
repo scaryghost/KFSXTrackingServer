@@ -14,18 +14,7 @@ public class RecordsJson {
         def start= page * pageSize
         def end= start + pageSize
         
-        Common.sql.eachRow("SELECT count(*) FROM records") {row ->
-            if (row[0] == 0) {
-                start= 0
-                end= 0
-            } else {
-                if (start >= row[0]) {
-                    start= [0, row[0] - (row[0] % pageSize)].max()
-                    page= (row[0] / pageSize).toInteger()
-                }
-                if (end >= row[0]) end= row[0]
-            }
-        }
+        WebCommon.adjustStartEnd("SELECT count(*) FROM records", [], start, end)
         
         def psValues= [start, end - start] 
         def sql= """SELECT s.name,r.wins,r.losses,r.disconnects,r.steamid64 FROM records r INNER JOIN steaminfo s 

@@ -33,19 +33,8 @@ public class Sessions {
         def rows= getValues[GetKeys.rows].toInteger()
         def start= page * rows
         def end= start + rows
-        
-        Common.sql.eachRow("SELECT count(*) FROM sessions WHERE steamid64=?", [getValues[GetKeys.steamid64]]) {row ->
-            if (row[0] == 0) {
-                start= 0
-                end= 0
-            } else {
-                if (start >= row[0]) {
-                    start= [0, row[0] - (row[0] % rows)].max()
-                    page= (row[0] / rows).toInteger()
-                }
-                if (end >= row[0]) end= row[0]
-            }
-        }
+
+        WebCommon.adjustStartEnd("SELECT count(*) FROM sessions WHERE steamid64=?", [getValues[GetKeys.steamid64]], start, end)
         
         xmlBuilder.kfstatsx() {
             def attrs= [category: "sessions", steamid64: getValues[GetKeys.steamid64], page: page, rows: rows, 
