@@ -49,6 +49,9 @@ public abstract class Page {
                             Index.fillBody(xml)
                             body= writer.toString()
                             break
+                        case "index.html":
+                            body= IndexHtml.fillBody()
+                            break
                         case "records.xml":
                             xml.mkp.pi("xml-stylesheet":[type:"text/xsl",href:"http/xsl/records.xsl"])
                             Records.fillBody(xml, queries)
