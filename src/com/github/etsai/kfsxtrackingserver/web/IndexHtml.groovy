@@ -32,6 +32,22 @@ public class IndexHtml {
         }
 """
 
+    public static def diffJs= """
+        google.load('visualization', '1', {packages:['table','corechart']});
+        google.setOnLoadCallback(drawTable);
+
+        function drawTable() {
+            var diffData = \$.ajax({
+                url: "datajson.html?table=difficulty",
+                dataType:"json",
+                async: false
+            }).responseText;
+            var data= new google.visualization.DataTable(diffData);
+            var table= new google.visualization.Table(document.getElementById('Difficulty_div'));
+            table.draw(data, {allowHtml: true});
+    }
+"""
+
     public static String fillBody() {
         def writer= new StringWriter()
         def htmlBuilder= new MarkupBuilder(writer)
@@ -45,6 +61,7 @@ public class IndexHtml {
                     script(type:'text/javascript', src:filename, '')
                 }
                 script(type:'text/javascript', recordsJs)
+                script(type:'text/javascript', diffJs)
 
                 stylesheets.each {filename ->
                     link(href: filename, rel:'stylesheet', type:'text/css')

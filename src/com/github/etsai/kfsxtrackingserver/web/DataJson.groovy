@@ -14,7 +14,7 @@ import groovy.json.JsonBuilder
  * @author etsai
  */
 class DataJson {
-    private def colStyle= "text-align:center"
+    private static def colStyle= "text-align:center"
     
     public static String fillBody(def queries) {
         def columns
@@ -22,7 +22,7 @@ class DataJson {
         def builder= new JsonBuilder()
         
         switch(queries["table"]) {
-            case "difficulties":
+            case "difficulty":
                 columns= [["Name", "string"], ["Length", "string"], ["Wins", "number"],
                     ["Losses", "number"], ["Avg Wave", "number"], ["Time", "number"]].collect {
                     [label: it[0], type: it[1]]
@@ -43,7 +43,7 @@ class DataJson {
             cols(columns)
             rows(data)
         }
-        return WebCommon.generateResponse(builder)
+        return builder
     }
 }
 
