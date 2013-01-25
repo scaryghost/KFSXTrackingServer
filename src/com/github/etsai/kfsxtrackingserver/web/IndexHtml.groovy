@@ -3,7 +3,7 @@ package com.github.etsai.kfsxtrackingserver.web
 import groovy.xml.MarkupBuilder
 
 public class IndexHtml {
-    public static def nav= ["Summary", "Levels", "Difficulty", "Deaths", "Kills", "Perks", "Weapons", "Records"]
+    public static def nav= ["summary", "levels", "difficulty", "deaths", "kills", "perks", "weapons", "records"]
     public static def jsFiles= ['https://www.google.com/jsapi', 'http/js/jquery-1.8.2.js', 'http/js/tablequerywrapper.js', 'http/js/kfstatsx2.js']
     public static def stylesheets= ['http://fonts.googleapis.com/css?family=Vollkorn', 'http/css/kfstatsx2.css']
     public static def recordsJs= """
@@ -15,7 +15,7 @@ public class IndexHtml {
 
         function init() {
             query = new google.visualization.Query(dataSourceUrl);
-            container = document.getElementById("Records_div");
+            container = document.getElementById("records_div");
             options = {'pageSize': 25};
             sendAndDraw();
         }
@@ -33,7 +33,7 @@ public class IndexHtml {
 """
 
     public static def diffJs= """
-        google.load('visualization', '1', {packages:['table','corechart']});
+        google.load('visualization', '1', {packages:['table']});
         google.setOnLoadCallback(drawTable);
 
         function drawTable() {
@@ -43,7 +43,7 @@ public class IndexHtml {
                 async: false
             }).responseText;
             var data= new google.visualization.DataTable(diffData);
-            var table= new google.visualization.Table(document.getElementById('Difficulty_div'));
+            var table= new google.visualization.Table(document.getElementById('difficulty_div'));
             table.draw(data, {allowHtml: true});
     }
 """

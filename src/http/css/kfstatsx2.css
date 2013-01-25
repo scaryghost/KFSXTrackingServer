@@ -78,6 +78,7 @@ h4 {
 #nav ul li {
     display:inline;
     margin-right:10px;
+    text-transform: capitalize;
 }
 
 #nav a.active {
