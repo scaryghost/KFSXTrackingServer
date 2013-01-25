@@ -73,6 +73,9 @@ public abstract class Page {
                         case "sessionsjson.html":
                             body= SessionsJson.fillBody(queries)
                             break
+                        case "datajson.html":
+                            body= DataJson.fillBody(queries)
+                            break
                         default:
                             code= 404
                             body= "${code} ${returnCodes[code]}"
