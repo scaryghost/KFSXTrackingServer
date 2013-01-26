@@ -6,6 +6,11 @@ html, body, ul, ol, li, form, fieldset, legend {
 h1, h2, h3, h4, h5, h6, p {
     margin: 0;
 }
+
+h1 {
+    color:#0073BF;
+    font-weight:bold;
+}
         
 body {
     background: url('bg.png') repeat;
@@ -70,15 +75,16 @@ h4 {
         
 #nav {
     margin-top:10px;
-    background: url("navbg.png") repeat-x center bottom;
     border-bottom: 1px solid #DDDDDD;
     padding: 5px 10px;
 }
         
-#nav ul li {
+#nav select {
     display:inline;
     margin-right:10px;
     text-transform: capitalize;
+    font-family: 'Vollkorn', serif, Arial;
+    font-size: 15px;
 }
 
 #nav a.active {

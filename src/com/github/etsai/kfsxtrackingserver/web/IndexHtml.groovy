@@ -1,9 +1,9 @@
 package com.github.etsai.kfsxtrackingserver.web
 
+import static com.github.etsai.kfsxtrackingserver.Common.sql
 import groovy.xml.MarkupBuilder
 
 public class IndexHtml {
-    public static def nav= ["summary", "levels", "difficulty", "deaths", "kills", "perks", "weapons", "records"]
     public static def jsFiles= ['https://www.google.com/jsapi', 'http/js/jquery-1.8.2.js', 'http/js/tablequerywrapper.js', 'http/js/kfstatsx2.js']
     public static def stylesheets= ['http://fonts.googleapis.com/css?family=Vollkorn', 'http/css/kfstatsx2.css']
     public static def recordsJs= """
@@ -29,9 +29,10 @@ public class IndexHtml {
         function setOption(prop, value) {
             options[prop] = value;
             sendAndDraw();
-        }"""
+        }
+    """
 
-    private static def generateJs(def type, def name) {
+    private static def generateJs(def type, def name, def visualClass) {
         return """
         google.load('visualization', '1', {packages:['$type']});
         google.setOnLoadCallback(drawTable);
@@ -43,14 +44,23 @@ public class IndexHtml {
                 async: false
             }).responseText;
             var data= new google.visualization.DataTable(jsonData);
-            var table= new google.visualization.Table(document.getElementById('${name}_div'));
+            var table= new google.visualization.$visualClass(document.getElementById('${name}_div'));
             table.draw(data, {allowHtml: true});
-        }"""
+        }
+    """
     }
 
     public static String fillBody() {
         def writer= new StringWriter()
         def htmlBuilder= new MarkupBuilder(writer)
+        def generateNav= {
+            def base= ["totals", "difficulties", "levels", "deaths"]
+            sql.eachRow('SELECT category FROM aggregate GROUP BY category') {row ->
+                base << row.category
+            }
+            return base
+        }
+        def nav= generateNav()
 
         htmlBuilder.html() {
             head() {
@@ -62,7 +72,7 @@ public class IndexHtml {
                 }
                 script(type:'text/javascript', recordsJs)
                 nav.each {name ->
-                    script(type:'text/javascript', generateJs('table', name))
+                    script(type:'text/javascript', generateJs('table', name, 'Table'))
                 }
 
                 stylesheets.each {filename ->
@@ -72,11 +82,10 @@ public class IndexHtml {
             body() {
                 div(id:'wrap') {
                     div(id: 'nav') {
-                        ul() {
+                        h1("Navigation")
+                        select(onchange:'goto(this.options[this.selectedIndex].value, this); return false') {
                             nav.each {item ->
-                                li() {
-                                    a(href:"#", onclick:'goto("#'+item+'_div", this); return false', item)
-                                }
+                                option(value:"#" + item + "_div", item)
                             }
                         }
                     }

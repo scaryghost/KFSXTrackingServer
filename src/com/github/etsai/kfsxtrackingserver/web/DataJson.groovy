@@ -31,7 +31,7 @@ class DataJson {
                     summaryInfo+= "</tbody></table></center>"
                 break
 */
-            case "difficulty":
+            case "difficulties":
                 columns= [["Name", "string"], ["Length", "string"], ["Wins", "number"],
                     ["Losses", "number"], ["Avg Wave", "number"], ["Time", "number"]].collect {
                     [label: it[0], type: it[1]]
