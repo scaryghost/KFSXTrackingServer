@@ -6,18 +6,11 @@ import com.github.etsai.utils.Time
 public class Index {
     public static String fillBody(def xmlBuilder) {
         xmlBuilder.kfstatsx() {
-            def totalGames= 0
-            def totalPlayTime= 0
+            def summaryInfo= WebCommon.generateSummary()
             
-            sql.eachRow('select * from difficulties') {row ->
-                totalGames+= row.wins + row.losses
-                totalPlayTime+= row.time
-            }
-            sql.eachRow('SELECT count(*) FROM records') {row ->
-                'stats'(category:"totals") {
-                    'entry'(name:"Games", value:totalGames)
-                    'entry'(name:"Play Time", value:Time.secToStr(totalPlayTime))
-                    'entry'(name:"Player Count", value:row[0])
+            'stats'(category:"totals") {
+                WebCommon.generateSummary().each {attr ->
+                    'entry'(attr)
                 }
             }
             

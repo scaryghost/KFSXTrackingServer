@@ -29,24 +29,24 @@ public class IndexHtml {
         function setOption(prop, value) {
             options[prop] = value;
             sendAndDraw();
-        }
-"""
+        }"""
 
-    public static def diffJs= """
-        google.load('visualization', '1', {packages:['table']});
+    private static def generateJs(def type, def name) {
+        return """
+        google.load('visualization', '1', {packages:['$type']});
         google.setOnLoadCallback(drawTable);
 
         function drawTable() {
-            var diffData = \$.ajax({
-                url: "datajson.html?table=difficulty",
+            var jsonData = \$.ajax({
+                url: "datajson.html?table=$name",
                 dataType:"json",
                 async: false
             }).responseText;
-            var data= new google.visualization.DataTable(diffData);
-            var table= new google.visualization.Table(document.getElementById('difficulty_div'));
+            var data= new google.visualization.DataTable(jsonData);
+            var table= new google.visualization.Table(document.getElementById('${name}_div'));
             table.draw(data, {allowHtml: true});
+        }"""
     }
-"""
 
     public static String fillBody() {
         def writer= new StringWriter()
@@ -61,7 +61,9 @@ public class IndexHtml {
                     script(type:'text/javascript', src:filename, '')
                 }
                 script(type:'text/javascript', recordsJs)
-                script(type:'text/javascript', diffJs)
+                nav.each {name ->
+                    script(type:'text/javascript', generateJs('table', name))
+                }
 
                 stylesheets.each {filename ->
                     link(href: filename, rel:'stylesheet', type:'text/css')

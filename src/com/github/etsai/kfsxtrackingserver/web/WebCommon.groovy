@@ -1,8 +1,23 @@
 package com.github.etsai.kfsxtrackingserver.web
 
 import com.github.etsai.kfsxtrackingserver.Common
+import com.github.etsai.utils.Time
 
 public class WebCommon {
+
+    public static def generateSummary() {
+        def games= 0, playTime= 0, playerCount
+        Common.sql.eachRow('select * from difficulties') {row ->
+                games+= row.wins + row.losses
+                playTime+= row.time
+        }
+        Common.sql.eachRow('SELECT count(*) FROM records') {row ->
+            playerCount= row[0]
+        }
+        return [["Games", games], ["Play Time", Time.secToStr(playTime)], ["Player Count", playerCount]].collect {
+            [name: it[0], value: it[0]]
+        }
+    }
     public static def generateResponse(def jsonData) {
         return "google.visualization.Query.setResponse({version: '0.6', reqId: '0', status: 'ok', table: $jsonData});"
     }
