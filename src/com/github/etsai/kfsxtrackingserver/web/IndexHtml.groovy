@@ -33,13 +33,32 @@ public class IndexHtml {
     """
 
     private static def generateJs(def type, def name, def visualClass) {
-        return """
+        def js
+
+        switch(name) {
+            case "totals":
+                js= """
         google.load('visualization', '1', {packages:['$type']});
         google.setOnLoadCallback(drawTable);
 
         function drawTable() {
             var jsonData = \$.ajax({
-                url: "datajson.html?table=$name",
+                url: "data.html?table=$name",
+                dataType:"text",
+                async: false
+            }).responseText;
+            document.getElementById('${name}_div').innerHTML= jsonData;
+        }
+    """
+                break
+            default:
+                js= """
+        google.load('visualization', '1', {packages:['$type']});
+        google.setOnLoadCallback(drawTable);
+
+        function drawTable() {
+            var jsonData = \$.ajax({
+                url: "data.json?table=$name",
                 dataType:"json",
                 async: false
             }).responseText;
@@ -48,6 +67,9 @@ public class IndexHtml {
             table.draw(data, {allowHtml: true});
         }
     """
+                break
+        }
+        return js
     }
 
     public static String fillBody() {

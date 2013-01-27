@@ -10,10 +10,9 @@ import java.util.TimeZone
 
 public abstract class Page {
     private static def methods= ["GET", "HEAD"]
-    private static def returnCodes= [200: "OK", 400: "Bad Request", 403: "Forbidden", 
-        404: "Not Found", 500: "Internal Server Error", 501: "Not Implemented"]
-    private static def extensions= ["html":"text/html", "xml":"application/xml" ,
-        "xsl":"application/xslt+xml","css":"text/css","js":"text/javascript"]
+    private static def returnCodes= [200: "OK", 400: "Bad Request", 403: "Forbidden", 404: "Not Found", 500: "Internal Server Error", 501: "Not Implemented"]
+    private static def extensions= ["html":"text/html", "xml":"application/xml", "xsl":"application/xslt+xml", "css":"text/css", 
+        "js":"text/javascript", "json":"application/json"]
 
     public static String generate(OutputStream output, String[] request) {
         def writer= new StringWriter()
@@ -22,7 +21,7 @@ public abstract class Page {
         def code= 200, body
         def uri= URI.create(request[1])
         def filename= uri.getPath().substring(1)
-        def extension= filename.substring(filename.lastIndexOf(".")+1, filename.length());
+        def extension= filename.substring(filename.lastIndexOf(".") + 1, filename.length());
         def queries= [:]
         
         if (uri.getQuery() != null) {
@@ -73,8 +72,11 @@ public abstract class Page {
                         case "sessionsjson.html":
                             body= SessionsJson.fillBody(queries)
                             break
-                        case "datajson.html":
+                        case "data.json":
                             body= DataJson.fillBody(queries)
+                            break
+                        case "data.html":
+                            body= DataHtml.fillBody(queries)
                             break
                         default:
                             code= 404

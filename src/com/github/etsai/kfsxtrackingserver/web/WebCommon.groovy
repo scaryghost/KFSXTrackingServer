@@ -15,7 +15,7 @@ public class WebCommon {
             playerCount= row[0]
         }
         return [["Games", games], ["Play Time", Time.secToStr(playTime)], ["Player Count", playerCount]].collect {
-            [name: it[0], value: it[0]]
+            [name: it[0], value: it[1]]
         }
     }
     public static def generateResponse(def jsonData) {

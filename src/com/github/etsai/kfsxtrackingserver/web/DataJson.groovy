@@ -10,10 +10,10 @@ import com.github.etsai.utils.Time
 import groovy.json.JsonBuilder
 
 /**
- *
+ * Generates the json data for the page data.json
  * @author etsai
  */
-class DataJson {
+public class DataJson {
     private static def colStyle= "text-align:center"
     
     public static String fillBody(def queries) {
@@ -22,15 +22,6 @@ class DataJson {
         def builder= new JsonBuilder()
         
         switch(queries["table"]) {
-/*
-            case "summary":
-                    def summaryInfo= "<center><table width='630' cellspacing='6' cellpadding='0'><tbody>"
-                    WebCommon.generateSummary().each {attr ->
-                        summaryInfo+= "<tr><td>${attr['name']}</td><td>${attr['value']}</td></tr>"
-                    }
-                    summaryInfo+= "</tbody></table></center>"
-                break
-*/
             case "difficulties":
                 columns= [["Name", "string"], ["Length", "string"], ["Wins", "number"],
                     ["Losses", "number"], ["Avg Wave", "number"], ["Time", "number"]].collect {
