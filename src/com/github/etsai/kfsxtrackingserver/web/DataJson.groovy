@@ -63,11 +63,20 @@ public class DataJson {
                 columns= [["Stat", "string"], ["Count", "number"]].collect {
                     [label: it[0], type: it[1]]
                 }
-                Common.sql.eachRow('SELECT * from aggregate where category=? ORDER BY stat ASC', [queries["table"]]) {row ->
-                    def fVal= queries["table"] == "perks" ? Time.secToStr(row.value) : null
-                    data << [c: [[v: row.stat, f:null, p: null], 
-                        [v: row.value, f: fVal, p:[style: colStyle]],
-                    ]]
+                if (queries["steamid64"] == null) {
+                    Common.sql.eachRow('SELECT * from aggregate where category=? ORDER BY stat ASC', [queries["table"]]) {row ->
+                        def fVal= queries["table"] == "perks" ? Time.secToStr(row.value) : null
+                        data << [c: [[v: row.stat, f:null, p: null], 
+                            [v: row.value, f: fVal, p:[style: colStyle]],
+                        ]]
+                    }
+                } else {
+                    Common.sql.eachRow('SELECT * from player where steamid64=? and category=? ORDER BY stat ASC', [queries["steamid64"], queries["table"]]) {row ->
+                        def fVal= queries["table"] == "perks" ? Time.secToStr(row.value) : null
+                        data << [c: [[v: row.stat, f:null, p: null], 
+                            [v: row.value, f: fVal, p:[style: colStyle]],
+                        ]]
+                    }
                 }
                 break
         }

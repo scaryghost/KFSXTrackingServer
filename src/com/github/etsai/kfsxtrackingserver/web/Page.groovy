@@ -78,6 +78,9 @@ public abstract class Page {
                         case "data.html":
                             body= DataHtml.fillBody(queries)
                             break
+                        case "profile.html":
+                            body= ProfileHtml.fillBody(queries)
+                            break
                         default:
                             code= 404
                             body= "${code} ${returnCodes[code]}"

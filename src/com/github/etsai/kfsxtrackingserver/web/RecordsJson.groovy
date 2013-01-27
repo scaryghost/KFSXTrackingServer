@@ -28,7 +28,7 @@ public class RecordsJson {
         def records= []
         Common.logger.finest(sql)
         Common.sql.eachRow(sql, psValues) {row ->
-            records << [c: [[v: row.name, f: "<a href=profile.xml?steamid64=${row.steamid64}>${row.name}</a>", p: null], 
+            records << [c: [[v: row.name, f: "<a href=profile.html?steamid64=${row.steamid64}>${row.name}</a>", p: null], 
                 [v: row.wins, f: null, p:[style: "text-align:center"]],
                 [v: row.losses, f: null, p:[style: "text-align:center"]],
                 [v: row.disconnects, f: null, p:[style: "text-align:center"]]]]
