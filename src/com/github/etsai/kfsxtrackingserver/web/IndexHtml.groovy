@@ -32,7 +32,7 @@ public class IndexHtml {
         }
     """
 
-    private static def generateJs(def type, def name, def visualClass) {
+    private static def generateJs(def type, def name, def visualClass, def options) {
         def js
 
         switch(name) {
@@ -64,7 +64,7 @@ public class IndexHtml {
             }).responseText;
             var data= new google.visualization.DataTable(jsonData);
             var table= new google.visualization.$visualClass(document.getElementById('${name}_div'));
-            table.draw(data, {allowHtml: true});
+            table.draw(data, $options);
         }
     """
                 break
@@ -80,6 +80,7 @@ public class IndexHtml {
             sql.eachRow('SELECT category FROM aggregate GROUP BY category') {row ->
                 base << row.category
             }
+            base << "records"
             return base
         }
         def nav= generateNav()
@@ -94,7 +95,13 @@ public class IndexHtml {
                 }
                 script(type:'text/javascript', recordsJs)
                 nav.each {name ->
-                    script(type:'text/javascript', generateJs('table', name, 'Table'))
+                    if (name == "perks") {
+                        script(type:'text/javascript', generateJs('corechart', name, 'PieChart', "{title: '$name', is3D: true}"))
+                    } else if (name == "weapons" || name == "kills" || name == "deaths") {
+                        script(type:'text/javascript', generateJs('corechart', name, 'BarChart', "{vAxis: {title: '$name', titleTextStyle: {color: 'red'}, textStyle: {fontSize: 12}}, chartArea: {top: 0, height: '95%'}}"))
+                    } else {
+                        script(type:'text/javascript', generateJs('table', name, 'Table', '{allowHtml: true}'))
+                    }
                 }
 
                 stylesheets.each {filename ->
@@ -107,7 +114,11 @@ public class IndexHtml {
                         h1("Navigation")
                         select(onchange:'goto(this.options[this.selectedIndex].value, this); return false') {
                             nav.each {item ->
-                                option(value:"#" + item + "_div", item)
+                                if (item == nav.last()) {
+                                    option(value:"#" + item + "_div_outer", item)
+                                } else {
+                                    option(value:"#" + item + "_div", item)
+                                }
                             }
                         }
                     }

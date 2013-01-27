@@ -32,7 +32,7 @@ public class DataJson {
                         [v: row.length, f: null, p:[style: colStyle]],
                         [v: row.wins, f: null, p:[style: colStyle]],
                         [v: row.losses, f: null, p:[style: colStyle]],
-                        [v: row.wave, f: null, p:[style: colStyle]],
+                        [v: String.format("%.2f",row.wave / (row.wins + row.losses)), f: null, p:[style: colStyle]],
                         [v: row.time, f: Time.secToStr(row.time), p:[style: colStyle]],
                     ]]
                 }
@@ -64,8 +64,9 @@ public class DataJson {
                     [label: it[0], type: it[1]]
                 }
                 Common.sql.eachRow('SELECT * from aggregate where category=? ORDER BY stat ASC', [queries["table"]]) {row ->
+                    def fVal= queries["table"] == "perks" ? Time.secToStr(row.value) : null
                     data << [c: [[v: row.stat, f:null, p: null], 
-                        [v: row.value, f: null, p:[style: colStyle]],
+                        [v: row.value, f: fVal, p:[style: colStyle]],
                     ]]
                 }
                 break

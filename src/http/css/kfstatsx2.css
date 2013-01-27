@@ -13,7 +13,6 @@ h1 {
 }
         
 body {
-    background: url('bg.png') repeat;
     font-family: 'Vollkorn', serif, Arial;
     font-size: 15px;
     line-height: 1.5;
@@ -59,7 +58,7 @@ h4 {
 .contentbox-wrapper {            
     position:relative; 
     left:0; 
-    width:12000px; 
+    width:16000px; 
     height:820px;
 }
         
