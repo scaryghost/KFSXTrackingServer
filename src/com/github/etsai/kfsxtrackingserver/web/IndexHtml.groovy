@@ -51,6 +51,33 @@ public class IndexHtml {
         }
     """
                 break
+            case "records":
+                js= """
+        google.load('visualization', '1', {'packages' : ['table']});
+        google.setOnLoadCallback(init);
+
+        var dataSourceUrl = 'recordsjson.html';
+        var query, options, container;
+
+        function init() {
+            query = new google.visualization.Query(dataSourceUrl);
+            container = document.getElementById("${name}_div");
+            options = {'pageSize': 25};
+            sendAndDraw();
+        }
+
+        function sendAndDraw() {
+            query.abort();
+            var tableQueryWrapper = new TableQueryWrapper(query, container, options);
+            tableQueryWrapper.sendAndDraw();
+        }
+
+        function setOption(prop, value) {
+            options[prop] = value;
+            sendAndDraw();
+        }
+    """
+                break
             default:
                 js= """
         google.load('visualization', '1', {packages:['$type']});
@@ -93,7 +120,6 @@ public class IndexHtml {
                 jsFiles.each {filename ->
                     script(type:'text/javascript', src:filename, '')
                 }
-                script(type:'text/javascript', recordsJs)
                 nav.each {name ->
                     if (name == "perks") {
                         script(type:'text/javascript', generateJs('corechart', name, 'PieChart', "{title: '$name', is3D: true}"))
@@ -107,6 +133,7 @@ public class IndexHtml {
                 stylesheets.each {filename ->
                     link(href: filename, rel:'stylesheet', type:'text/css')
                 }
+                link(rel:'icon', type:'image/vnd.microsoft.icon', href: 'http/ico/favicon.ico')
             }
             body() {
                 div(id:'wrap') {

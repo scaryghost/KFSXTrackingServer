@@ -12,7 +12,7 @@ public abstract class Page {
     private static def methods= ["GET", "HEAD"]
     private static def returnCodes= [200: "OK", 400: "Bad Request", 403: "Forbidden", 404: "Not Found", 500: "Internal Server Error", 501: "Not Implemented"]
     private static def extensions= ["html":"text/html", "xml":"application/xml", "xsl":"application/xslt+xml", "css":"text/css", 
-        "js":"text/javascript", "json":"application/json"]
+        "js":"text/javascript", "json":"application/json", "ico":"image/vdn.microsoft.icon"]
 
     public static String generate(OutputStream output, String[] request) {
         def writer= new StringWriter()
@@ -34,10 +34,10 @@ public abstract class Page {
         try {
             if(!methods.contains(request[0])) {
                 code= 501
-                body= "${code} ${returnCodes[code]}"
+                body= "${code} ${returnCodes[code]}".getBytes()
             } else {
-                if(extension == "xsl" || extension == "css" || extension == "js"){
-                    body= new File(filename).readLines().join("\n")
+                if (extension == "xsl" || extension == "css" || extension == "js" || extension == "ico") {
+                    body= new File(filename).getBytes()
                 } else {
                     xml.mkp.xmlDeclaration(version:'1.0')
                     switch (filename) {
@@ -87,6 +87,7 @@ public abstract class Page {
                             extension= "html"
                             break
                     }
+                    body= body.getBytes()
                 }              
             }
         } catch (Exception ex) {
@@ -96,7 +97,7 @@ public abstract class Page {
             extension= "html"
             code= 500
             ex.printStackTrace(pw)
-            body= "<pre>${code} ${returnCodes[code]}\n\n${sw.toString()}</pre>"
+            body= "<pre>${code} ${returnCodes[code]}\n\n${sw.toString()}</pre>".getBytes()
             Common.logger.log(Level.SEVERE, "Error generating webpage", ex);
         }
         
@@ -110,6 +111,6 @@ public abstract class Page {
         Common.logger.finest("HTTP Response: ${header}")
         output.write(header.getBytes())
         if (request[0] != "HEAD")
-            output.write(body.getBytes())
+            output.write(body)
     }
 }
