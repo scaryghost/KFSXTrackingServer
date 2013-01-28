@@ -119,13 +119,14 @@ public class ProfileHtml {
             body() {
                 div(id:'wrap') {
                     div(id: 'nav') {
-                        h1("Navigation")
-                        select(onchange:'goto(this.options[this.selectedIndex].value, this); return false') {
-                            nav.each {item ->
-                                if (item == nav.last()) {
-                                    option(value:"#" + item + "_div_outer", item)
-                                } else {
-                                    option(value:"#" + item + "_div", item)
+                        h3("Navigation") {
+                            select(onchange:'goto(this.options[this.selectedIndex].value, this); return false') {
+                                nav.each {item ->
+                                    if (item == nav.last()) {
+                                        option(value:"#" + item + "_div_outer", item)
+                                    } else {
+                                        option(value:"#" + item + "_div", item)
+                                    }
                                 }
                             }
                         }

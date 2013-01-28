@@ -40,6 +40,6 @@ public class RecordsJson {
             rows(records)
         }
 
-        return "google.visualization.Query.setResponse({version: '0.6', reqId: '0', status: 'ok', table:$builder});"
+        return builder
     }
 }

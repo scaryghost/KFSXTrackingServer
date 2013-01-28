@@ -56,7 +56,7 @@ public abstract class Page {
                             Records.fillBody(xml, queries)
                             body= writer.toString()
                             break
-                        case "recordsjson.html":
+                        case "records.json":
                             body= RecordsJson.fillBody(queries)
                             break
                         case "profile.xml":
@@ -69,7 +69,7 @@ public abstract class Page {
                             Sessions.fillBody(xml, queries)
                             body= writer.toString()
                             break
-                        case "sessionsjson.html":
+                        case "sessions.json":
                             body= SessionsJson.fillBody(queries)
                             break
                         case "data.json":

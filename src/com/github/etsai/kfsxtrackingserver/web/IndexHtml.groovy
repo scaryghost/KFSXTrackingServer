@@ -4,44 +4,18 @@ import static com.github.etsai.kfsxtrackingserver.Common.sql
 import groovy.xml.MarkupBuilder
 
 public class IndexHtml {
-    public static def jsFiles= ['https://www.google.com/jsapi', 'http/js/jquery-1.8.2.js', 'http/js/tablequerywrapper.js', 'http/js/kfstatsx2.js']
+    public static def jsFiles= ['http/js/jquery-1.8.2.js', 'http/js/kfstatsx2.js', 'https://www.google.com/jsapi?autoload={"modules":[{"name":"visualization","version":"1"}]}']
     public static def stylesheets= ['http://fonts.googleapis.com/css?family=Vollkorn', 'http/css/kfstatsx2.css']
-    public static def recordsJs= """
-        google.load('visualization', '1', {'packages' : ['table']});
-        google.setOnLoadCallback(init);
 
-        var dataSourceUrl = 'recordsjson.html';
-        var query, options, container;
-
-        function init() {
-            query = new google.visualization.Query(dataSourceUrl);
-            container = document.getElementById("records_div");
-            options = {'pageSize': 25};
-            sendAndDraw();
-        }
-
-        function sendAndDraw() {
-            query.abort();
-            var tableQueryWrapper = new TableQueryWrapper(query, container, options);
-            tableQueryWrapper.sendAndDraw();
-        }
-
-        function setOption(prop, value) {
-            options[prop] = value;
-            sendAndDraw();
-        }
-    """
-
-    private static def generateJs(def type, def name, def visualClass, def options) {
+    private static def generateJs(def name, def visualClass, def options) {
         def js
 
         switch(name) {
             case "totals":
                 js= """
-        google.load('visualization', '1', {packages:['$type']});
-        google.setOnLoadCallback(drawTable);
+        google.setOnLoadCallback(drawVisualization);
 
-        function drawTable() {
+        function drawVisualization() {
             var jsonData = \$.ajax({
                 url: "data.html?table=$name",
                 dataType:"text",
@@ -53,45 +27,75 @@ public class IndexHtml {
                 break
             case "records":
                 js= """
-        google.load('visualization', '1', {'packages' : ['table']});
-        google.setOnLoadCallback(init);
+        var page= 0, pageSize= 25, column, order, filled;
+        var data, chart;
 
-        var dataSourceUrl = 'recordsjson.html';
-        var query, options, container;
+        google.setOnLoadCallback(drawVisualization);
+        function drawVisualization() {
+            data= new google.visualization.DataTable(\$.ajax({url: "records.json?tq=0,25", dataType:"json", async: false}).responseText);
+            chart= new google.visualization.ChartWrapper({'chartType': 'Table', 'containerId': 'records_div', 
+                'options': {
+                    'page': 'event',
+                    'sort': 'event',
+                    'pageSize': pageSize,
+                    'pagingButtonsConfiguration': 'both',
+                    'showRowNumber': true,
+                    'allowHtml': true
+                }
+            });
 
-        function init() {
-            query = new google.visualization.Query(dataSourceUrl);
-            container = document.getElementById("${name}_div");
-            options = {'pageSize': 25};
-            sendAndDraw();
+            google.visualization.events.addListener(chart, 'ready', onReady);
+            chart.setDataTable(data);
+            chart.draw();
+
+            function onReady() {
+                google.visualization.events.addListener(chart.getChart(), 'page', function(properties) {
+                    page+= parseInt(properties['page'], 10);
+                    if (page < 0) {
+                        page= 0;
+                    }
+
+                    data= new google.visualization.DataTable(\$.ajax({url: "records.json?tq=" + page + "," + pageSize, dataType:"json", async: false}).responseText);
+                    if (data.getNumberOfRows() == 0 || (!filled && data.getNumberOfRows() != pageSize)) {
+                        page--;
+                    } else {
+                        chart.setOption('firstRowNumber', pageSize * page + 1);
+                        chart.setDataTable(data);
+                        chart.draw();
+                        filled= data.getNumberOfRows() == pageSize;
+                    }
+                });
+                google.visualization.events.addListener(chart.getChart(), 'sort', function(properties) {
+                    order= properties["ascending"] ? "asc" : "desc";
+                    column= properties["column"];
+                    data= new google.visualization.DataTable(\$.ajax({url: "records.json?tq=" + page + "," + pageSize + "," + column + "," + order, dataType:"json", async: false}).responseText);
+                    filled= data.getNumberOfRows() == pageSize;
+                    chart.setOption('sortColumn', column);
+                    chart.setOption('sortAscending', properties["ascending"]);
+                    chart.setDataTable(data);
+                    chart.draw();
+                });
+            }
         }
 
-        function sendAndDraw() {
-            query.abort();
-            var tableQueryWrapper = new TableQueryWrapper(query, container, options);
-            tableQueryWrapper.sendAndDraw();
-        }
-
-        function setOption(prop, value) {
-            options[prop] = value;
-            sendAndDraw();
+        function updatePageSize(newSize) {
+            pageSize= newSize;
+            data= new google.visualization.DataTable(\$.ajax({url: "records.json?tq=" + page + "," + pageSize.toString(), dataType:"json", async: false}).responseText);
+            chart.setDataTable(data);
+            chart.setOption('pageSize', pageSize);
+            chart.draw();
         }
     """
                 break
             default:
                 js= """
-        google.load('visualization', '1', {packages:['$type']});
-        google.setOnLoadCallback(drawTable);
+        google.setOnLoadCallback(drawVisualization);
 
-        function drawTable() {
-            var jsonData = \$.ajax({
-                url: "data.json?table=$name",
-                dataType:"json",
-                async: false
-            }).responseText;
-            var data= new google.visualization.DataTable(jsonData);
-            var table= new google.visualization.$visualClass(document.getElementById('${name}_div'));
-            table.draw(data, $options);
+        function drawVisualization() {
+            var data= new google.visualization.DataTable(\$.ajax({url: "data.json?table=$name", dataType:"json", async: false}).responseText);
+            var chart= new google.visualization.ChartWrapper({'chartType': '$visualClass', 'containerId': '${name}_div', 'options': $options});
+            chart.setDataTable(data);
+            chart.draw();
         }
     """
                 break
@@ -121,12 +125,16 @@ public class IndexHtml {
                     script(type:'text/javascript', src:filename, '')
                 }
                 nav.each {name ->
+                    def js
                     if (name == "perks") {
-                        script(type:'text/javascript', generateJs('corechart', name, 'PieChart', "{title: '$name', is3D: true}"))
+                        js= generateJs(name, 'PieChart', "{title: '$name', is3D: true}")
                     } else if (name == "weapons" || name == "kills" || name == "deaths") {
-                        script(type:'text/javascript', generateJs('corechart', name, 'BarChart', "{vAxis: {title: '$name', titleTextStyle: {color: 'red'}, textStyle: {fontSize: 12}}, chartArea: {top: 0, height: '95%'}}"))
+                        js= generateJs(name, 'BarChart', "{vAxis: {title: '$name', titleTextStyle: {color: 'red'}, textStyle: {fontSize: 12}}, chartArea: {height: '90%'}}")
                     } else {
-                        script(type:'text/javascript', generateJs('table', name, 'Table', '{allowHtml: true}'))
+                        js= generateJs(name, 'Table', '{allowHtml: true}')
+                    }
+                    script(type:'text/javascript') {
+                        mkp.yieldUnescaped(js)
                     }
                 }
 
@@ -138,13 +146,14 @@ public class IndexHtml {
             body() {
                 div(id:'wrap') {
                     div(id: 'nav') {
-                        h1("Navigation")
-                        select(onchange:'goto(this.options[this.selectedIndex].value, this); return false') {
-                            nav.each {item ->
-                                if (item == nav.last()) {
-                                    option(value:"#" + item + "_div_outer", item)
-                                } else {
-                                    option(value:"#" + item + "_div", item)
+                        h3("Navigation") {
+                            select(onchange:'goto(this.options[this.selectedIndex].value, this); return false') {
+                                nav.each {item ->
+                                    if (item == nav.last()) {
+                                        option(value:"#" + item + "_div_outer", item)
+                                    } else {
+                                        option(value:"#" + item + "_div", item)
+                                    }
                                 }
                             }
                         }
@@ -155,7 +164,7 @@ public class IndexHtml {
                                 if (item == nav.last()) {
                                     div(id:item + '_div_outer', class:'contentbox') {
                                         form(action:'', 'Number of rows to show:') {
-                                            select(onchange:'setOption("pageSize", parseInt(this.value, 10))') {
+                                            select(onchange:'updatePageSize(parseInt(this.value, 10))') {
                                                 option(selected:"selected", value:'25', '25')
                                                 option(value:'50', '50')
                                                 option(value:'100', '100')
