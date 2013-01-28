@@ -34,10 +34,10 @@ public abstract class Page {
         try {
             if(!methods.contains(request[0])) {
                 code= 501
-                body= "${code} ${returnCodes[code]}".getBytes()
+                body= "${code} ${returnCodes[code]}"
             } else {
                 if (extension == "xsl" || extension == "css" || extension == "js" || extension == "ico") {
-                    body= new File(filename).getBytes()
+                    body= new File(filename)
                 } else {
                     xml.mkp.xmlDeclaration(version:'1.0')
                     switch (filename) {
@@ -49,15 +49,13 @@ public abstract class Page {
                             body= writer.toString()
                             break
                         case "index.html":
-                            body= IndexHtml.fillBody()
+                            def nav= ["totals", "difficulties", "levels", "deaths"].plus(WebCommon.getCategories()) << "records"
+                            body= WebCommon.generateHtml(nav, null)
                             break
                         case "records.xml":
                             xml.mkp.pi("xml-stylesheet":[type:"text/xsl",href:"http/xsl/records.xsl"])
                             Records.fillBody(xml, queries)
                             body= writer.toString()
-                            break
-                        case "records.json":
-                            body= RecordsJson.fillBody(queries)
                             break
                         case "profile.xml":
                             xml.mkp.pi("xml-stylesheet":[type:"text/xsl",href:"http/xsl/profile.xsl"])
@@ -69,9 +67,6 @@ public abstract class Page {
                             Sessions.fillBody(xml, queries)
                             body= writer.toString()
                             break
-                        case "sessions.json":
-                            body= SessionsJson.fillBody(queries)
-                            break
                         case "data.json":
                             body= DataJson.fillBody(queries)
                             break
@@ -79,7 +74,8 @@ public abstract class Page {
                             body= DataHtml.fillBody(queries)
                             break
                         case "profile.html":
-                            body= ProfileHtml.fillBody(queries)
+                            def nav= ["profile"].plus(WebCommon.getCategories()) << "sessions"
+                            body= WebCommon.generateHtml(nav, queries["steamid64"])
                             break
                         default:
                             code= 404
@@ -87,7 +83,6 @@ public abstract class Page {
                             extension= "html"
                             break
                     }
-                    body= body.getBytes()
                 }              
             }
         } catch (Exception ex) {
@@ -97,7 +92,7 @@ public abstract class Page {
             extension= "html"
             code= 500
             ex.printStackTrace(pw)
-            body= "<pre>${code} ${returnCodes[code]}\n\n${sw.toString()}</pre>".getBytes()
+            body= "<pre>${code} ${returnCodes[code]}\n\n${sw.toString()}</pre>"
             Common.logger.log(Level.SEVERE, "Error generating webpage", ex);
         }
         
@@ -111,6 +106,6 @@ public abstract class Page {
         Common.logger.finest("HTTP Response: ${header}")
         output.write(header.getBytes())
         if (request[0] != "HEAD")
-            output.write(body)
+            output.write(body.getBytes())
     }
 }
