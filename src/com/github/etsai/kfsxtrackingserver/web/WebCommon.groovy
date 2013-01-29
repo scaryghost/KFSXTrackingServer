@@ -130,6 +130,34 @@ public class WebCommon {
         }
     """
                 break
+            case "weapons":
+            case "kills":
+            case "deaths":
+                if (steamid64 != null) {
+                    queries << "steamid64=$steamid64"
+                }
+                js= """
+        google.setOnLoadCallback(drawVisualization);
+
+        function drawVisualization() {
+            var data= new google.visualization.DataTable(\$.ajax({url: "data.json?${queries.join('&')}", dataType:"json", async: false}).responseText);
+            var chart= new google.visualization.ChartWrapper({'chartType': 'BarChart', 'containerId': '${name}_div', 'options': {
+                'width': '25%',
+                'height': '100%',
+                'chartArea': {height: '95%'}, 
+                'vAxis': {title: 'Weapon',  titleTextStyle: {color: 'red'}, textStyle: {fontSize: 12}}
+            }});
+            chart.setDataTable(data);
+            var numRows = chart.getDataTable().getNumberOfRows();
+            var expectedHeight = numRows * 30;
+            if (parseInt(chart.getOption('height'), 10) != expectedHeight) {
+                // Update the chart options and redraw just it
+                chart.setOption('height', expectedHeight);
+                chart.draw();
+            }
+        }
+    """
+                break
             default:
                 if (steamid64 != null) {
                     queries << "steamid64=$steamid64"
@@ -166,8 +194,6 @@ public class WebCommon {
                     
                     if (name == "perks") {
                         js= WebCommon.generateJs(name, 'PieChart', "{title: '$name', is3D: true}", steamid64)
-                    } else if (name == "weapons" || name == "kills" || name == "deaths") {
-                        js= WebCommon.generateJs(name, 'BarChart', "{vAxis: {title: '$name', titleTextStyle: {color: 'red'}, textStyle: {fontSize: 12}}, chartArea: {height: '90%'}}", steamid64)
                     } else {
                         js= WebCommon.generateJs(name, 'Table', '{allowHtml: true}', steamid64)
                     }
