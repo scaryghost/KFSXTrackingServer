@@ -23,31 +23,51 @@ public class DataJson {
         
         switch(queries["table"]) {
             case "difficulties":
+                def totals= [wins: 0, losses: 0, time: 0]
                 columns= [["Name", "string"], ["Length", "string"], ["Wins", "number"],
                     ["Losses", "number"], ["Avg Wave", "number"], ["Time", "number"]].collect {
                     [label: it[0], type: it[1]]
                 }
-                Common.sql.eachRow('select * from difficulties ORDER BY name ASC') {row ->
+                Common.sql.eachRow('select * from difficulties') {row ->
                     data << [c: [[v: row.name, f:null, p: null], 
                         [v: row.length, f: null, p:[style: colStyle]],
                         [v: row.wins, f: null, p:[style: colStyle]],
                         [v: row.losses, f: null, p:[style: colStyle]],
                         [v: String.format("%.2f",row.wave / (row.wins + row.losses)), f: null, p:[style: colStyle]],
-                        [v: row.time, f: Time.secToStr(row.time), p:[style: colStyle]],
+                        [v: row.time, f: Time.secToStr(row.time), p:[style: colStyle]]
                     ]]
+                    totals["wins"]+= row.wins
+                    totals["losses"]+= row.losses
+                    totals["time"]+= row.time
                 }
+                data << [c: [[v: "Totals", f:null, p: null], 
+                    [v: "", f: "---", p:[style: colStyle]],
+                    [v: totals["wins"], f: null, p:[style: colStyle]],
+                    [v: totals["losses"], f: null, p:[style: colStyle]],
+                    [v: 0, f: "---", p:[style: colStyle]],
+                    [v: totals["time"], f: Time.secToStr(totals["time"]), p:[style: colStyle]],
+                ]]
                break
             case "levels":
+                def totals= [wins: 0, losses: 0, time: 0]
                 columns= [["Name", "string"], ["Wins", "number"], ["Losses", "number"], ["Time", "number"]].collect {
                     [label: it[0], type: it[1]]
                 }
-                Common.sql.eachRow('select * from levels ORDER BY name ASC') {row ->
+                Common.sql.eachRow('select * from levels') {row ->
                     data << [c: [[v: row.name, f:null, p: null], 
                         [v: row.wins, f: null, p:[style: colStyle]],
                         [v: row.losses, f: null, p:[style: colStyle]],
                         [v: row.time, f: Time.secToStr(row.time), p:[style: colStyle]],
                     ]]
+                    totals["wins"]+= row.wins
+                    totals["losses"]+= row.losses
+                    totals["time"]+= row.time.toInteger()
                 }
+                data << [c: [[v: "Totals", f:null, p: null], 
+                    [v: totals["wins"], f: null, p:[style: colStyle]],
+                    [v: totals["losses"], f: null, p:[style: colStyle]],
+                    [v: totals["time"], f: Time.secToStr(totals["time"]), p:[style: colStyle]],
+                ]]
                 break
             case "deaths":
                 columns= [["Death", "string"], ["Count", "number"]].collect {
@@ -133,7 +153,12 @@ public class DataJson {
                     psValues= [queries["steamid64"], queries["table"]]
                 }
                 Common.sql.eachRow(sql,psValues) {row ->
-                    def fVal= queries["table"] == "perks" ? Time.secToStr(row.value) : null
+                    def fVal= null
+                    def lower= row.stat.toLowerCase()
+
+                    if (queries["table"] == "perks" || lower.contains('time')) {
+                        fVal= Time.secToStr(row.value)
+                    }
                     data << [c: [[v: row.stat, f:null, p: null], 
                         [v: row.value, f: fVal, p:[style: colStyle]],
                     ]]

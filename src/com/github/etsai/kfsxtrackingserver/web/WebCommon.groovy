@@ -143,13 +143,14 @@ public class WebCommon {
             var data= new google.visualization.DataTable(\$.ajax({url: "data.json?${queries.join('&')}", dataType:"json", async: false}).responseText);
             var chart= new google.visualization.ChartWrapper({'chartType': 'BarChart', 'containerId': '${name}_div', 'options': {
                 'legend': {position: 'none'},
-                'chartArea': {height: '95%'}, 
-                'vAxis': {textStyle: {fontSize: 12}}
+                'chartArea': {height: '80%'},
+                'vAxis': {textStyle: {fontSize: 15}}
             }});
             chart.setDataTable(data);
             var numRows = chart.getDataTable().getNumberOfRows();
-            var expectedHeight = numRows * 30;
+            var expectedHeight = numRows * 25;
             // Update the chart options and redraw just it
+            chart.setOption('title', '$name');
             chart.setOption('height', expectedHeight);
             chart.setOption('width', document.getElementById('${name}_div').offsetWidth * 0.985);
             chart.draw();
