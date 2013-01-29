@@ -71,7 +71,7 @@ h4 {
     overflow-y:auto;
     overflow-x:hidden;
 }
-        
+
 #nav {
     margin-top:10px;
     border-bottom: 1px solid #DDDDDD;
@@ -86,11 +86,9 @@ h4 {
     font-size: 15px;
 }
 
-#nav a.active {
-    font-weight:bold;
-}       
-        
-#footer {
-    text-align:center;
-    margin-top:20px;
+.content-table {
+    width: 630px;
+    cellpadding: 0;
+    cellspacing: 0;
+}
 }

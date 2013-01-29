@@ -20,7 +20,7 @@ public class DataHtml {
         
         switch(queries["table"]) {
             case "totals":
-                data= "<center><table width='630' cellspacing='6' cellpadding='0'><tbody>"
+                data= "<center><table class='content-table'><tbody>"
                 WebCommon.generateSummary().each {attr ->
                     data+= "<tr><td>${attr['name']}</td><td>${attr['value']}</td></tr>"
                     }
@@ -34,7 +34,7 @@ public class DataHtml {
                     data= "<center>No records found for SteamID64: <a href='http://steamcommunity.com/profiles/${steamid64}'>$steamid64</a></center>"
                 } else {
                     def steamIdInfo= SteamIDInfo.getSteamIDInfo(steamid64)
-                    data= "<center><table width='630' cellspacing='6' cellpadding='0'><tbody>"
+                    data= "<center><table class='content-table'><tbody>"
 
                     data+= "<tr><td>Name</td><td>${steamIdInfo.name}</td></tr>"
                     data+= "<tr><td>Wins</td><td>${row.wins}</td><td rowspan='4'><img src='${steamIdInfo.avatar}' /></td>"

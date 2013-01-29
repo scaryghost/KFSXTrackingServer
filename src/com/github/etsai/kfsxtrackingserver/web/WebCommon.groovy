@@ -142,19 +142,17 @@ public class WebCommon {
         function drawVisualization() {
             var data= new google.visualization.DataTable(\$.ajax({url: "data.json?${queries.join('&')}", dataType:"json", async: false}).responseText);
             var chart= new google.visualization.ChartWrapper({'chartType': 'BarChart', 'containerId': '${name}_div', 'options': {
-                'width': '25%',
-                'height': '100%',
+                'legend': {position: 'none'},
                 'chartArea': {height: '95%'}, 
-                'vAxis': {title: 'Weapon',  titleTextStyle: {color: 'red'}, textStyle: {fontSize: 12}}
+                'vAxis': {textStyle: {fontSize: 12}}
             }});
             chart.setDataTable(data);
             var numRows = chart.getDataTable().getNumberOfRows();
             var expectedHeight = numRows * 30;
-            if (parseInt(chart.getOption('height'), 10) != expectedHeight) {
-                // Update the chart options and redraw just it
-                chart.setOption('height', expectedHeight);
-                chart.draw();
-            }
+            // Update the chart options and redraw just it
+            chart.setOption('height', expectedHeight);
+            chart.setOption('width', document.getElementById('${name}_div').offsetWidth * 0.985);
+            chart.draw();
         }
     """
                 break
@@ -169,6 +167,8 @@ public class WebCommon {
             var data= new google.visualization.DataTable(\$.ajax({url: "data.json?${queries.join('&')}", dataType:"json", async: false}).responseText);
             var chart= new google.visualization.ChartWrapper({'chartType': '$visualClass', 'containerId': '${name}_div', 'options': $options});
             chart.setDataTable(data);
+            chart.setOption('height', document.getElementById('${name}_div').offsetHeight * 0.975);
+            chart.setOption('width', document.getElementById('${name}_div').offsetWidth * 0.985);
             chart.draw();
         }
     """
@@ -193,7 +193,7 @@ public class WebCommon {
                     def js
                     
                     if (name == "perks") {
-                        js= WebCommon.generateJs(name, 'PieChart', "{title: '$name', is3D: true}", steamid64)
+                        js= WebCommon.generateJs(name, 'PieChart', "{is3D: true}", steamid64)
                     } else {
                         js= WebCommon.generateJs(name, 'Table', '{allowHtml: true}', steamid64)
                     }
@@ -216,6 +216,8 @@ public class WebCommon {
                                     def attr= [value: "#${item}_div"]
                                     if (item == nav.first()) {
                                         attr["selected"]= "selected"
+                                    } else if (item == nav.last()) {
+                                        attr["value"]+= "_outer"
                                     }
                                     option(attr, item)
                                 }

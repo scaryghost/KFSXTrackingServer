@@ -8,15 +8,3 @@ function goto(id, t){
     // add active class to the current link
     $(t).addClass('active');    
 }
-
-function getParameterByName(name) {
-    name= name.replace(/[\[]/, "\\\[").replace(/[\]]/, "\\\]");
-
-    var regexS = "[\\?&]" + name + "=([^&#]*)";
-    var regex = new RegExp(regexS);
-    var results = regex.exec(window.location.search);
-
-    if(results == null)
-        return "";
-    return decodeURIComponent(results[1].replace(/\+/g, " "));
-} 
