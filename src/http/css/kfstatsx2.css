@@ -1,3 +1,7 @@
+/*
+    css taken from scrolling div example @ http://gazpo.com/2012/03/horizontal-content-scroll/
+    customized for kfstxtracking server web interface
+*/
 html, body, ul, ol, li, form, fieldset, legend {
     margin: 0;
     padding: 0;

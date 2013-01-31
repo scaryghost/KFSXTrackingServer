@@ -5,8 +5,19 @@ import com.github.etsai.utils.Time
 import groovy.xml.MarkupBuilder
 
 public class WebCommon {
-    public static def jsFiles= ['http/js/jquery-1.8.2.js', 'http/js/kfstatsx2.js', 'https://www.google.com/jsapi?autoload={"modules":[{"name":"visualization","version":"1"}]}']
+    public static def jsFiles= ['http/js/jquery-1.8.2.js', 'https://www.google.com/jsapi?autoload={"modules":[{"name":"visualization","version":"1"}]}']
     public static def stylesheets= ['http://fonts.googleapis.com/css?family=Vollkorn', 'http/css/kfstatsx2.css']
+    public static def scrollingJs= """
+        //Div scrolling js taken from http://gazpo.com/2012/03/horizontal-content-scroll/
+        function goto(id, t){   
+            //animate to the div id.
+            \$(".contentbox-wrapper").animate({"left": -(\$(id).position().left)}, 600);
+            // remove "active" class from all links inside #nav
+            \$('#nav a').removeClass('active');
+            // add active class to the current link
+            \$(t).addClass('active');    
+        }
+    """
 
     public static def partialQuery(queryValues, sqlQuery, basePsVals, rowHandler) {
         def pageSize= queryValues[Queries.rows].toInteger()
@@ -34,9 +45,8 @@ public class WebCommon {
                 games+= row.wins + row.losses
                 playTime+= row.time
         }
-        Common.sql.eachRow('SELECT count(*) FROM records') {row ->
-            playerCount= row[0]
-        }
+        playerCount= Common.sql.firstRow('SELECT count(*) FROM records')
+
         return [["Games", games], ["Play Time", Time.secToStr(playTime)], ["Player Count", playerCount]].collect {
             [name: it[0], value: it[1]]
         }
@@ -67,7 +77,7 @@ public class WebCommon {
                 queries << "steamid64=$steamid64"
             case "records":
                 js= """
-        var page= 0, pageSize= 25, group="none", order= "asc", filled;
+        var page= 0, pageSize= 25, group="none", order= "asc";
         var data, chart;
 
         function buildQuery() {
@@ -102,21 +112,19 @@ public class WebCommon {
                     }
 
                     data= buildDataTable();
-                    if (data.getNumberOfRows() == 0 || (!filled && data.getNumberOfRows() != pageSize)) {
+                    if (data.getNumberOfRows() == 0) {
                         page--;
                     } else {
                         chart.setOption('firstRowNumber', pageSize * page + 1);
                         chart.setDataTable(data);
                         chart.draw();
-                        filled= data.getNumberOfRows() == pageSize;
                     }
                 });
                 google.visualization.events.addListener(chart.getChart(), 'sort', function(properties) {
                     order= properties["ascending"] ? "asc" : "desc";
                     group= data.getColumnLabel(properties["column"]);
                     data= buildDataTable();
-                    filled= data.getNumberOfRows() == pageSize;
-                    chart.setOption('sortColumn', group);
+                    chart.setOption('sortColumn', properties["column"]);
                     chart.setOption('sortAscending', properties["ascending"]);
                     chart.setDataTable(data);
                     chart.draw();
@@ -126,7 +134,7 @@ public class WebCommon {
 
         function updatePageSize(newSize) {
             pageSize= newSize;
-            data= new google.visualization.DataTable(\$.ajax({url: "data.json?${queries.join('&')}&tq=" + page + "," + pageSize.toString(), dataType:"json", async: false}).responseText);
+            data= buildDataTable();
             chart.setDataTable(data);
             chart.setOption('pageSize', pageSize);
             chart.draw();
@@ -193,6 +201,7 @@ public class WebCommon {
                 jsFiles.each {filename ->
                     script(type:'text/javascript', src:filename, '')
                 }
+                script(type:'text/javascript', scrollingJs)
                 nav.each {name ->
                     def js
                     
