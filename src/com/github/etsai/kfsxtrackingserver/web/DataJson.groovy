@@ -20,8 +20,9 @@ public class DataJson {
         def columns
         def data= []
         def builder= new JsonBuilder()
+        def queryValues= Queries.parseQuery(queries)
         
-        switch(queries["table"]) {
+        switch(queryValues[Queries.table]) {
             case "difficulties":
                 def totals= [wins: 0, losses: 0, time: 0]
                 columns= [["Name", "string"], ["Length", "string"], ["Wins", "number"],
@@ -83,9 +84,8 @@ public class DataJson {
                 columns= [["Name", "string"], ["Wins", "numbers"], ["Losses", "number"], ["Disconnects", "number"]].collect {
                     [label: it[0], type: it[1]]
                 }
-                def params= queries["tq"].tokenize(",")
-                def page= [params[0].toInteger(), 0].max()
-                def pageSize= params[1].toInteger()
+                def page= [queryValues[Queries.page].toInteger(), 0].max()
+                def pageSize= queryValues[Queries.rows].toInteger()
                 def start= page * pageSize
                 def end= start + pageSize
         
@@ -93,8 +93,8 @@ public class DataJson {
         
                 def sql= "SELECT s.name,r.wins,r.losses,r.disconnects,r.steamid64 FROM records r INNER JOIN steaminfo s ON r.steamid64=s.steamid64 "
 
-                if (params.size() >= 4) {
-                    sql+= "ORDER BY ${columns[params[2].toInteger()]['label']} ${params[3]} "
+                if (queryValues[Queries.group] != Queries.defaults[Queries.group]) {
+                    sql+= "ORDER BY ${queryValues[Queries.group]} ${queryValues[Queries.order]} "
                 }
                 sql+= "LIMIT ?,?"
 
@@ -112,19 +112,17 @@ public class DataJson {
                         ["Result", "string"], ["Wave", "number"], ["Timestamp", "string"]].collect {
                     [label: it[0], type: it[1]]
                 }
-                def steamid64= queries["steamid64"]
-                def params= queries["tq"].tokenize(",")
-
-                def page= [params[0].toInteger(), 0].max()
-                def pageSize= params[1].toInteger()
+                def steamid64= queryValues[Queries.steamid64]
+                def page= [queryValues[Queries.page].toInteger(), 0].max()
+                def pageSize= queryValues[Queries.rows].toInteger()
                 def start= page * pageSize
                 def end= start + pageSize
 
                 WebCommon.adjustStartEnd("SELECT count(*) FROM sessions WHERE steamid64=?", [steamid64], start, end)
         
                 def sql= "SELECT * FROM sessions WHERE steamid64=?" 
-                if (params.size() >= 4) {
-                    sql+= "ORDER BY ${columns[params[2].toInteger()]['label']} ${params[3]} "
+                if (queryValues[Queries.group] != Queries.defaults[Queries.group]) {
+                    sql+= "ORDER BY ${queryValues[Queries.group]} ${queryValues[Queries.order]} "
                 }
                 sql+= "LIMIT ?,?"
 
@@ -145,18 +143,18 @@ public class DataJson {
                 columns= [["Stat", "string"], ["Count", "number"]].collect {
                     [label: it[0], type: it[1]]
                 }
-                if (queries["steamid64"] == null) {
+                if (queryValues[Queries.steamid64] == null) {
                     sql= 'SELECT * from aggregate where category=? ORDER BY stat ASC'
-                    psValues= [queries["table"]]
+                    psValues= [queryValues[Queries.table]]
                 } else {
                     sql= 'SELECT * from player where steamid64=? and category=? ORDER BY stat ASC'
-                    psValues= [queries["steamid64"], queries["table"]]
+                    psValues= [queryValues[Queries.steamid64], queryValues[Queries.table]]
                 }
                 Common.sql.eachRow(sql,psValues) {row ->
                     def fVal= null
                     def lower= row.stat.toLowerCase()
 
-                    if (queries["table"] == "perks" || lower.contains('time')) {
+                    if (queryValues[Queries.table] == "perks" || lower.contains('time')) {
                         fVal= Time.secToStr(row.value)
                     }
                     data << [c: [[v: row.stat, f:null, p: null], 

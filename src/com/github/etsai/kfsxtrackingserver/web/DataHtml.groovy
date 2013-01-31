@@ -17,8 +17,9 @@ public class DataHtml {
     
     public static String fillBody(def queries) {
         def data= ""
+        def queryValues= Queries.parseQuery(queries)
         
-        switch(queries["table"]) {
+        switch(queryValues[Queries.table]) {
             case "totals":
                 data= "<center><table class='content-table'><tbody>"
                 WebCommon.generateSummary().each {attr ->
@@ -27,7 +28,7 @@ public class DataHtml {
                 data+= "</tbody></table></center>"
                 break
             case "profile":
-                def steamid64= queries["steamid64"]
+                def steamid64= queryValues[Queries.steamid64]
                 def row=  Common.sql.firstRow("SELECT * FROM records where steamid64=?", [steamid64])
 
                 if (row == null) {

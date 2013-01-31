@@ -16,7 +16,8 @@ public enum Queries {
     rows,
     steamid64,
     order,
-    group
+    group,
+    table
 
     public static defaults= [(page): 0, (rows): 25, (order): "asc", (group): "none"]
     public static def parseQuery(def queries) {
@@ -25,5 +26,6 @@ public enum Queries {
             def keyStr= key.toString()
             values[key]= queries[keyStr] == null ? defaults[key] : queries[keyStr]
         }
+        return values
     }
 };

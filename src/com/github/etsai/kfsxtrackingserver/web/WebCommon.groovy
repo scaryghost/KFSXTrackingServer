@@ -70,12 +70,18 @@ public class WebCommon {
                 queries << "steamid64=$steamid64"
             case "records":
                 js= """
-        var page= 0, pageSize= 25, column, order, filled;
+        var page= 0, pageSize= 25, group="none", order= "asc", filled;
         var data, chart;
 
+        function buildQuery() {
+            return ["page=" + page, "rows=" + pageSize, "group=" + group, "order=" + order].join('&');
+        }
+        function buildDataTable() {
+            return new google.visualization.DataTable(\$.ajax({url: "data.json?${queries.join('&')}&" + buildQuery(), dataType:"json", async: false}).responseText);
+        }
         google.setOnLoadCallback(drawVisualization);
         function drawVisualization() {
-            data= new google.visualization.DataTable(\$.ajax({url: "data.json?${queries.join('&')}&tq=0,25", dataType:"json", async: false}).responseText);
+            data= buildDataTable();
             chart= new google.visualization.ChartWrapper({'chartType': 'Table', 'containerId': '${name}_div', 
                 'options': {
                     'page': 'event',
@@ -98,7 +104,7 @@ public class WebCommon {
                         page= 0;
                     }
 
-                    data= new google.visualization.DataTable(\$.ajax({url: "data.json?${queries.join('&')}&tq=" + page + "," + pageSize, dataType:"json", async: false}).responseText);
+                    data= buildDataTable();
                     if (data.getNumberOfRows() == 0 || (!filled && data.getNumberOfRows() != pageSize)) {
                         page--;
                     } else {
@@ -110,10 +116,10 @@ public class WebCommon {
                 });
                 google.visualization.events.addListener(chart.getChart(), 'sort', function(properties) {
                     order= properties["ascending"] ? "asc" : "desc";
-                    column= properties["column"];
-                    data= new google.visualization.DataTable(\$.ajax({url: "data.json?${queries.join('&')}&tq=" + page + "," + pageSize + "," + column + "," + order, dataType:"json", async: false}).responseText);
+                    group= data.getColumnLabel(properties["column"]);
+                    data= buildDataTable();
                     filled= data.getNumberOfRows() == pageSize;
-                    chart.setOption('sortColumn', column);
+                    chart.setOption('sortColumn', group);
                     chart.setOption('sortAscending', properties["ascending"]);
                     chart.setDataTable(data);
                     chart.draw();
