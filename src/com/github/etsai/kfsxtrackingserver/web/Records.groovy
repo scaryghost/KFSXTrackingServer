@@ -12,34 +12,20 @@ import com.github.etsai.kfsxtrackingserver.Common
  * @author etsai
  */
 public class Records {
-    public enum GetKeys {
-        page,
-        rows,
-        order,
-        group
-    };
-
-    public static final def defaults= [(GetKeys.page): 0, (GetKeys.rows): 25, (GetKeys.order): "asc", (GetKeys.group): "none"]
-
     public static String fillBody(def xmlBuilder, def queries) {
-        def getValues= [:]
-
-        GetKeys.values().each {key ->
-            def keyStr= key.toString()
-            getValues[key]= queries[keyStr] == null ? defaults[key] : queries[keyStr]
-        }
-        def page= [getValues[GetKeys.page].toInteger(), defaults[GetKeys.page]].max()
-        def rows= getValues[GetKeys.rows].toInteger()
+        def queryValues= Queries.parseQuery(queries)
+        def page= [queryValues[Queries.page].toInteger(), Queries.defaults[Queries.page]].max()
+        def rows= queryValues[Queries.rows].toInteger()
         def start= page * rows
         def end= start + rows
 
         WebCommon.adjustStartEnd("SELECT count(*) FROM records", [], start, end)
         
         xmlBuilder.kfstatsx() {
-            def attrs= [page: page, rows: rows, query: "&group=${getValues[GetKeys.group]}&order=${getValues[GetKeys.order]}"]
+            def attrs= [page: page, rows: rows, query: "&group=${queryValues[Queries.group]}&order=${queryValues[Queries.order]}"]
 
             ["name", "wins", "losses", "disconnects"].each {col ->
-                if (col == getValues[GetKeys.group] && getValues[GetKeys.order] == "desc") {
+                if (col == queryValues[Queries.group] && queryValues[Queries.order] == "desc") {
                     attrs[col]= "asc"
                 } else {
                     attrs[col]= "desc"
@@ -51,8 +37,8 @@ public class Records {
                 def psValues= [start, end - start] 
                 def sql= "SELECT r.steamid64,r.wins,r.losses,r.disconnects,s.name FROM records r INNER JOIN steaminfo s ON r.steamid64=s.steamid64 " 
 
-                if (getValues[GetKeys.group] != defaults[GetKeys.group]) {
-                    sql+= "ORDER BY ${getValues[GetKeys.group]} ${getValues[GetKeys.order]} "
+                if (queryValues[Queries.group] != Queries.defaults[Queries.group]) {
+                    sql+= "ORDER BY ${queryValues[Queries.group]} ${queryValues[Queries.order]} "
                 }
                 sql+= "LIMIT ?,?"
 

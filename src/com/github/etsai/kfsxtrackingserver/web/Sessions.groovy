@@ -11,37 +11,22 @@ import com.github.etsai.kfsxtrackingserver.Common
  * @author etsai
  */
 public class Sessions {
-    public enum GetKeys {
-        page,
-        rows,
-        steamid64,
-        order,
-        group
-    };
-
-    public static final def defaults= [(GetKeys.page): 0, (GetKeys.rows): 25, (GetKeys.order): "asc", (GetKeys.group): "none"]
-    
     public static String fillBody(def xmlBuilder, def queries) {
-        def getValues= [:]
+        def queryValues= Queries.parseQuery(queries)
 
-        GetKeys.values().each {key ->
-            def keyStr= key.toString()
-            getValues[key]= queries[keyStr] == null ? defaults[key] : queries[keyStr]
-        }
-
-        def page= [getValues[GetKeys.page].toInteger(), defaults[GetKeys.page]].max()
-        def rows= getValues[GetKeys.rows].toInteger()
+        def page= [queryValues[Queries.page].toInteger(), Queries.defaults[Queries.page]].max()
+        def rows= queryValues[Queries.rows].toInteger()
         def start= page * rows
         def end= start + rows
 
-        WebCommon.adjustStartEnd("SELECT count(*) FROM sessions WHERE steamid64=?", [getValues[GetKeys.steamid64]], start, end)
+        WebCommon.adjustStartEnd("SELECT count(*) FROM sessions WHERE steamid64=?", [queryValues[Queries.steamid64]], start, end)
         
         xmlBuilder.kfstatsx() {
-            def attrs= [category: "sessions", steamid64: getValues[GetKeys.steamid64], page: page, rows: rows, 
-                query: "&group=${getValues[GetKeys.group]}&order=${getValues[GetKeys.order]}"]
+            def attrs= [category: "sessions", steamid64: queryValues[Queries.steamid64], page: page, rows: rows, 
+                query: "&group=${queryValues[Queries.group]}&order=${queryValues[Queries.order]}"]
 
             ["level", "difficulty", "length", "result", "wave", "timestamp"].each {col ->
-                if (col == getValues[GetKeys.group] && getValues[GetKeys.order] == "desc") {
+                if (col == queryValues[Queries.group] && queryValues[Queries.order] == "desc") {
                     attrs[col]= "asc"
                 } else {
                     attrs[col]= "desc"
@@ -50,13 +35,13 @@ public class Sessions {
             'stats'(attrs) {
                 def sql= "SELECT * FROM sessions WHERE steamid64=? "
 
-                if (getValues[GetKeys.group] != defaults[GetKeys.group]) {
-                    sql+= "ORDER BY ${getValues[GetKeys.group]} ${getValues[GetKeys.order]} "
+                if (queryValues[Queries.group] != Queries.defaults[Queries.group]) {
+                    sql+= "ORDER BY ${queryValues[Queries.group]} ${queryValues[Queries.order]} "
                 }
                 sql+= "LIMIT ?,?"
                 
                 Common.logger.finest(sql)
-                Common.sql.eachRow(sql, [getValues[GetKeys.steamid64], start, end - start]) {row ->
+                Common.sql.eachRow(sql, [queryValues[Queries.steamid64], start, end - start]) {row ->
                     def result= row.toRowResult()
                     
                     result.remove("steamid64")
