@@ -8,6 +8,18 @@ public class WebCommon {
     public static def jsFiles= ['http/js/jquery-1.8.2.js', 'http/js/kfstatsx2.js', 'https://www.google.com/jsapi?autoload={"modules":[{"name":"visualization","version":"1"}]}']
     public static def stylesheets= ['http://fonts.googleapis.com/css?family=Vollkorn', 'http/css/kfstatsx2.css']
 
+    public static def partialQuery(queryValues, sqlQuery, basePsVals, rowHandler) {
+        def pageSize= queryValues[Queries.rows].toInteger()
+        def start= queryValues[Queries.page].toInteger() * pageSize
+        def end= start + pageSize
+
+        if (queryValues[Queries.group] != Queries.defaults[Queries.group]) {
+            sqlQuery+= "ORDER BY ${queryValues[Queries.group]} ${queryValues[Queries.order]} "
+        }
+        sqlQuery+= "LIMIT ?,?"
+        Common.sql.eachRow(sqlQuery, basePsVals.plus([start, end - start]), rowHandler)
+    }
+
     public static def getCategories() {
         def categories= []
         Common.sql.eachRow('SELECT category FROM aggregate GROUP BY category') {row ->
@@ -27,21 +39,6 @@ public class WebCommon {
         }
         return [["Games", games], ["Play Time", Time.secToStr(playTime)], ["Player Count", playerCount]].collect {
             [name: it[0], value: it[1]]
-        }
-    }
-    
-    public static void adjustStartEnd(def sql, def psValues, def start, def end) {
-        Common.sql.eachRow(sql, psValues) {row ->
-            if (row[0] == 0) {
-                start= 0
-                end= 0
-            } else {
-                if (start >= row[0]) {
-                    start= [0, row[0] - (row[0] % rows)].max()
-                    page= (row[0] / rows).toInteger()
-                }
-                if (end >= row[0]) end= row[0]
-            }
         }
     }
 

@@ -21,7 +21,7 @@ public class DataJson {
         def data= []
         def builder= new JsonBuilder()
         def queryValues= Queries.parseQuery(queries)
-        
+
         switch(queryValues[Queries.table]) {
             case "difficulties":
                 def totals= [wins: 0, losses: 0, time: 0]
@@ -84,50 +84,21 @@ public class DataJson {
                 columns= [["Name", "string"], ["Wins", "numbers"], ["Losses", "number"], ["Disconnects", "number"]].collect {
                     [label: it[0], type: it[1]]
                 }
-                def page= [queryValues[Queries.page].toInteger(), 0].max()
-                def pageSize= queryValues[Queries.rows].toInteger()
-                def start= page * pageSize
-                def end= start + pageSize
-        
-                WebCommon.adjustStartEnd("SELECT count(*) FROM records", [], start, end)
-        
-                def sql= "SELECT s.name,r.wins,r.losses,r.disconnects,r.steamid64 FROM records r INNER JOIN steaminfo s ON r.steamid64=s.steamid64 "
 
-                if (queryValues[Queries.group] != Queries.defaults[Queries.group]) {
-                    sql+= "ORDER BY ${queryValues[Queries.group]} ${queryValues[Queries.order]} "
-                }
-                sql+= "LIMIT ?,?"
-
-                Common.logger.finest(sql)
-                Common.sql.eachRow(sql, [start, end - start]) {row ->
+                WebCommon.partialQuery(queryValues, "SELECT s.name,r.wins,r.losses,r.disconnects,r.steamid64 FROM records r INNER JOIN steaminfo s ON r.steamid64=s.steamid64 ", 
+                    [], {row ->
                     data << [c: [[v: row.name, f: "<a href=profile.html?steamid64=${row.steamid64}>${row.name}</a>", p: null], 
                         [v: row.wins, f: null, p:[style: colStyle]],
                         [v: row.losses, f: null, p:[style: colStyle]],
                         [v: row.disconnects, f: null, p:[style: colStyle]]]]
-                }
-
+                })
                 break
             case "sessions":
                 columns= [["Level", "string"], ["Difficulty", "string"], ["Length", "string"],
                         ["Result", "string"], ["Wave", "number"], ["Timestamp", "string"]].collect {
                     [label: it[0], type: it[1]]
                 }
-                def steamid64= queryValues[Queries.steamid64]
-                def page= [queryValues[Queries.page].toInteger(), 0].max()
-                def pageSize= queryValues[Queries.rows].toInteger()
-                def start= page * pageSize
-                def end= start + pageSize
-
-                WebCommon.adjustStartEnd("SELECT count(*) FROM sessions WHERE steamid64=?", [steamid64], start, end)
-        
-                def sql= "SELECT * FROM sessions WHERE steamid64=?" 
-                if (queryValues[Queries.group] != Queries.defaults[Queries.group]) {
-                    sql+= "ORDER BY ${queryValues[Queries.group]} ${queryValues[Queries.order]} "
-                }
-                sql+= "LIMIT ?,?"
-
-                Common.logger.finest(sql)
-                Common.sql.eachRow(sql, [steamid64, start, end - start]) {row ->
+                WebCommon.partialQuery(queryValues, "SELECT * FROM sessions WHERE steamid64=?", [queryValues[Queries.steamid64]], {row ->
                     data << [c: [[v: row.level, f:null, p: null], 
                         [v: row.difficulty, f: null, p:[style: colStyle]],
                         [v: row.length, f: null, p:[style: colStyle]],
@@ -135,7 +106,7 @@ public class DataJson {
                         [v: row.wave, f: null, p:[style: colStyle]],
                         [v: row.timestamp, f: null, p:[style: colStyle]],
                     ]]
-                }
+                })
                 break
             default:
                 def sql, psValues

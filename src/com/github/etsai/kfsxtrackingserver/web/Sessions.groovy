@@ -14,15 +14,8 @@ public class Sessions {
     public static String fillBody(def xmlBuilder, def queries) {
         def queryValues= Queries.parseQuery(queries)
 
-        def page= [queryValues[Queries.page].toInteger(), Queries.defaults[Queries.page]].max()
-        def rows= queryValues[Queries.rows].toInteger()
-        def start= page * rows
-        def end= start + rows
-
-        WebCommon.adjustStartEnd("SELECT count(*) FROM sessions WHERE steamid64=?", [queryValues[Queries.steamid64]], start, end)
-        
         xmlBuilder.kfstatsx() {
-            def attrs= [category: "sessions", steamid64: queryValues[Queries.steamid64], page: page, rows: rows, 
+            def attrs= [category: "sessions", steamid64: queryValues[Queries.steamid64], page: queryValues[Queries.page], rows: queryValues[Queries.rows], 
                 query: "&group=${queryValues[Queries.group]}&order=${queryValues[Queries.order]}"]
 
             ["level", "difficulty", "length", "result", "wave", "timestamp"].each {col ->
@@ -33,20 +26,13 @@ public class Sessions {
                 }
             }
             'stats'(attrs) {
-                def sql= "SELECT * FROM sessions WHERE steamid64=? "
-
-                if (queryValues[Queries.group] != Queries.defaults[Queries.group]) {
-                    sql+= "ORDER BY ${queryValues[Queries.group]} ${queryValues[Queries.order]} "
-                }
-                sql+= "LIMIT ?,?"
-                
-                Common.logger.finest(sql)
-                Common.sql.eachRow(sql, [queryValues[Queries.steamid64], start, end - start]) {row ->
+                WebCommon.partialQuery(queryValues, "SELECT * FROM sessions WHERE steamid64=? ", 
+                        [queryValues[Queries.steamid64]], {row ->
                     def result= row.toRowResult()
                     
                     result.remove("steamid64")
                     'entry'(result)
-                }
+                })
             }
         }
     }
