@@ -13,8 +13,9 @@
 <xsl:variable name="head">
 <head>
     <meta http-equiv="Content-Type" content="text/html; charset=ISO-8859-1"/>
-    <title>KFSXTrackingServer</title>
+    <title>KFStatsX</title>
     <link rel="stylesheet" type="text/css" href="http/css/kfstatsx.css" />
+    <link rel='icon' type='image/vnd.microsoft.icon' href='http/ico/favicon.ico' />
     <script type="text/javascript" src="http/js/kfstatsx.js" ></script>
 </head>
 </xsl:variable>

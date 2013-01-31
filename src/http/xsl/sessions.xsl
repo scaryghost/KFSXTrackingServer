@@ -22,7 +22,7 @@
                 <form action="sessions.xml" method="get" style="text-align:left">
                     Goto page 
                     <input type='text' name='page'>
-                        <xsl:attribute name="value">
+                        <xsl:attribute name='value'>
                             <xsl:value-of select="stats/@page"/>
                         </xsl:attribute>
                     </input>
@@ -33,16 +33,21 @@
                         <option value="100">100</option>
                         <option value="250">250</option>
                     </select>
+                    <input type='hidden' name='steamid64'>
+                        <xsl:attribute name='value'>
+                            <xsl:value-of select="stats/@steamid64" />
+                        </xsl:attribute>
+                    </input>
                     <input type='submit' value='Update'/>
                     <a id="displayText">
                         <xsl:attribute name="href">
-                            sessions.xml?steamid64=<xsl:value-of select="stats/@steamid64" />&#38;page=<xsl:value-of select="(stats/@page)-1" />&#38;rows=<xsl:value-of select="stats/@rows"/><xsl:value-of select="records/@query"/>
+                            sessions.xml?steamid64=<xsl:value-of select="stats/@steamid64" />&#38;page=<xsl:value-of select="(stats/@page)-1" />&#38;rows=<xsl:value-of select="stats/@rows"/><xsl:value-of select="stats/@query"/>
                         </xsl:attribute>
                     &#171;
                     </a>
                     <a id="displayText">
                         <xsl:attribute name="href">
-                            sessions.xml?steamid64=<xsl:value-of select="stats/@steamid64" />&#38;page=<xsl:value-of select="(stats/@page)+1" />&#38;rows=<xsl:value-of select="stats/@rows"/><xsl:value-of select="records/@query"/>
+                            sessions.xml?steamid64=<xsl:value-of select="stats/@steamid64" />&#38;page=<xsl:value-of select="(stats/@page)+1" />&#38;rows=<xsl:value-of select="stats/@rows"/><xsl:value-of select="stats/@query"/>
                         </xsl:attribute>
                         &#187;
                     </a>
