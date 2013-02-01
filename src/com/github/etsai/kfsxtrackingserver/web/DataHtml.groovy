@@ -6,6 +6,7 @@
 package com.github.etsai.kfsxtrackingserver.web
 
 import com.github.etsai.kfsxtrackingserver.Common
+import groovy.xml.MarkupBuilder
 
 
 /**
@@ -14,39 +15,74 @@ import com.github.etsai.kfsxtrackingserver.Common
  */
 public class DataHtml {
     private static def colStyle= "text-align:center"
+    private static def tableAttr= [class: "content-table"]
     
     public static String fillBody(def queries) {
-        def data= ""
+        def writer= new StringWriter()
+        def xml= new MarkupBuilder(writer)
         def queryValues= Queries.parseQuery(queries)
         
         switch(queryValues[Queries.table]) {
             case "totals":
-                data= "<center><table class='content-table'><tbody>"
-                WebCommon.generateSummary().each {attr ->
-                    data+= "<tr><td>${attr['name']}</td><td>${attr['value']}</td></tr>"
+                xml.center() {
+                    table(tableAttr) {
+                        tbody() {
+                            WebCommon.generateSummary().each {attr ->
+                                tr() {
+                                    td(attr['name'])
+                                    td(attr['value'])
+                                }
+                            }
+                        }
                     }
-                data+= "</tbody></table></center>"
+                }
                 break
             case "profile":
                 def steamid64= queryValues[Queries.steamid64]
                 def row=  Common.sql.firstRow("SELECT * FROM records where steamid64=?", [steamid64])
 
                 if (row == null) {
-                    data= "<center>No records found for SteamID64: <a href='http://steamcommunity.com/profiles/${steamid64}'>$steamid64</a></center>"
+                    xml.center("No records found for SteamID64: ") {
+                        a(href: "<a href='http://steamcommunity.com/profiles/" + steamid64, steamid64)
+                    }
                 } else {
                     def steamIdInfo= SteamIDInfo.getSteamIDInfo(steamid64)
-                    data= "<center><table class='content-table'><tbody>"
 
-                    data+= "<tr><td>Name</td><td>${steamIdInfo.name}</td></tr>"
-                    data+= "<tr><td>Wins</td><td>${row.wins}</td><td rowspan='4'><img src='${steamIdInfo.avatar}' /></td>"
-                    data+= "</tr><tr><td>Losses</td><td>${row.losses}</td></tr><tr><td>Disconnects</td>"
-                    data+= "<td>${row.disconnects}</td></tr><tr><td>Steam Community</td><td><a target='_blank' href='"
-                    data+= "http://steamcommunity.com/profiles/${steamid64}'>${steamid64}</a></td></tr>";
-                    data+= "</tbody></table></center>"
+                    xml.center() {
+                        table(tableAttr) {
+                            tbody() {
+                                tr() {
+                                    td("Name")
+                                    td(steamIdInfo.name)
+                                }
+                                tr() {
+                                    td("Wins")
+                                    td(row.wins)
+                                    td(rowspan: "4") {
+                                        img(src: steamIdInfo.avatar)
+                                    }
+                                }
+                                tr() {
+                                    td("Losses")
+                                    td(row.losses)
+                                }
+                                tr() {
+                                    td("Disconnects")
+                                    td(row.disconnects)
+                                }
+                                tr() {
+                                    td("Steam Community")
+                                    td() {
+                                        a(target: "_blank", href: "http://steamcommunity.com/profiles/" + steamid64, steamid64)
+                                    }
+                                }
+                            }
+                        }
+                    }
                 }
                 break
         }
-        return data
+        return writer
     }
 }
 

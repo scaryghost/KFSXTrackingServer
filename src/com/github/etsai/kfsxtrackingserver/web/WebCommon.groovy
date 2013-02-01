@@ -6,16 +6,12 @@ import groovy.xml.MarkupBuilder
 
 public class WebCommon {
     public static def jsFiles= ['http/js/jquery-1.8.2.js', 'https://www.google.com/jsapi?autoload={"modules":[{"name":"visualization","version":"1"}]}']
-    public static def stylesheets= ['http://fonts.googleapis.com/css?family=Vollkorn', 'http/css/kfstatsx2.css']
+    public static def stylesheets= ['http://fonts.googleapis.com/css?family=Vollkorn', 'http/css/kfstatsxHtml.css']
     public static def scrollingJs= """
         //Div scrolling js taken from http://gazpo.com/2012/03/horizontal-content-scroll/
-        function goto(id, t){   
+        function goto(id){   
             //animate to the div id.
             \$(".contentbox-wrapper").animate({"left": -(\$(id).position().left)}, 600);
-            // remove "active" class from all links inside #nav
-            \$('#nav a').removeClass('active');
-            // add active class to the current link
-            \$(t).addClass('active');    
         }
     """
 
@@ -45,7 +41,7 @@ public class WebCommon {
                 games+= row.wins + row.losses
                 playTime+= row.time
         }
-        playerCount= Common.sql.firstRow('SELECT count(*) FROM records')
+        playerCount= Common.sql.firstRow('SELECT count(*) FROM records')[0]
 
         return [["Games", games], ["Play Time", Time.secToStr(playTime)], ["Player Count", playerCount]].collect {
             [name: it[0], value: it[1]]
@@ -224,7 +220,7 @@ public class WebCommon {
                 div(id:'wrap') {
                     div(id: 'nav') {
                         h3("Navigation") {
-                            select(onchange:'goto(this.options[this.selectedIndex].value, this); return false') {
+                            select(onchange:'goto(this.options[this.selectedIndex].value); return false') {
                                 nav.each {item ->
                                     def attr= [value: "#${item}_div"]
                                     if (item == nav.first()) {

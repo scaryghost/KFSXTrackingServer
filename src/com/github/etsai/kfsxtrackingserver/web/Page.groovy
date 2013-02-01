@@ -41,13 +41,13 @@ public abstract class Page {
                 } else {
                     xml.mkp.xmlDeclaration(version:'1.0')
                     switch (filename) {
-                        case "":
-                            extension= "xml"
                         case "index.xml":
                             xml.mkp.pi("xml-stylesheet":[type:"text/xsl",href:"http/xsl/index.xsl"])
                             Index.fillBody(xml)
                             body= writer.toString()
                             break
+                        case "":
+                            extension= "html"
                         case "index.html":
                             def nav= ["totals", "difficulties", "levels", "deaths"].plus(WebCommon.getCategories()) << "records"
                             body= WebCommon.generateHtml(nav, null)

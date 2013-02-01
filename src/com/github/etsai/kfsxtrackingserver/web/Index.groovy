@@ -6,8 +6,6 @@ import com.github.etsai.utils.Time
 public class Index {
     public static String fillBody(def xmlBuilder) {
         xmlBuilder.kfstatsx() {
-            def summaryInfo= WebCommon.generateSummary()
-            
             'stats'(category:"totals") {
                 WebCommon.generateSummary().each {attr ->
                     'entry'(attr)
@@ -18,7 +16,6 @@ public class Index {
                 def wins= 0, losses= 0, time= 0
                 sql.eachRow('SELECT * from difficulties order by name ASC') {row ->
                     def attr= [:]
-                    def accum= [row.wins, row.losses, row.time]
                     wins+= row.wins
                     losses+= row.losses
                     time+= row.time
@@ -28,7 +25,6 @@ public class Index {
                     attr["wins"]= row.wins
                     attr["losses"]= row.losses
                     attr["wave"]= String.format("%.2f",row.wave / (row.wins + row.losses))
-                    attr["time"]= Time.secToStr(row.time)
                     attr["rawtime"]= row.time
                     'entry'(attr)
                 }

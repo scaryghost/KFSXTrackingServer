@@ -46,7 +46,7 @@ public class SteamIDInfo {
                 return info
             } catch (IOException ex) {
                 Common.logger.log(Level.SEVERE, "Error polling steamcommunity.com", ex)
-                return new SteamIDInfo()
+                return new SteamIDInfo(name: "----Unavailable----")
             }
         }
         return new SteamIDInfo(name: row.name, avatar: row.avatar)
