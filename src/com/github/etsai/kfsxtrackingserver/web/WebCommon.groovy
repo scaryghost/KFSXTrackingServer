@@ -92,7 +92,9 @@ public class WebCommon {
                     'pageSize': pageSize,
                     'pagingButtonsConfiguration': 'both',
                     'showRowNumber': true,
-                    'allowHtml': true
+                    'allowHtml': true,
+                    'height': document.getElementById('${name}_div_outer').offsetHeight * 0.925,
+                    'width': document.getElementById('${name}_div_outer').offsetWidth * 0.985
                 }
             });
 
@@ -150,7 +152,7 @@ public class WebCommon {
             var data= new google.visualization.DataTable(\$.ajax({url: "data.json?${queries.join('&')}", dataType:"json", async: false}).responseText);
             var chart= new google.visualization.ChartWrapper({'chartType': 'BarChart', 'containerId': '${name}_div', 'options': {
                 'legend': {position: 'none'},
-                'chartArea': {height: '80%'},
+                'chartArea': {height: '90%'},
                 'vAxis': {textStyle: {fontSize: 15}}
             }});
             chart.setDataTable(data);
