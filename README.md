@@ -1,7 +1,10 @@
 KFSXTrackingServer
 ==================
+## Updating From 2.X
+To update from a previous 2.X version, only the KFSXTrackingServer.jar file and the http/ folder need to be copied.  
+Nothing else has changed except for a comment in the server.properties file.
 
-## Updating From Version 1.0
+## Updating From 1.0
 If you have just started running a tracking server, this section is irrelevant and you can skip ahead 
 to "Starting The Server".  Otherwise, keep reading.
 
@@ -16,7 +19,7 @@ Example:
     share/bin/convert.sh ${path to v1.0 db} share/etc/kfsxdb.sqlite  
     
 ### Server Properties
-For v2.1, the following properties have been removed:
+For v2.1 and on, the following properties have been removed:
 * steam.polling.period
 * db.write.period
 
@@ -36,4 +39,4 @@ Example:
     share/bin/startserver.sh (or .bat for Windows)  
 
 ## Release Notes:
-https://github.com/scaryghost/KFSXTrackingServer/wiki/Release-KFSXTrackingServer-2.1
+https://github.com/scaryghost/KFSXTrackingServer/wiki/Release-KFSXTrackingServer-2.1.34
