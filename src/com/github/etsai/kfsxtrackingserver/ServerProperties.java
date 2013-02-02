@@ -43,7 +43,7 @@ public class ServerProperties {
             props.setProperty(dbName, "kfsxdb.sqlite");
             props.setProperty(logLevel, "INFO");
             props.setProperty(numThreads, "8");
-            props.setProperty(steamPollingThreads, "8");
+            props.setProperty(steamPollingThreads, "1");
             defaults= new ServerProperties(props);
         }
         return defaults;
