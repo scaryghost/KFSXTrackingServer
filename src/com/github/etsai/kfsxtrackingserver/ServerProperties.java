@@ -78,22 +78,29 @@ public class ServerProperties {
             return 4;
         }
         
-        Integer nthreads= Integer.valueOf(properties.getProperty(numThreads));
-        if (nthreads < 4) {
-            Common.logger.log(Level.WARNING, "Need a minimum of 4 threads, only {0} set.  Using default value of 4", nthreads);
+        try {
+            Integer nthreads= Integer.valueOf(properties.getProperty(numThreads));
+            if (nthreads < 4) {
+                Common.logger.log(Level.WARNING, "Property num.threads requires a minimum of 4 threads, only {0} set.  Using default value of 4", nthreads);
+                return 4;
+            }
+            return nthreads;
+        } catch (NumberFormatException ex) {
+            Common.logger.log(Level.WARNING, "Invalid number given for num.threads.  Using default value of 4");
             return 4;
         }
-        return nthreads;
     }
     public Integer getSteamPollingThreads() {
         try {
             Integer nthreads= Integer.valueOf(properties.getProperty(steamPollingThreads));
             if (nthreads <= 0) {
-                return null;
+                Common.logger.log(Level.WARNING, "Property steam.polling.threads requires a minimum of 1  thread, only {0} set.  Using default value of 1", nthreads);
+                return 1;
             }
             return nthreads;
         } catch (NumberFormatException ex) {
-            return null;
+            Common.logger.log(Level.WARNING, "Invalid number given for steam.polling.threads.  Using default value of 1");
+            return 1;
         }
         
     }
