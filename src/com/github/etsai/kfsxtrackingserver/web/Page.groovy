@@ -101,7 +101,7 @@ public abstract class Page {
         def date= httpFormat.format(Calendar.getInstance().getTime())
         
         def content= extensions[extension]
-        def header= "HTTP/1.0 ${code} ${returnCodes[code]}\nConnection: close\nDate: ${date}\nContent-Type: ${content}\n\n"
+        def header= ["HTTP/1.1 ${code} ${returnCodes[code]}", "Connection: close", "Date: ${date}", "Content-Type: ${content}", "Content-Length: ${body.size()}", "\n"].join("\n")
         
         Common.logger.finest("HTTP Response: ${header}")
         output.write(header.getBytes())

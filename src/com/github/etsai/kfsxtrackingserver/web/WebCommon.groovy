@@ -266,6 +266,6 @@ public class WebCommon {
                 }
             }
         }
-        return writer.toString()
+        return "<!DOCTYPE HTML>\n$writer"
     }
 }
