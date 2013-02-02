@@ -36,15 +36,15 @@ public class SteamIDInfo {
         return new SteamIDInfo(name: name, avatar: avatar)
     }
     
-    public synchronized static def getSteamIDInfo(def steamID64) throws RuntimeException {
+    public synchronized static def getSteamIDInfo(def steamID64) {
         def row= Common.sql.firstRow("select * from steaminfo where steamid64=?", [steamID64])
         
         if (row == null) {
             try {
                 def info= poll(steamID64)
-                    Common.sql.execute("insert into steaminfo values (?, ?, ?);", [steamID64, info.name, info.avatar])
+                Common.sql.execute("insert into steaminfo values (?, ?, ?);", [steamID64, info.name, info.avatar])
                 return info
-            } catch (IOException ex) {
+            } catch (Exception ex) {
                 Common.logger.log(Level.SEVERE, "Error polling steamcommunity.com", ex)
                 return new SteamIDInfo(name: "----Unavailable----")
             }
@@ -55,14 +55,14 @@ public class SteamIDInfo {
     public static def verifySteamID64(def steamID64) {
         try {
             def info= poll(steamID64)
-                Common.sql.execute("insert or ignore into steaminfo values (?, ?, ?)", [steamID64, "null", "null"])
-                Common.sql.execute("update steaminfo set name=?, avatar=? where steamid64=?", [info.name, info.avatar, steamID64])
+            Common.sql.execute("insert or ignore into steaminfo values (?, ?, ?)", [steamID64, "null", "null"])
+            Common.sql.execute("update steaminfo set name=?, avatar=? where steamid64=?", [info.name, info.avatar, steamID64])
             return true;
-        } catch (RuntimeException ex) {
-            return false;
         } catch (IOException ex) {
             return true;
-        }
+        } catch (Exception ex) {
+            return false;
+        } 
     }
 }
 

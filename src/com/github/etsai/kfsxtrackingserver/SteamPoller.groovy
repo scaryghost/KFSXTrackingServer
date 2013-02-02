@@ -18,12 +18,8 @@ import java.util.concurrent.TimeUnit
  */
 public class SteamPoller implements Runnable {
     static class PollerThread implements Runnable {
-        private static final def count= new AtomicInteger()
+        public static final def count= new AtomicInteger()
         public def steamid64
-        
-        public static void resetCounter() {
-            count.set(0)
-        }
         
         @Override public void run() {
             SteamIDInfo.verifySteamID64(steamid64)
@@ -45,12 +41,13 @@ public class SteamPoller implements Runnable {
     
     @Override public void run() {
         def pollSteam= true
+        def start= System.currentTimeMillis()
         
         Common.logger.info("Polling steamcommunity.com with $nThreads threads")
         while(pollSteam) {
             def pool= Executors.newFixedThreadPool(nThreads);
             pollSteam= false
-            PollerThread.resetCounter()
+            PollerThread.count.set(0)
             sql.eachRow("select steamid64 from records except select steamid64 from steaminfo") {row ->
                 pool.submit(new PollerThread(steamid64: row.steamid64))
                 pollSteam= true
@@ -60,10 +57,11 @@ public class SteamPoller implements Runnable {
             while(!pool.awaitTermination(30, TimeUnit.SECONDS)) {
             }
             if (pollSteam) {
-                Common.logger.fine("Repolling missing steamid64s")
+                Common.logger.fine("Attempted to poll ${PollerThread.count.get()} profiles.  Repolling missed steamid64s")
             }
         }
-        Common.logger.info("Polling complete")
+        def end= System.currentTimeMillis()
+        Common.logger.info(String.format("Steam community polling complete, %1\$.2f seconds", (end - start)/(double)1000))
     }
 }
 
