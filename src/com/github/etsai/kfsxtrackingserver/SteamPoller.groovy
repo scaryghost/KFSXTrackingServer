@@ -18,11 +18,11 @@ import java.util.concurrent.TimeUnit
  */
 public class SteamPoller implements Runnable {
     static class PollerThread implements Runnable {
-        private static def count
+        private static final def count= new AtomicInteger()
         public def steamid64
         
         public static void resetCounter() {
-            count= new AtomicInteger()
+            count.set(0)
         }
         
         @Override public void run() {
@@ -44,22 +44,22 @@ public class SteamPoller implements Runnable {
     }
     
     @Override public void run() {
-        def count= 1
+        def pollSteam= true
         
         Common.logger.info("Polling steamcommunity.com with $nThreads threads")
-        while(count != 0) {
+        while(pollSteam) {
             def pool= Executors.newFixedThreadPool(nThreads);
-            count= 0
+            pollSteam= false
             PollerThread.resetCounter()
             sql.eachRow("select steamid64 from records except select steamid64 from steaminfo") {row ->
                 pool.submit(new PollerThread(steamid64: row.steamid64))
-                count++
+                pollSteam= true
             }
 
             pool.shutdown()
             while(!pool.awaitTermination(30, TimeUnit.SECONDS)) {
             }
-            if (count != 0) {
+            if (pollSteam) {
                 Common.logger.fine("Repolling missing steamid64s")
             }
         }

@@ -21,9 +21,9 @@ public class WebCommon {
         def end= start + pageSize
 
         if (queryValues[Queries.group] != Queries.defaults[Queries.group]) {
-            sqlQuery+= "ORDER BY ${queryValues[Queries.group]} ${queryValues[Queries.order]} "
+            sqlQuery+= " ORDER BY ${queryValues[Queries.group]} ${queryValues[Queries.order]}"
         }
-        sqlQuery+= "LIMIT ?,?"
+        sqlQuery+= " LIMIT ?,?"
         Common.sql.eachRow(sqlQuery, basePsVals.plus([start, end - start]), rowHandler)
     }
 
@@ -177,6 +177,7 @@ public class WebCommon {
             var data= new google.visualization.DataTable(\$.ajax({url: "data.json?${queries.join('&')}", dataType:"json", async: false}).responseText);
             var chart= new google.visualization.ChartWrapper({'chartType': '$visualClass', 'containerId': '${name}_div', 'options': $options});
             chart.setDataTable(data);
+            chart.setOption('title', '$name');
             chart.setOption('height', document.getElementById('${name}_div').offsetHeight * 0.975);
             chart.setOption('width', document.getElementById('${name}_div').offsetWidth * 0.985);
             chart.draw();
@@ -195,7 +196,12 @@ public class WebCommon {
             head() {
                 meta('http-equiv':'content-type', content:'text/html; charset=utf-8')
                 title("KFStatsX")
-    
+                
+                stylesheets.each {filename ->
+                    link(href: filename, rel:'stylesheet', type:'text/css')
+                }
+                link(rel:'shortcut icon', href: 'http/ico/favicon.ico')
+                
                 jsFiles.each {filename ->
                     script(type:'text/javascript', src:filename, '')
                 }
@@ -212,11 +218,6 @@ public class WebCommon {
                         mkp.yieldUnescaped(js)
                     }
                 }
-
-                stylesheets.each {filename ->
-                    link(href: filename, rel:'stylesheet', type:'text/css')
-                }
-                link(rel:'icon', type:'image/vnd.microsoft.icon', href: 'http/ico/favicon.ico')
             }
             body() {
                 div(id:'wrap') {

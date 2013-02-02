@@ -85,7 +85,7 @@ public class DataJson {
                     [label: it[0], type: it[1]]
                 }
 
-                WebCommon.partialQuery(queryValues, "SELECT s.name,r.wins,r.losses,r.disconnects,r.steamid64 FROM records r INNER JOIN steaminfo s ON r.steamid64=s.steamid64 ", 
+                WebCommon.partialQuery(queryValues, "SELECT s.name,r.wins,r.losses,r.disconnects,r.steamid64 FROM records r INNER JOIN steaminfo s ON r.steamid64=s.steamid64", 
                     [], {row ->
                     data << [c: [[v: row.name, f: "<a href=profile.html?steamid64=${row.steamid64}>${row.name}</a>", p: null], 
                         [v: row.wins, f: null, p:[style: colStyle]],
