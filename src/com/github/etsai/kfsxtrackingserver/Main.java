@@ -43,7 +43,7 @@ public class Main {
         logger.log(Level.INFO,"Loading stats from databse: {0}", props.getDbName());
         Class.forName("org.sqlite.JDBC");
         Common.sql= Sql.newInstance(String.format("jdbc:sqlite:%s", props.getDbName()));
-        Common.sql.execute("CREATE TEMP TABLE \"steaminfo\" (\"steamid64\" TEXT PRIMARY KEY  NOT NULL , \"name\" TEXT, \"avatar\" TEXT)");
+        Common.sql.execute("CREATE TABLE IF NOT EXISTS steaminfo (steamid64 TEXT PRIMARY KEY  NOT NULL , name TEXT, avatar TEXT)");
         Common.pool= Executors.newFixedThreadPool(props.getNumThreads());
         
         Accumulator.writer= new DataWriter(Common.sql);

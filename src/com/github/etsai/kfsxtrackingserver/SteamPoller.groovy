@@ -10,6 +10,7 @@ import groovy.sql.Sql
 import java.util.concurrent.ExecutorService
 import java.util.concurrent.Executors
 import java.util.concurrent.atomic.AtomicInteger
+import java.util.concurrent.ConcurrentHashMap
 import java.util.concurrent.TimeUnit
 
 /**
@@ -20,9 +21,11 @@ public class SteamPoller implements Runnable {
     static class PollerThread implements Runnable {
         public static final def count= new AtomicInteger()
         public def steamid64
+        public def steamInfo
         
         @Override public void run() {
-            SteamIDInfo.verifySteamID64(steamid64)
+            def info= SteamIDInfo.poll(steamid64)
+            steamInfo[steamid64]= info
             
             count.getAndAdd(1)
             if (count.get() % 50 == 0) {
@@ -46,10 +49,12 @@ public class SteamPoller implements Runnable {
         Common.logger.info("Polling steamcommunity.com with $nThreads threads")
         while(pollSteam) {
             def pool= Executors.newFixedThreadPool(nThreads);
+            def steamInfo= new ConcurrentHashMap()
+            
             pollSteam= false
             PollerThread.count.set(0)
             sql.eachRow("select steamid64 from records except select steamid64 from steaminfo") {row ->
-                pool.submit(new PollerThread(steamid64: row.steamid64))
+                pool.submit(new PollerThread(steamid64: row.steamid64, steamInfo: steamInfo))
                 pollSteam= true
             }
 
@@ -57,6 +62,12 @@ public class SteamPoller implements Runnable {
             while(!pool.awaitTermination(30, TimeUnit.SECONDS)) {
             }
             if (pollSteam) {
+                sql.withTransaction {
+                    steamInfo.each {steamID64, info ->
+                        sql.execute("insert or ignore into steaminfo values (?, ?, ?)", [steamID64, "null", "null"])
+                        sql.execute("update steaminfo set name=?, avatar=? where steamid64=?", [info.name, info.avatar, steamID64])
+                    }
+                }
                 Common.logger.fine("Attempted to poll ${PollerThread.count.get()} profiles.  Repolling missed steamid64s")
             }
         }
