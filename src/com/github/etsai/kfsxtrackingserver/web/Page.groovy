@@ -39,6 +39,12 @@ public abstract class Page {
                 if (extension == "xsl" || extension == "css" || extension == "js" || extension == "ico") {
                     body= new File(filename)
                 } else {
+                    GroovyClassLoader gcl = new GroovyClassLoader();
+                    Class clazz = gcl.parseClass(new File("sample.groovy"));
+                    Resource aScript = (Resource)clazz.newInstance();
+                    
+                    body= aScript.generatePage(queries)
+               /*
                     xml.mkp.xmlDeclaration(version:'1.0')
                     switch (filename) {
                         case "index.xml":
@@ -83,6 +89,7 @@ public abstract class Page {
                             extension= "html"
                             break
                     }
+                    */
                 }              
             }
         } catch (Exception ex) {
@@ -107,5 +114,6 @@ public abstract class Page {
         output.write(header.getBytes())
         if (request[0] != "HEAD")
             output.write(body.getBytes())
+        output.close()
     }
 }
