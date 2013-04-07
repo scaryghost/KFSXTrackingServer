@@ -1,0 +1,11 @@
+<resources>
+    <resource name="" groovy="IndexHtml.groovy" />
+    <resource name="data.html" groovy="DataHtml.groovy" />
+    <resource name="data.json" groovy="DataJson.groovy" />
+    <resource name="index.html" groovy="IndexHtml.groovy" />
+    <resource name="index.xml" groovy="IndexXml.groovy" />
+    <resource name="records.xml" groovy="RecordsXml.groovy" />
+    <resource name="profile.html" groovy="ProfileHtml.groovy" />
+    <resource name="profile.xml" groovy="ProfileXml.groovy" />
+    <resource name="sessions.xml" groovy="SessionsXml.groovy" />
+</resources>

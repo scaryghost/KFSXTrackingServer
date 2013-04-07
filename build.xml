@@ -96,7 +96,7 @@
     
     <target name="-post-jar">
         <copy todir="${dist.dir}/http" >
-            <fileset dir="${src.dir}/http" />
+            <fileset dir="http" />
         </copy>
         <copy file="README.md" todir="${dist.dir}"/>
         <delete file="${dist.dir}/README.TXT" />

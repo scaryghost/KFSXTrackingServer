@@ -2,7 +2,6 @@ package com.github.etsai.kfsxtrackingserver.web;
 
 import com.github.etsai.kfsxtrackingserver.Common
 import com.github.etsai.utils.Time
-import groovy.xml.MarkupBuilder
 import java.io.OutputStream
 import java.text.SimpleDateFormat
 import java.util.logging.Level
@@ -15,9 +14,6 @@ public abstract class Page {
         "js":"text/javascript", "json":"application/json", "ico":"image/vdn.microsoft.icon"]
 
     public static String generate(OutputStream output, String[] request) {
-        def writer= new StringWriter()
-        def xml= new MarkupBuilder(writer)
-        
         def code= 200, body
         def uri= URI.create(request[1])
         def filename= uri.getPath().substring(1)
@@ -32,6 +28,12 @@ public abstract class Page {
         }
         
         try {
+            def xmlRoot= new XmlSlurper().parse(new File("http/directory.xml"))
+            def resources= [:]
+            xmlRoot.resource.each {
+                resources[it.@name.toString()]= it.@groovy.toString()
+            }
+            
             if(!methods.contains(request[0])) {
                 code= 501
                 body= "${code} ${returnCodes[code]}"
@@ -39,57 +41,12 @@ public abstract class Page {
                 if (extension == "xsl" || extension == "css" || extension == "js" || extension == "ico") {
                     body= new File(filename)
                 } else {
-                    GroovyClassLoader gcl = new GroovyClassLoader();
-                    Class clazz = gcl.parseClass(new File("sample.groovy"));
-                    Resource aScript = (Resource)clazz.newInstance();
+                    def gcl= new GroovyClassLoader()
+                    gcl.addClasspath("http\\groovy")
+                    def clazz = gcl.parseClass(new File(new File("http\\groovy"), resources[filename]));
+                    def aScript = (Resource)clazz.newInstance();
                     
-                    body= aScript.generatePage(queries)
-               /*
-                    xml.mkp.xmlDeclaration(version:'1.0')
-                    switch (filename) {
-                        case "index.xml":
-                            xml.mkp.pi("xml-stylesheet":[type:"text/xsl",href:"http/xsl/index.xsl"])
-                            Index.fillBody(xml)
-                            body= writer.toString()
-                            break
-                        case "":
-                            extension= "html"
-                        case "index.html":
-                            def nav= ["totals", "difficulties", "levels", "deaths"].plus(WebCommon.getCategories()) << "records"
-                            body= WebCommon.generateHtml(nav, null)
-                            break
-                        case "records.xml":
-                            xml.mkp.pi("xml-stylesheet":[type:"text/xsl",href:"http/xsl/records.xsl"])
-                            Records.fillBody(xml, queries)
-                            body= writer.toString()
-                            break
-                        case "profile.xml":
-                            xml.mkp.pi("xml-stylesheet":[type:"text/xsl",href:"http/xsl/profile.xsl"])
-                            Profile.fillBody(xml, queries)
-                            body= writer.toString()
-                            break
-                        case "sessions.xml":
-                            xml.mkp.pi("xml-stylesheet":[type:"text/xsl",href:"http/xsl/sessions.xsl"])
-                            Sessions.fillBody(xml, queries)
-                            body= writer.toString()
-                            break
-                        case "data.json":
-                            body= DataJson.fillBody(queries)
-                            break
-                        case "data.html":
-                            body= DataHtml.fillBody(queries)
-                            break
-                        case "profile.html":
-                            def nav= ["profile"].plus(WebCommon.getCategories()) << "sessions"
-                            body= WebCommon.generateHtml(nav, queries["steamid64"])
-                            break
-                        default:
-                            code= 404
-                            body= "${code} ${returnCodes[code]}"
-                            extension= "html"
-                            break
-                    }
-                    */
+                    body= aScript.generatePage(Common.sql, queries)
                 }              
             }
         } catch (Exception ex) {

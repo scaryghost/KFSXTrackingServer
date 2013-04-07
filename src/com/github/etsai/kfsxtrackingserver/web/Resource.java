@@ -4,6 +4,7 @@
  */
 package com.github.etsai.kfsxtrackingserver.web;
 
+import groovy.sql.Sql;
 import java.util.Map;
 
 /**
@@ -11,5 +12,5 @@ import java.util.Map;
  * @author eric
  */
 public interface Resource {
-    String generatePage(Map<Queries, String> queries);
+    String generatePage(Sql sqlConn, Map<Queries, String> queries);
 }
