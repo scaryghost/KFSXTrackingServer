@@ -32,7 +32,7 @@ public abstract class Page {
             def resources= [:]
             def root= new File(xmlRoot.@root.toString())
             xmlRoot.resource.each {
-                resources[it.@name.toString()]= new File(root, it.@groovy)
+                resources[it.@name.toString()]= new File(root, it.@groovy.toString())
             }
             
             if(!methods.contains(request[0])) {
@@ -44,7 +44,7 @@ public abstract class Page {
                 } else {
                     def scriptName= resources[filename]
                     def gcl= new GroovyClassLoader()
-                    gcl.addClasspath(root)
+                    gcl.addClasspath(root.toString())
                     def clazz = gcl.parseClass(resources[filename]);
                     def aScript = (Resource)clazz.newInstance();
                     
