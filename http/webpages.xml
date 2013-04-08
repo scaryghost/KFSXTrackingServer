@@ -1,0 +1,11 @@
+<webpages classpath="groovy">
+    <page name="" script="IndexHtml.groovy" />
+    <page name="data.html" script="DataHtml.groovy" />
+    <page name="data.json" script="DataJson.groovy" />
+    <page name="index.html" script="IndexHtml.groovy" />
+    <page name="index.xml" script="IndexXml.groovy" />
+    <page name="records.xml" script="RecordsXml.groovy" />
+    <page name="profile.html" script="ProfileHtml.groovy" />
+    <page name="profile.xml" script="ProfileXml.groovy" />
+    <page name="sessions.xml" script="SessionsXml.groovy" />
+</webpages>

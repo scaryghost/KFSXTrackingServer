@@ -7,8 +7,8 @@ package com.github.etsai.kfsxtrackingserver;
 
 import java.io.FileReader;
 import java.io.IOException;
-import java.nio.file.FileSystems;
 import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.Properties;
 import java.util.logging.Level;
 
@@ -65,7 +65,7 @@ public class ServerProperties {
         return Integer.valueOf(properties.getProperty(httpPort));
     }
     public Path getHttpRootDir() {
-        return FileSystems.getDefault().getPath(properties.getProperty(httpRootDir));
+        return Paths.get(properties.getProperty(httpRootDir));
     }
     public String getPassword() {
         return properties.getProperty(password);

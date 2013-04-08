@@ -3,16 +3,18 @@ package com.github.etsai.kfsxtrackingserver.web;
 import com.github.etsai.kfsxtrackingserver.Common
 import com.github.etsai.utils.Time
 import java.io.OutputStream
-import java.nio.file.FileSystems
 import java.text.SimpleDateFormat
 import java.util.logging.Level
 import java.util.TimeZone
 import java.nio.file.Path
+import java.nio.file.Paths
+import java.nio.file.NoSuchFileException
 
 public abstract class Page {
-    private static def webpageInfo= "resource-info.xml"
+    private static def webpages= "webpages.xml"
     private static def methods= ["GET", "HEAD"]
-    private static def returnCodes= [200: "OK", 400: "Bad Request", 403: "Forbidden", 404: "Not Found", 500: "Internal Server Error", 501: "Not Implemented"]
+    private static def returnCodes= [200: "OK", 400: "Bad Request", 403: "Forbidden", 404: "Not Found", 500: "Internal Server Error", 
+            501: "Not Implemented"]
     private static def extensions= ["html":"text/html", "xml":"application/xml", "xsl":"application/xslt+xml", "css":"text/css", 
         "js":"text/javascript", "json":"application/json", "ico":"image/vdn.microsoft.icon"]
 
@@ -31,11 +33,12 @@ public abstract class Page {
         }
         
         try {
-            def xmlRoot= new XmlSlurper().parse(new File(httpRootDir.toFile(), webpageInfo))
+            def xmlRoot= new XmlSlurper().parse(httpRootDir.resolve(webpages).toFile())
             def resources= [:]
-            def root= new File(xmlRoot.@root.toString())
-            xmlRoot.resource.each {
-                resources[it.@name.toString()]= new File(root, it.@groovy.toString())
+            def root= httpRootDir.resolve(xmlRoot.@classpath.toString())
+
+            xmlRoot.page.each {
+                resources[it.@name.toString()]= root.resolve(it.@script.toString())
             }
             
             if(!methods.contains(request[0])) {
@@ -43,25 +46,26 @@ public abstract class Page {
                 body= "${code} ${returnCodes[code]}"
             } else {
                 if (resources[filename] == null) {
-                    def filePath= FileSystems.getDefault().getPath(filename)
-                    if (filePath.toRealPath().startsWith(httpRootDir.toRealPath())) {
-                        body= new File(filename)
-                        if (!body.exists()) {
-                            code= 404
+                    
+                    try {
+                        def filePath= Paths.get(filename)
+                        if (filePath.toRealPath().startsWith(httpRootDir.toRealPath())) {
+                            body= filePath.toFile()
+                        } else {
+                            code= 403
                             body= "${code} ${returnCodes[code]}"
                             extension= "html"
                         }
-                        
-                    } else {
-                        code= 403
+                    } catch (NoSuchFileException ex) {
+                        Common.logger.log(Level.SEVERE, "File: $filename does not exist", ex);
+                        code= 404
                         body= "${code} ${returnCodes[code]}"
                         extension= "html"
                     }
                 } else {
-                    def scriptName= resources[filename]
                     def gcl= new GroovyClassLoader()
                     gcl.addClasspath(root.toString())
-                    def clazz = gcl.parseClass(resources[filename]);
+                    def clazz = gcl.parseClass(resources[filename].toFile())
                     def aScript = (Resource)clazz.newInstance();
                     
                     body= aScript.generatePage(Common.sql, queries)
@@ -75,7 +79,7 @@ public abstract class Page {
             code= 500
             ex.printStackTrace(pw)
             body= "<pre>${code} ${returnCodes[code]}\n\n${sw.toString()}</pre>"
-            Common.logger.log(Level.SEVERE, "Error generating webpage", ex);
+            Common.logger.log(Level.SEVERE, "Error generating webpage", ex)
         }
         
         def httpFormat= new SimpleDateFormat("EEE, dd MMM yyyy HH:mm:ss zzz")
