@@ -1,4 +1,4 @@
-<resources>
+<resources root="http/groovy">
     <resource name="" groovy="IndexHtml.groovy" />
     <resource name="data.html" groovy="DataHtml.groovy" />
     <resource name="data.json" groovy="DataJson.groovy" />

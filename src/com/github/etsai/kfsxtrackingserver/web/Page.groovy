@@ -13,7 +13,7 @@ public abstract class Page {
     private static def extensions= ["html":"text/html", "xml":"application/xml", "xsl":"application/xslt+xml", "css":"text/css", 
         "js":"text/javascript", "json":"application/json", "ico":"image/vdn.microsoft.icon"]
 
-    public static String generate(OutputStream output, String[] request) {
+    public static String generate(OutputStream output, String[] request, String httpResourceInfo) {
         def code= 200, body
         def uri= URI.create(request[1])
         def filename= uri.getPath().substring(1)
@@ -28,22 +28,24 @@ public abstract class Page {
         }
         
         try {
-            def xmlRoot= new XmlSlurper().parse(new File("http/directory.xml"))
+            def xmlRoot= new XmlSlurper().parse(new File(httpResourceInfo))
             def resources= [:]
+            def root= new File(xmlRoot.@root.toString())
             xmlRoot.resource.each {
-                resources[it.@name.toString()]= it.@groovy.toString()
+                resources[it.@name.toString()]= new File(root, it.@groovy)
             }
             
             if(!methods.contains(request[0])) {
                 code= 501
                 body= "${code} ${returnCodes[code]}"
             } else {
-                if (extension == "xsl" || extension == "css" || extension == "js" || extension == "ico") {
+                if (resources[filename] == null) {
                     body= new File(filename)
                 } else {
+                    def scriptName= resources[filename]
                     def gcl= new GroovyClassLoader()
-                    gcl.addClasspath("http\\groovy")
-                    def clazz = gcl.parseClass(new File(new File("http\\groovy"), resources[filename]));
+                    gcl.addClasspath(root)
+                    def clazz = gcl.parseClass(resources[filename]);
                     def aScript = (Resource)clazz.newInstance();
                     
                     body= aScript.generatePage(Common.sql, queries)

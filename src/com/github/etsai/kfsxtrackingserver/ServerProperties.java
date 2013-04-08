@@ -19,6 +19,7 @@ public class ServerProperties {
     
     public static final String udpPort= "udp.port";
     public static final String httpPort= "http.port";
+    public static final String httpResourceInfo= "http.resource.info";
     public static final String password= "password";
     public static final String statsMsgTTL= "stats.msg.ttl";
     public static final String dbName= "db.name";
@@ -38,6 +39,7 @@ public class ServerProperties {
             Properties props= new Properties();
             props.setProperty(udpPort, "6000");
             props.setProperty(httpPort, "8080");
+            props.setProperty(httpResourceInfo, "http/directory.xml");
             props.setProperty(password, "server");
             props.setProperty(statsMsgTTL, "60000");
             props.setProperty(dbName, "kfsxdb.sqlite");
@@ -59,6 +61,9 @@ public class ServerProperties {
     }
     public Integer getHttpPort() {
         return Integer.valueOf(properties.getProperty(httpPort));
+    }
+    public String getHttpResourceInfo() {
+        return properties.getProperty(httpResourceInfo);
     }
     public String getPassword() {
         return properties.getProperty(password);
