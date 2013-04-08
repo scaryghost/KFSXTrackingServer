@@ -46,8 +46,14 @@ public abstract class Page {
                     def filePath= FileSystems.getDefault().getPath(filename)
                     if (filePath.toRealPath().startsWith(httpRootDir.toRealPath())) {
                         body= new File(filename)
+                        if (!body.exists()) {
+                            code= 404
+                            body= "${code} ${returnCodes[code]}"
+                            extension= "html"
+                        }
+                        
                     } else {
-                        code= 404
+                        code= 403
                         body= "${code} ${returnCodes[code]}"
                         extension= "html"
                     }
@@ -77,7 +83,8 @@ public abstract class Page {
         def date= httpFormat.format(Calendar.getInstance().getTime())
         
         def content= extensions[extension]
-        def header= ["HTTP/1.1 ${code} ${returnCodes[code]}", "Connection: close", "Date: ${date}", "Content-Type: ${content}", "Content-Length: ${body.size()}", "\n"].join("\n")
+        def header= ["HTTP/1.1 ${code} ${returnCodes[code]}", "Connection: close", "Date: ${date}", "Content-Type: ${content}", 
+                "Content-Length: ${body.size()}", "\n"].join("\n")
         
         Common.logger.finest("HTTP Response: ${header}")
         output.write(header.getBytes())
