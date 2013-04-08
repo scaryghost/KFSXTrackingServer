@@ -3,20 +3,19 @@
  * and open the template in the editor.
  */
 
-package com.github.etsai.kfsxtrackingserver.web
-
-import com.github.etsai.kfsxtrackingserver.Common
+import com.github.etsai.kfsxtrackingserver.web.Resource
 import com.github.etsai.utils.Time
 import groovy.json.JsonBuilder
+import groovy.sql.Sql
 
 /**
  * Generates the json data for the page data.json
  * @author etsai
  */
-public class DataJson {
+public class DataJson implements Resource {
     private static def colStyle= "text-align:center"
     
-    public static String fillBody(def queries) {
+    public String generatePage(Sql sql, Map<String, String> queries) {
         def columns
         def data= []
         def builder= new JsonBuilder()
@@ -29,7 +28,7 @@ public class DataJson {
                     ["Losses", "number"], ["Avg Wave", "number"], ["Time", "number"]].collect {
                     [label: it[0], type: it[1]]
                 }
-                Common.sql.eachRow('select * from difficulties') {row ->
+                sql.eachRow('select * from difficulties') {row ->
                     data << [c: [[v: row.name, f:null, p: null], 
                         [v: row.length, f: null, p:[style: colStyle]],
                         [v: row.wins, f: null, p:[style: colStyle]],
@@ -54,7 +53,7 @@ public class DataJson {
                 columns= [["Name", "string"], ["Wins", "number"], ["Losses", "number"], ["Time", "number"]].collect {
                     [label: it[0], type: it[1]]
                 }
-                Common.sql.eachRow('select * from levels') {row ->
+                sql.eachRow('select * from levels') {row ->
                     data << [c: [[v: row.name, f:null, p: null], 
                         [v: row.wins, f: null, p:[style: colStyle]],
                         [v: row.losses, f: null, p:[style: colStyle]],
@@ -74,7 +73,7 @@ public class DataJson {
                 columns= [["Death", "string"], ["Count", "number"]].collect {
                     [label: it[0], type: it[1]]
                 }
-                Common.sql.eachRow('select * from deaths ORDER BY name ASC') {row ->
+                sql.eachRow('select * from deaths ORDER BY name ASC') {row ->
                     data << [c: [[v: row.name, f:null, p: null], 
                         [v: row.count, f: null, p:[style: colStyle]],
                     ]]
@@ -85,7 +84,7 @@ public class DataJson {
                     [label: it[0], type: it[1]]
                 }
 
-                WebCommon.partialQuery(queryValues, "SELECT s.name,r.wins,r.losses,r.disconnects,r.steamid64 FROM records r INNER JOIN steaminfo s ON r.steamid64=s.steamid64", 
+                WebCommon.partialQuery(sql, queryValues, "SELECT s.name,r.wins,r.losses,r.disconnects,r.steamid64 FROM records r INNER JOIN steaminfo s ON r.steamid64=s.steamid64", 
                     [], {row ->
                     data << [c: [[v: row.name, f: "<a href=profile.html?steamid64=${row.steamid64}>${row.name}</a>", p: null], 
                         [v: row.wins, f: null, p:[style: colStyle]],
@@ -98,7 +97,7 @@ public class DataJson {
                         ["Result", "string"], ["Wave", "number"], ["Timestamp", "string"]].collect {
                     [label: it[0], type: it[1]]
                 }
-                WebCommon.partialQuery(queryValues, "SELECT * FROM sessions WHERE steamid64=?", [queryValues[Queries.steamid64]], {row ->
+                WebCommon.partialQuery(sql, queryValues, "SELECT * FROM sessions WHERE steamid64=?", [queryValues[Queries.steamid64]], {row ->
                     data << [c: [[v: row.level, f:null, p: null], 
                         [v: row.difficulty, f: null, p:[style: colStyle]],
                         [v: row.length, f: null, p:[style: colStyle]],
@@ -109,19 +108,19 @@ public class DataJson {
                 })
                 break
             default:
-                def sql, psValues
+                def query, psValues
 
                 columns= [["Stat", "string"], ["Count", "number"]].collect {
                     [label: it[0], type: it[1]]
                 }
                 if (queryValues[Queries.steamid64] == null) {
-                    sql= 'SELECT * from aggregate where category=? ORDER BY stat ASC'
+                    query= 'SELECT * from aggregate where category=? ORDER BY stat ASC'
                     psValues= [queryValues[Queries.table]]
                 } else {
-                    sql= 'SELECT * from player where steamid64=? and category=? ORDER BY stat ASC'
+                    query= 'SELECT * from player where steamid64=? and category=? ORDER BY stat ASC'
                     psValues= [queryValues[Queries.steamid64], queryValues[Queries.table]]
                 }
-                Common.sql.eachRow(sql,psValues) {row ->
+                sql.eachRow(query, psValues) {row ->
                     def fVal= null
                     def lower= row.stat.toLowerCase()
 

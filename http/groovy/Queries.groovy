@@ -3,10 +3,6 @@
  * and open the template in the editor.
  */
 
-package com.github.etsai.kfsxtrackingserver.web
-
-import java.util.Map;
-
 /**
  * Valid get query keys for the web server
  * @author etsai

@@ -3,17 +3,21 @@
  * and open the template in the editor.
  */
 
-package com.github.etsai.kfsxtrackingserver.web
-import com.github.etsai.kfsxtrackingserver.Common
+import com.github.etsai.kfsxtrackingserver.web.Resource
+import groovy.sql.Sql
+import groovy.xml.MarkupBuilder
 
 /**
  * Generates the xml for a player's session history
  * @author etsai
  */
-public class Sessions {
-    public static String fillBody(def xmlBuilder, def queries) {
+public class SessionsXml implements Resource {
+    public String generatePage(Sql sql, Map<String, String> queries) {
         def queryValues= Queries.parseQuery(queries)
 
+        def writer= new StringWriter()
+        def xmlBuilder= new MarkupBuilder(writer)
+        xmlBuilder.mkp.pi("xml-stylesheet":[type:"text/xsl",href:"http/xsl/sessions.xsl"])
         xmlBuilder.kfstatsx() {
             def attrs= [category: "sessions", steamid64: queryValues[Queries.steamid64], page: queryValues[Queries.page], rows: queryValues[Queries.rows], 
                 query: "&group=${queryValues[Queries.group]}&order=${queryValues[Queries.order]}"]
@@ -26,7 +30,7 @@ public class Sessions {
                 }
             }
             'stats'(attrs) {
-                WebCommon.partialQuery(queryValues, "SELECT * FROM sessions WHERE steamid64=? ", 
+                WebCommon.partialQuery(sql, queryValues, "SELECT * FROM sessions WHERE steamid64=? ", 
                         [queryValues[Queries.steamid64]], {row ->
                     def result= row.toRowResult()
                     
@@ -35,6 +39,8 @@ public class Sessions {
                 })
             }
         }
+
+        return writer
     }
 }
 

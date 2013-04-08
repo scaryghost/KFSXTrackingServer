@@ -3,21 +3,19 @@
  * and open the template in the editor.
  */
 
-package com.github.etsai.kfsxtrackingserver.web
-
-import com.github.etsai.kfsxtrackingserver.Common
+import com.github.etsai.kfsxtrackingserver.web.*
+import groovy.sql.Sql
 import groovy.xml.MarkupBuilder
-
 
 /**
  * Generates the html data for the page data.html
  * @author etsai
  */
-public class DataHtml {
+public class DataHtml implements Resource {
     private static def colStyle= "text-align:center"
     private static def tableAttr= [class: "content-table"]
     
-    public static String fillBody(def queries) {
+    public String generatePage(Sql sql, Map<String, String> queries) {
         def writer= new StringWriter()
         def xml= new MarkupBuilder(writer)
         def queryValues= Queries.parseQuery(queries)
@@ -27,7 +25,7 @@ public class DataHtml {
                 xml.center() {
                     table(tableAttr) {
                         tbody() {
-                            WebCommon.generateSummary().each {attr ->
+                            WebCommon.generateSummary(sql).each {attr ->
                                 tr() {
                                     td(attr['name'])
                                     td(attr['value'])
@@ -39,7 +37,7 @@ public class DataHtml {
                 break
             case "profile":
                 def steamid64= queryValues[Queries.steamid64]
-                def row=  Common.sql.firstRow("SELECT * FROM records where steamid64=?", [steamid64])
+                def row= sql.firstRow("SELECT * FROM records where steamid64=?", [steamid64])
 
                 if (row == null) {
                     xml.center("No records found for SteamID64: ") {

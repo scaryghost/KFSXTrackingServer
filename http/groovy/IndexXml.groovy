@@ -1,13 +1,17 @@
-package com.github.etsai.kfsxtrackingserver.web
-
-import static com.github.etsai.kfsxtrackingserver.Common.sql
+import com.github.etsai.kfsxtrackingserver.web.Resource
 import com.github.etsai.utils.Time
+import groovy.sql.Sql
+import groovy.xml.MarkupBuilder
 
-public class Index {
-    public static String fillBody(def xmlBuilder) {
+public class IndexXml implements Resource {
+    public String generatePage(Sql sql, Map<String, String> queries) {
+        def writer= new StringWriter()
+        def xmlBuilder= new MarkupBuilder(writer)
+
+        xmlBuilder.mkp.pi("xml-stylesheet":[type:"text/xsl",href:"http/xsl/index.xsl"])
         xmlBuilder.kfstatsx() {
             'stats'(category:"totals") {
-                WebCommon.generateSummary().each {attr ->
+                WebCommon.generateSummary(sql).each {attr ->
                     'entry'(attr)
                 }
             }
@@ -75,5 +79,6 @@ public class Index {
                 }
             }
         }
+        return writer
     }
 }

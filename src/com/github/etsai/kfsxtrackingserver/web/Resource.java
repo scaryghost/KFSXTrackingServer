@@ -12,5 +12,5 @@ import java.util.Map;
  * @author eric
  */
 public interface Resource {
-    String generatePage(Sql sqlConn, Map<String, String> queries);
+    public String generatePage(Sql sql, Map<String, String> queries);
 }

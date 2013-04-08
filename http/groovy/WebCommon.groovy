@@ -1,6 +1,3 @@
-package com.github.etsai.kfsxtrackingserver.web
-
-import com.github.etsai.kfsxtrackingserver.Common
 import com.github.etsai.utils.Time
 import groovy.xml.MarkupBuilder
 
@@ -15,7 +12,7 @@ public class WebCommon {
         }
     """
 
-    public static def partialQuery(queryValues, sqlQuery, basePsVals, rowHandler) {
+    public static def partialQuery(sql, queryValues, sqlQuery, basePsVals, rowHandler) {
         def pageSize= queryValues[Queries.rows].toInteger()
         def start= queryValues[Queries.page].toInteger() * pageSize
         def end= start + pageSize
@@ -24,24 +21,24 @@ public class WebCommon {
             sqlQuery+= " ORDER BY ${queryValues[Queries.group]} ${queryValues[Queries.order]}"
         }
         sqlQuery+= " LIMIT ?,?"
-        Common.sql.eachRow(sqlQuery, basePsVals.plus([start, end - start]), rowHandler)
+        sql.eachRow(sqlQuery, basePsVals.plus([start, end - start]), rowHandler)
     }
 
-    public static def getCategories() {
+    public static def getCategories(sql) {
         def categories= []
-        Common.sql.eachRow('SELECT category FROM aggregate GROUP BY category') {row ->
+        sql.eachRow('SELECT category FROM aggregate GROUP BY category') {row ->
             categories << row.category
         }
         return categories
     }
 
-    public static def generateSummary() {
+    public static def generateSummary(sql) {
         def games= 0, playTime= 0, playerCount
-        Common.sql.eachRow('select * from difficulties') {row ->
+        sql.eachRow('select * from difficulties') {row ->
                 games+= row.wins + row.losses
                 playTime+= row.time
         }
-        playerCount= Common.sql.firstRow('SELECT count(*) FROM records')[0]
+        playerCount= sql.firstRow('SELECT count(*) FROM records')[0]
 
         return [["Games", games], ["Play Time", Time.secToStr(playTime)], ["Player Count", playerCount]].collect {
             [name: it[0], value: it[1]]
