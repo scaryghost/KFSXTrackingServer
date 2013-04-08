@@ -3,17 +3,20 @@ package com.github.etsai.kfsxtrackingserver.web;
 import com.github.etsai.kfsxtrackingserver.Common
 import com.github.etsai.utils.Time
 import java.io.OutputStream
+import java.nio.file.FileSystems
 import java.text.SimpleDateFormat
 import java.util.logging.Level
 import java.util.TimeZone
+import java.nio.file.Path
 
 public abstract class Page {
+    private static def webpageInfo= "resource-info.xml"
     private static def methods= ["GET", "HEAD"]
     private static def returnCodes= [200: "OK", 400: "Bad Request", 403: "Forbidden", 404: "Not Found", 500: "Internal Server Error", 501: "Not Implemented"]
     private static def extensions= ["html":"text/html", "xml":"application/xml", "xsl":"application/xslt+xml", "css":"text/css", 
         "js":"text/javascript", "json":"application/json", "ico":"image/vdn.microsoft.icon"]
 
-    public static String generate(OutputStream output, String[] request, String httpResourceInfo) {
+    public static String generate(OutputStream output, String[] request, Path httpRootDir) {
         def code= 200, body
         def uri= URI.create(request[1])
         def filename= uri.getPath().substring(1)
@@ -28,7 +31,7 @@ public abstract class Page {
         }
         
         try {
-            def xmlRoot= new XmlSlurper().parse(new File(httpResourceInfo))
+            def xmlRoot= new XmlSlurper().parse(new File(httpRootDir.toFile(), webpageInfo))
             def resources= [:]
             def root= new File(xmlRoot.@root.toString())
             xmlRoot.resource.each {
@@ -40,7 +43,14 @@ public abstract class Page {
                 body= "${code} ${returnCodes[code]}"
             } else {
                 if (resources[filename] == null) {
-                    body= new File(filename)
+                    def filePath= FileSystems.getDefault().getPath(filename)
+                    if (filePath.toRealPath().startsWith(httpRootDir.toRealPath())) {
+                        body= new File(filename)
+                    } else {
+                        code= 404
+                        body= "${code} ${returnCodes[code]}"
+                        extension= "html"
+                    }
                 } else {
                     def scriptName= resources[filename]
                     def gcl= new GroovyClassLoader()

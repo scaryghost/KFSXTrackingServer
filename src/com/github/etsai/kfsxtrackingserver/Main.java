@@ -49,7 +49,7 @@ public class Main {
         Accumulator.writer= new DataWriter(Common.sql);
         Accumulator.statMsgTTL= props.getStatsMsgTTL();
         Packet.password= props.getPassword();
-        HTTPListener.httpResourceInfo= props.getHttpResourceInfo();
+        HTTPListener.httpRootDir= props.getHttpRootDir();
         
         Runtime.getRuntime().addShutdownHook(new Thread() {
             @Override

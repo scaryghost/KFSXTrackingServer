@@ -8,10 +8,11 @@ import java.io.IOException;
 import java.io.InputStreamReader;
 import java.net.ServerSocket;
 import java.net.Socket;
+import java.nio.file.Path;
 import java.util.logging.Level;
 
 public class HTTPListener implements Runnable {
-    public static String httpResourceInfo;
+    public static Path httpRootDir;
     
     private final int port;
     private ServerSocket httpSocket;
@@ -53,7 +54,7 @@ public class HTTPListener implements Runnable {
                 String[] requestParts= request.split(" ");
 
                 logger.log(Level.FINEST, "HTTP request: {0}", request);
-                Page.generate(connection.getOutputStream(), requestParts, httpResourceInfo);
+                Page.generate(connection.getOutputStream(), requestParts, httpRootDir);
             } catch (IOException ex) {
                 logger.log(Level.SEVERE, null, ex);
             }
