@@ -20,6 +20,7 @@ import java.util.logging.*;
  * @author etsai
  */
 public class Main {
+    private static Sql[] sqlConnections= new Sql[5];
     private static ConsoleHandler logConsoleHandler;
     private static FileWriter logWriter;
     
@@ -39,31 +40,39 @@ public class Main {
         }
         
         initLogging(props.getLogLevel());
-                
-        logger.log(Level.INFO,"Loading stats from databse: {0}", props.getDbName());
-        Class.forName("org.sqlite.JDBC");
-        Common.sql= Sql.newInstance(String.format("jdbc:sqlite:%s", props.getDbName()));
-        Common.sql.execute("CREATE TABLE IF NOT EXISTS steaminfo (steamid64 TEXT PRIMARY KEY  NOT NULL , name TEXT, avatar TEXT)");
-        Common.pool= Executors.newFixedThreadPool(props.getNumThreads());
-        
-        Accumulator.writer= new DataWriter(Common.sql);
-        Accumulator.statMsgTTL= props.getStatsMsgTTL();
-        Packet.password= props.getPassword();
-        HTTPListener.httpRootDir= props.getHttpRootDir();
+        initModules(props);
         
         Runtime.getRuntime().addShutdownHook(new Thread() {
             @Override
             public void run() {
-                Common.sql.close();
+                for(Sql sqlConn: sqlConnections) {
+                    sqlConn.close();
+                }
                 logger.info("Shutting down server");
             }
         });
         
         Common.pool.submit(new UDPListener(props.getUdpPort()));
-        Common.pool.submit(new HTTPListener(props.getHttpPort()));
-        Common.pool.submit(new SteamPoller(Common.sql, props.getSteamPollingThreads()));
+        Common.pool.submit(new HTTPListener(props.getHttpPort(), sqlConnections[1]));
+        Common.pool.submit(new SteamPoller(sqlConnections[2], props.getSteamPollingThreads()));
     }
     
+    public static void initModules(ServerProperties props) throws ClassNotFoundException, SQLException {
+        logger.log(Level.INFO,"Loading stats from databse: {0}", props.getDbName());
+        
+        Class.forName("org.sqlite.JDBC");
+        Common.pool= Executors.newFixedThreadPool(props.getNumThreads());
+        for(int i= 0; i < sqlConnections.length; i++) {
+            sqlConnections[i]= Sql.newInstance(String.format("jdbc:sqlite:%s", props.getDbName()));
+        }
+        sqlConnections[0].execute("CREATE TABLE IF NOT EXISTS steaminfo (steamid64 TEXT PRIMARY KEY  NOT NULL , name TEXT, avatar TEXT)");
+        
+        Accumulator.writer= new DataWriter(sqlConnections[0]);
+        Accumulator.statMsgTTL= props.getStatsMsgTTL();
+        Packet.password= props.getPassword();
+        HTTPListener.httpRootDir= props.getHttpRootDir();
+        
+    }
     public static void initLogging(Level logLevel) {
         try {
             logWriter= TeeLogger.getFileWriter("kfsxtracking", new File("log"));

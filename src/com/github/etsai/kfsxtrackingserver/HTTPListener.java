@@ -3,6 +3,7 @@ package com.github.etsai.kfsxtrackingserver;
 import static com.github.etsai.kfsxtrackingserver.Common.logger;
 import static com.github.etsai.kfsxtrackingserver.Common.pool;
 import com.github.etsai.kfsxtrackingserver.web.Page;
+import groovy.sql.Sql;
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
@@ -15,10 +16,11 @@ public class HTTPListener implements Runnable {
     public static Path httpRootDir;
     
     private final int port;
-    private ServerSocket httpSocket;
+    private Sql sql;
 
-    public HTTPListener(int port) {
+    public HTTPListener(int port, Sql sql) {
         this.port= port;
+        this.sql= sql;
     }
 
     @Override
@@ -26,8 +28,7 @@ public class HTTPListener implements Runnable {
         logger.log(Level.INFO, "Listening for http requests on port: {0}", port);
         
         try {
-            httpSocket= new ServerSocket(port);
-            
+            ServerSocket httpSocket= new ServerSocket(port);
             while(true) {
                 Socket connection= httpSocket.accept();
                 logger.info(String.format("Received TCP connection from %s:%d", 
