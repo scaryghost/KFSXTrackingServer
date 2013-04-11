@@ -60,7 +60,7 @@ public class Accumulator {
                         Common.logger.info("Saving packets for steamID64: $id")
                         try {
                             def info= SteamPoller.poll(id)
-                            writer.writeSteamInfo(id, info[0], infio[1])
+                            writer.writeSteamInfo(id, info[0], info[1])
                             writer.writePlayerData(packets)
                         } catch (IOException ex) {
                             writer.writePlayerData(packets)

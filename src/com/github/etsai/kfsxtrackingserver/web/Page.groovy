@@ -1,7 +1,9 @@
 package com.github.etsai.kfsxtrackingserver.web;
 
 import com.github.etsai.kfsxtrackingserver.Common
+import com.github.etsai.kfsxtrackingserver.impl.DataReaderImpl
 import com.github.etsai.utils.Time
+import groovy.sql.Sql
 import java.io.OutputStream
 import java.text.SimpleDateFormat
 import java.util.logging.Level
@@ -11,6 +13,7 @@ import java.nio.file.Paths
 import java.nio.file.NoSuchFileException
 
 public abstract class Page {
+    public static def Sql sql
     private static def webpages= "webpages.xml"
     private static def methods= ["GET", "HEAD"]
     private static def returnCodes= [200: "OK", 400: "Bad Request", 403: "Forbidden", 404: "Not Found", 500: "Internal Server Error", 
@@ -46,7 +49,6 @@ public abstract class Page {
                 body= "${code} ${returnCodes[code]}"
             } else {
                 if (resources[filename] == null) {
-                    
                     try {
                         def filePath= Paths.get(filename)
                         if (filePath.toRealPath().startsWith(httpRootDir.toRealPath())) {
@@ -68,7 +70,7 @@ public abstract class Page {
                     def clazz = gcl.parseClass(resources[filename].toFile())
                     def aScript = (Resource)clazz.newInstance();
                     
-                    body= aScript.generatePage(Common.sql, queries)
+                    body= aScript.generatePage(new DataReaderImpl(sql: sql), queries)
                 }              
             }
         } catch (Exception ex) {

@@ -5,6 +5,7 @@
 package com.github.etsai.kfsxtrackingserver;
 
 import static com.github.etsai.kfsxtrackingserver.Common.*;
+import com.github.etsai.kfsxtrackingserver.web.Page;
 import com.github.etsai.utils.logging.TeeLogger;
 import groovy.sql.Sql;
 import java.io.File;
@@ -53,7 +54,7 @@ public class Main {
         });
         
         Common.pool.submit(new UDPListener(props.getUdpPort()));
-        Common.pool.submit(new HTTPListener(props.getHttpPort(), sqlConnections[1]));
+        Common.pool.submit(new HTTPListener(props.getHttpPort()));
     }
     
     public static void initModules(ServerProperties props) throws ClassNotFoundException, SQLException {
@@ -68,6 +69,7 @@ public class Main {
         Common.pool.submit(new SteamPoller(Sql.newInstance(String.format("jdbc:sqlite:%s", props.getDbName())), 
                 props.getSteamPollingThreads()));
         
+        Page.sql= sqlConnections[1];
         Accumulator.writer= new DataWriter(sqlConnections[0]);
         Accumulator.statMsgTTL= props.getStatsMsgTTL();
         Packet.password= props.getPassword();
