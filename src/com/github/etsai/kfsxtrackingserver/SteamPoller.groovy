@@ -5,8 +5,8 @@
 
 package com.github.etsai.kfsxtrackingserver
 
-import com.github.etsai.kfsxtrackingserver.web.SteamIDInfo
 import groovy.sql.Sql
+import java.nio.charset.Charset
 import java.util.concurrent.ExecutorService
 import java.util.concurrent.Executors
 import java.util.concurrent.atomic.AtomicInteger
@@ -18,14 +18,33 @@ import java.util.concurrent.TimeUnit
  * @author eric
  */
 public class SteamPoller implements Runnable {
+    public static def poll(def steamID64) {
+        def url= new URL("http://steamcommunity.com/profiles/${steamID64}?xml=1")
+        def content= url.getContent().readLines().join("\n")
+        def steamXmlRoot= new XmlSlurper().parseText(content)
+        def name, avatar
+
+        Common.logger.finest("Polling steamcommunity for steamID64: ${steamID64}")
+        if (steamXmlRoot.error != "") {
+            throw new RuntimeException("Invalid steamID64: $steamID64")
+        } else if (steamXmlRoot.privacyMessage != "") {
+            name= "---Profile not setup---"
+            avatar= ""
+        } else {
+            def tempName= steamXmlRoot.steamID.text()
+            name= new String(tempName.getBytes(Charset.availableCharsets()["US-ASCII"]))
+            avatar= steamXmlRoot.avatarMedium
+        }
+        return [name, avatar]
+    }
+    
     static class PollerThread implements Runnable {
         public static final def count= new AtomicInteger()
         public def steamid64
         public def steamInfo
         
         @Override public void run() {
-            def info= SteamIDInfo.poll(steamid64)
-            steamInfo[steamid64]= info
+            steamInfo[steamid64]= poll(steamid64)
             
             count.getAndAdd(1)
             if (count.get() % 50 == 0) {
@@ -65,7 +84,7 @@ public class SteamPoller implements Runnable {
                 sql.withTransaction {
                     steamInfo.each {steamID64, info ->
                         sql.execute("insert or ignore into steaminfo values (?, ?, ?)", [steamID64, "null", "null"])
-                        sql.execute("update steaminfo set name=?, avatar=? where steamid64=?", [info.name, info.avatar, steamID64])
+                        sql.execute("update steaminfo set name=?, avatar=? where steamid64=?", [info[0], info[1], steamID64])
                     }
                 }
                 Common.logger.fine("Attempted to poll ${PollerThread.count.get()} profiles.  Repolling missed steamid64s")

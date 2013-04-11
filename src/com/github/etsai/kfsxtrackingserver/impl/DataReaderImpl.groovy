@@ -7,7 +7,7 @@ package com.github.etsai.kfsxtrackingserver.impl
 
 import static com.github.etsai.kfsxtrackingserver.DataReader.Order
 import com.github.etsai.kfsxtrackingserver.DataReader
-import com.github.etsai.kfsxtrackingserver.web.SteamIDInfo
+import com.github.etsai.kfsxtrackingserver.SteamPoller
 import groovy.sql.Sql
 
 /**
@@ -71,10 +71,10 @@ public class DataReaderImpl implements DataReader {
         
         if (row == null) {
             try {
-                def info= poll(id)
+                def info= SteamPoller.poll(id)
                 row= [:]
                 sql.withTransaction {
-                    sql.execute("insert into steaminfo values (?, ?, ?);", [steamID64, info.name, info.avatar])
+                    sql.execute("insert into steaminfo values (?, ?, ?);", [steamID64, info[0], info[1]])
                 }
             } catch (IOException ex) {
                 row= [:]

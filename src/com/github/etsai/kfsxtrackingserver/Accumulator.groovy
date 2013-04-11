@@ -8,7 +8,6 @@ package com.github.etsai.kfsxtrackingserver
 import com.github.etsai.kfsxtrackingserver.Common
 import com.github.etsai.kfsxtrackingserver.impl.MatchPacket
 import com.github.etsai.kfsxtrackingserver.impl.PlayerPacket
-import com.github.etsai.kfsxtrackingserver.web.SteamIDInfo
 import java.util.logging.Level
 import java.util.TimerTask
 import java.util.Timer
@@ -60,8 +59,8 @@ public class Accumulator {
                         receivedPackets.remove(id)
                         Common.logger.info("Saving packets for steamID64: $id")
                         try {
-                            def info= poll(id)
-                            writer.writeSteamInfo(id, info.name, info.avatar)
+                            def info= SteamPoller.poll(id)
+                            writer.writeSteamInfo(id, info[0], infio[1])
                             writer.writePlayerData(packets)
                         } catch (IOException ex) {
                             writer.writePlayerData(packets)
