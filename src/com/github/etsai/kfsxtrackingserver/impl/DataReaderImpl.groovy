@@ -67,7 +67,24 @@ public class DataReaderImpl implements DataReader {
         return queryDB("SELECT * from player where steamid64=? and category=? ORDER BY stat ASC", [steamID64, category])
     }
     public Map<Object, Object> getSteamIDInfo(String steamID64) {
-        return sql.firstRow("SELECT * FROM records where steamid64=?", [steamID64])
+        def row= sql.firstRow("select * from steaminfo where steamid64=?", [steamID64])
+        
+        if (row == null) {
+            try {
+                def info= poll(id)
+                row= [:]
+                sql.withTransaction {
+                    sql.execute("insert into steaminfo values (?, ?, ?);", [steamID64, info.name, info.avatar])
+                }
+            } catch (IOException ex) {
+                row= [:]
+                row["steamid64"]= steamID64
+                row["name"]= "----Unavailable----"
+            } catch (Exception ex) {
+                Common.logger.log(Level.SEVERE, "Invalid steamID64: $steamID64", ex)
+            } 
+        }
+        return row
     }
 }
 
