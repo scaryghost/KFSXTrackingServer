@@ -26,4 +26,5 @@ public interface DataReader {
     public Iterable<String> getAggregateCategories();
     public Iterable<Map<Object, Object>> getAggregateData(String category);
     public Iterable<Map<Object, Object>> getAggregateData(String category, String steamID64);
+    public Map<Object, Object> getSteamIDInfo(String steamID64);
 }

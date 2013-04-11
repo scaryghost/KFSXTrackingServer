@@ -7,6 +7,7 @@ package com.github.etsai.kfsxtrackingserver.impl
 
 import static com.github.etsai.kfsxtrackingserver.DataReader.Order
 import com.github.etsai.kfsxtrackingserver.DataReader
+import com.github.etsai.kfsxtrackingserver.web.SteamIDInfo
 import groovy.sql.Sql
 
 /**
@@ -64,6 +65,9 @@ public class DataReaderImpl implements DataReader {
     }
     public Iterable<Map<Object, Object>> getAggregateData(String category, String steamID64) {
         return queryDB("SELECT * from player where steamid64=? and category=? ORDER BY stat ASC", [steamID64, category])
+    }
+    public Map<Object, Object> getSteamIDInfo(String steamID64) {
+        return sql.firstRow("SELECT * FROM records where steamid64=?", [steamID64])
     }
 }
 

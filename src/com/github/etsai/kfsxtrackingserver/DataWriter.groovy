@@ -21,6 +21,12 @@ public class DataWriter {
         this.sql= sql
     }
     
+    public synchronized void writeSteamInfo(String steamID64, String name, String avatar) {
+        sql.withTransaction {
+            sql.execute("insert or ignore into steaminfo values (?, ?, ?)", [steamID64, "null", "null"])
+            sql.execute("update steaminfo set name=?, avatar=? where steamid64=?", [name, avatar, steamID64])
+        }
+    }
     public synchronized void writeMatchData(MatchPacket packet) {
         def result= packet.getResult()
         def wins= (result == MatchPacket.Result.WIN) ? 1 : 0

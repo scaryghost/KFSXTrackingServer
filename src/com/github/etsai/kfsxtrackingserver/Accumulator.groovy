@@ -58,8 +58,16 @@ public class Accumulator {
                         packets.inject(true) {acc, val -> acc && (val != null) }
                     if (completed) {
                         receivedPackets.remove(id)
-                        Common.logger.info("Savingy packets for steamID64: $id")
-                        Common.pool.submit(new PlayerPacketsSaver(packets: packets, steamID64: id))
+                        Common.logger.info("Saving packets for steamID64: $id")
+                        try {
+                            def info= poll(id)
+                            writer.writeSteamInfo(id, info.name, info.avatar)
+                            writer.writePlayerData(packets)
+                        } catch (IOException ex) {
+                            writer.writePlayerData(packets)
+                        } catch (Exception ex) {
+                            Common.logger.log(Level.SEVERE, "Invalid steamID64: $id", ex)
+                        } 
                     }
                 }
             }
@@ -81,18 +89,6 @@ public class Accumulator {
                     Common.logger.info("Discarding packets for steamID64: ${steamID64}")
                     receivedPackets.remove(steamID64)
                 }
-            }
-        }
-    }
-    
-    static class PlayerPacketsSaver implements Runnable {
-        public def packets
-        public def steamID64
-        
-        @Override
-        public void run() {
-            if (SteamIDInfo.verifySteamID64(steamID64)) {
-                writer.writePlayerData(packets)
             }
         }
     }
