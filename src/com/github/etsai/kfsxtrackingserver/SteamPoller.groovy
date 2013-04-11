@@ -73,6 +73,7 @@ public class SteamPoller implements Runnable {
         }
         def end= System.currentTimeMillis()
         Common.logger.info(String.format("Steam community polling complete, %1\$.2f seconds", (end - start)/(double)1000))
+        sql.close()
     }
 }
 
