@@ -61,7 +61,7 @@ public class Main {
         Common.logger.log(Level.INFO,"Loading stats from databse: {0}", props.getDbName());
         
         Class.forName("org.sqlite.JDBC");
-        Common.connPool= new ConnectionPool();
+        Common.connPool= new ConnectionPool(props.getNumThreads());
         Common.connPool.setJdbcUrl(String.format("jdbc:sqlite:%s", props.getDbName()));
         
         Common.executeStmt("CREATE TABLE IF NOT EXISTS steaminfo (steamid64 TEXT PRIMARY KEY  NOT NULL , name TEXT, avatar TEXT)");

@@ -25,6 +25,7 @@ public class ServerProperties {
     public static final String password= "password";
     public static final String statsMsgTTL= "stats.msg.ttl";
     public static final String dbName= "db.name";
+    public static final String numDbConn= "num.db.conn";
     public static final String logLevel= "log.level";
     public static final String numThreads= "num.threads";
     public static final String steamPollingThreads= "steam.polling.threads";
@@ -44,7 +45,8 @@ public class ServerProperties {
             props.setProperty(httpRootDir, "http");
             props.setProperty(password, "server");
             props.setProperty(statsMsgTTL, "60000");
-            props.setProperty(dbName, "kfsxdb.sqlite");
+            props.setProperty(dbName, "share/etc/kfsxdb.sqlite");
+            props.setProperty(numDbConn, "10");
             props.setProperty(logLevel, "INFO");
             props.setProperty(numThreads, "8");
             props.setProperty(steamPollingThreads, "1");
@@ -76,6 +78,19 @@ public class ServerProperties {
     public String getDbName() {
         return properties.getProperty(dbName);
     }
+    public Integer getNumDbConn() {
+        try {
+            Integer nDbConn= Integer.valueOf(properties.getProperty(numDbConn));
+            if (nDbConn < 4) {
+                Common.logger.log(Level.WARNING, "Property num.db.conn requires a minimum values of 4, only {0} set.  Using minimum value of 4", nDbConn);
+                return 4;
+            }
+            return nDbConn;
+        } catch (NumberFormatException ex) {
+            Common.logger.log(Level.WARNING, "Invalid number given for num.db.conn.  Using default value of 10", ex);
+            return 10;
+        }
+    }
     public Level getLogLevel() {
         return Level.parse(properties.getProperty(logLevel));
     }
@@ -88,13 +103,13 @@ public class ServerProperties {
         try {
             Integer nthreads= Integer.valueOf(properties.getProperty(numThreads));
             if (nthreads < 4) {
-                Common.logger.log(Level.WARNING, "Property num.threads requires a minimum of 4 threads, only {0} set.  Using default value of 4", nthreads);
+                Common.logger.log(Level.WARNING, "Property num.threads requires a minimum of 4 threads, only {0} set.  Using minimum value of 4", nthreads);
                 return 4;
             }
             return nthreads;
         } catch (NumberFormatException ex) {
-            Common.logger.log(Level.WARNING, "Invalid number given for num.threads.  Using default value of 4");
-            return 4;
+            Common.logger.log(Level.WARNING, "Invalid number given for num.threads.  Using default value of 8", ex);
+            return 8;
         }
     }
     public Integer getSteamPollingThreads() {
@@ -106,7 +121,7 @@ public class ServerProperties {
             }
             return nthreads;
         } catch (NumberFormatException ex) {
-            Common.logger.log(Level.WARNING, "Invalid number given for steam.polling.threads.  Using default value of 1");
+            Common.logger.log(Level.WARNING, "Invalid number given for steam.polling.threads.  Using default value of 1", ex);
             return 1;
         }
         
