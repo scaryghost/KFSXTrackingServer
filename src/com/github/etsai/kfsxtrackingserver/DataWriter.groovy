@@ -9,6 +9,7 @@ import com.github.etsai.kfsxtrackingserver.impl.MatchPacket
 import com.github.etsai.kfsxtrackingserver.impl.PlayerPacket
 import com.github.etsai.kfsxtrackingserver.impl.PlayerPacket.MatchInfo
 import groovy.sql.Sql;
+import java.sql.Connection
 
 /**
  *
@@ -17,8 +18,8 @@ import groovy.sql.Sql;
 public class DataWriter {
     private final def sql
     
-    public DataWriter(Sql sql) {
-        this.sql= sql
+    public DataWriter(Connection conn) {
+        this.sql= new Sql(conn)
     }
     
     public synchronized void writeSteamInfo(String steamID64, String name, String avatar) {

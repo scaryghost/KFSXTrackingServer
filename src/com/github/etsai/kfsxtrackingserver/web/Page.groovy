@@ -13,7 +13,6 @@ import java.nio.file.Paths
 import java.nio.file.NoSuchFileException
 
 public abstract class Page {
-    public static def Sql sql
     private static def webpages= "webpages.xml"
     private static def methods= ["GET", "HEAD"]
     private static def returnCodes= [200: "OK", 400: "Bad Request", 403: "Forbidden", 404: "Not Found", 500: "Internal Server Error", 
@@ -70,7 +69,7 @@ public abstract class Page {
                     def clazz = gcl.parseClass(resources[filename].toFile())
                     def aScript = (Resource)clazz.newInstance();
                     
-                    body= aScript.generatePage(new DataReaderImpl(sql: sql), queries)
+                    body= aScript.generatePage(new DataReaderImpl(Common.connPool.getConnection()), queries)
                 }              
             }
         } catch (Exception ex) {

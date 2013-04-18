@@ -10,14 +10,18 @@ import com.github.etsai.kfsxtrackingserver.Accumulator
 import com.github.etsai.kfsxtrackingserver.DataReader
 import com.github.etsai.kfsxtrackingserver.SteamPoller
 import groovy.sql.Sql
+import java.sql.Connection
 
 /**
  *
  * @author eric
  */
 public class DataReaderImpl implements DataReader {
-    public def sql
+    private final def sql
     
+    public def DataReaderImpl(def conn) {
+        this.sql= new Sql(conn)
+    }
     private def queryDB(def query, def ps) {
         def rows= []
         sql.eachRow(query, ps) {row ->

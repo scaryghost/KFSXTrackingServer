@@ -12,6 +12,7 @@ import java.util.concurrent.Executors
 import java.util.concurrent.atomic.AtomicInteger
 import java.util.concurrent.ConcurrentHashMap
 import java.util.concurrent.TimeUnit
+import java.sql.Connection
 
 /**
  *
@@ -53,17 +54,18 @@ public class SteamPoller implements Runnable {
         }
     }
     
-    private final def sql
+    private final def conn
     private final def nThreads
     
-    public SteamPoller(Sql sql, Integer nThreads) {
-        this.sql= sql
+    public SteamPoller(Connection conn, Integer nThreads) {
+        this.conn= conn
         this.nThreads= nThreads
     }
     
     @Override public void run() {
         def pollSteam= true
         def start= System.currentTimeMillis()
+        def sql= new Sql(conn)
         
         Common.logger.info("Polling steamcommunity.com with $nThreads threads")
         while(pollSteam) {
@@ -92,7 +94,7 @@ public class SteamPoller implements Runnable {
         }
         def end= System.currentTimeMillis()
         Common.logger.info(String.format("Steam community polling complete, %1\$.2f seconds", (end - start)/(double)1000))
-        sql.close()
+        Common.connPool.release(conn)
     }
 }
 

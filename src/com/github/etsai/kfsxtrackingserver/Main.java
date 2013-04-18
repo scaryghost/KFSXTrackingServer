@@ -4,9 +4,8 @@
  */
 package com.github.etsai.kfsxtrackingserver;
 
-import static com.github.etsai.kfsxtrackingserver.Common.*;
-import com.github.etsai.kfsxtrackingserver.web.Page;
 import com.github.etsai.utils.logging.TeeLogger;
+import com.github.etsai.utils.sql.ConnectionPool;
 import groovy.sql.Sql;
 import java.io.File;
 import java.io.FileWriter;
@@ -21,7 +20,6 @@ import java.util.logging.*;
  * @author etsai
  */
 public class Main {
-    private static Sql[] sqlConnections= new Sql[2];
     private static ConsoleHandler logConsoleHandler;
     private static FileWriter logWriter;
     
@@ -35,8 +33,8 @@ public class Main {
         try {
             props= ServerProperties.load(clom.getPropertiesFilename());
         } catch (IOException ex) {
-            logger.warning(ex.getMessage());
-            logger.warning("Using default properties...");
+            Common.logger.warning(ex.getMessage());
+            Common.logger.warning("Using default properties...");
             props= ServerProperties.getDefaults();
         }
         
@@ -46,10 +44,12 @@ public class Main {
         Runtime.getRuntime().addShutdownHook(new Thread() {
             @Override
             public void run() {
-                for(Sql sqlConn: sqlConnections) {
-                    sqlConn.close();
+                try {
+                    Common.connPool.close();
+                } catch (SQLException ex) {
+                    Common.logger.log(Level.SEVERE, "Error shutting down connections", ex);
                 }
-                logger.info("Shutting down server");
+                Common.logger.info("Shutting down server");
             }
         });
         
@@ -58,42 +58,40 @@ public class Main {
     }
     
     public static void initModules(ServerProperties props) throws ClassNotFoundException, SQLException {
-        logger.log(Level.INFO,"Loading stats from databse: {0}", props.getDbName());
+        Common.logger.log(Level.INFO,"Loading stats from databse: {0}", props.getDbName());
         
         Class.forName("org.sqlite.JDBC");
-        Common.pool= Executors.newFixedThreadPool(props.getNumThreads());
-        for(int i= 0; i < sqlConnections.length; i++) {
-            sqlConnections[i]= Sql.newInstance(String.format("jdbc:sqlite:%s", props.getDbName()));
-        }
-        sqlConnections[0].execute("CREATE TABLE IF NOT EXISTS steaminfo (steamid64 TEXT PRIMARY KEY  NOT NULL , name TEXT, avatar TEXT)");
-        Common.pool.submit(new SteamPoller(Sql.newInstance(String.format("jdbc:sqlite:%s", props.getDbName())), 
-                props.getSteamPollingThreads()));
+        Common.connPool= new ConnectionPool();
+        Common.connPool.setJdbcUrl(String.format("jdbc:sqlite:%s", props.getDbName()));
         
-        Page.sql= sqlConnections[1];
-        Accumulator.writer= new DataWriter(sqlConnections[0]);
+        Common.executeStmt("CREATE TABLE IF NOT EXISTS steaminfo (steamid64 TEXT PRIMARY KEY  NOT NULL , name TEXT, avatar TEXT)");
+        Common.pool.submit(new SteamPoller(Common.connPool.getConnection(), props.getSteamPollingThreads()));
+        
+        Accumulator.writer= new DataWriter(Common.connPool.getConnection());
         Accumulator.statMsgTTL= props.getStatsMsgTTL();
         Packet.password= props.getPassword();
         HTTPListener.httpRootDir= props.getHttpRootDir();
         
+        Common.pool= Executors.newFixedThreadPool(props.getNumThreads());
     }
     public static void initLogging(Level logLevel) {
         try {
             logWriter= TeeLogger.getFileWriter("kfsxtracking", new File("log"));
-            oldStdOut= System.out;
-            oldStdErr= System.err;
-            System.setOut(new PrintStream(new TeeLogger(logWriter, oldStdOut), true));
-            System.setErr(new PrintStream(new TeeLogger(logWriter, oldStdErr), true));
+            Common.oldStdOut= System.out;
+            Common.oldStdErr= System.err;
+            System.setOut(new PrintStream(new TeeLogger(logWriter, Common.oldStdOut), true));
+            System.setErr(new PrintStream(new TeeLogger(logWriter, Common.oldStdErr), true));
             
-            for(Handler handler: logger.getHandlers()) {
-                logger.removeHandler(handler);
+            for(Handler handler: Common.logger.getHandlers()) {
+                Common.logger.removeHandler(handler);
             }
             logConsoleHandler= new ConsoleHandler();
             logConsoleHandler.setLevel(logLevel);
-            logger.setLevel(Level.ALL);
-            logger.addHandler(logConsoleHandler);
-            logger.setUseParentHandlers(false);   
+            Common.logger.setLevel(Level.ALL);
+            Common.logger.addHandler(logConsoleHandler);
+            Common.logger.setUseParentHandlers(false);   
         } catch (IOException ex) {
-            logger.log(Level.WARNING, "Output will not be saved to file...", ex);
+            Common.logger.log(Level.WARNING, "Output will not be saved to file...", ex);
         }
 
         
