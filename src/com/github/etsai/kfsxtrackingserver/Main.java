@@ -63,9 +63,7 @@ public class Main {
         Class.forName("org.sqlite.JDBC");
         Common.connPool= new ConnectionPool(props.getNumThreads());
         Common.connPool.setJdbcUrl(String.format("jdbc:sqlite:%s", props.getDbName()));
-        
         Common.executeStmt("CREATE TABLE IF NOT EXISTS steaminfo (steamid64 TEXT PRIMARY KEY  NOT NULL , name TEXT, avatar TEXT)");
-        Common.pool.submit(new SteamPoller(Common.connPool.getConnection(), props.getSteamPollingThreads()));
         
         Accumulator.writer= new DataWriter(Common.connPool.getConnection());
         Accumulator.statMsgTTL= props.getStatsMsgTTL();
@@ -73,6 +71,7 @@ public class Main {
         HTTPListener.httpRootDir= props.getHttpRootDir();
         
         Common.pool= Executors.newFixedThreadPool(props.getNumThreads());
+        Common.pool.submit(new SteamPoller(Common.connPool.getConnection(), props.getSteamPollingThreads()));
     }
     public static void initLogging(Level logLevel) {
         try {
