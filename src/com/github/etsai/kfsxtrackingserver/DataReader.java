@@ -4,6 +4,7 @@
  */
 package com.github.etsai.kfsxtrackingserver;
 
+import java.util.List;
 import java.util.Map;
 
 /**
@@ -16,15 +17,17 @@ public interface DataReader {
         DESC,
         NONE
     }
-    public Iterable<Map<Object, Object>> getDifficulties();
-    public Iterable<Map<Object, Object>> getLevels();
-    public Iterable<Map<Object, Object>> getDeaths();
-    public Iterable<Map<Object, Object>> getRecords(String group, Order order, int start, int end);
-    public Iterable<Map<Object, Object>> getRecords();
-    public Iterable<Map<Object, Object>> getSessions(String steamID64, String group, Order order, int start, int end);
-    public Iterable<Map<Object, Object>> getSessions(String steamID64);
-    public Iterable<String> getAggregateCategories();
-    public Iterable<Map<Object, Object>> getAggregateData(String category);
-    public Iterable<Map<Object, Object>> getAggregateData(String category, String steamID64);
+    public List<Map<Object, Object>> getDifficulties();
+    public List<Map<Object, Object>> getLevels();
+    public List<Map<Object, Object>> getDeaths();
+    public Integer getNumRecords();
+    public Map<Object, Object> getRecord(String steamID64);
+    public List<Map<Object, Object>> getRecords(String group, Order order, int start, int end);
+    public List<Map<Object, Object>> getRecords();
+    public List<Map<Object, Object>> getSessions(String steamID64, String group, Order order, int start, int end);
+    public List<Map<Object, Object>> getSessions(String steamID64);
+    public List<String> getAggregateCategories();
+    public List<Map<Object, Object>> getAggregateData(String category);
+    public List<Map<Object, Object>> getAggregateData(String category, String steamID64);
     public Map<Object, Object> getSteamIDInfo(String steamID64);
 }

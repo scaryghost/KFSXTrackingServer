@@ -25,20 +25,23 @@ public class DataReaderImpl implements DataReader {
     private def queryDB(def query, def ps) {
         def rows= []
         sql.eachRow(query, ps) {row ->
-            rows << row.toResultSet()
+            rows << row.toRowResult()
         }
         return rows
     }
-    public Iterable<Map<Object, Object>> getDifficulties() {
+    public List<Map<Object, Object>> getDifficulties() {
         return queryDB('select * from difficulties', [])
     }
-    public Iterable<Map<Object, Object>> getLevels() {
+    public List<Map<Object, Object>> getLevels() {
         return queryDB('select * from levels', [])
     }
-    public Iterable<Map<Object, Object>> getDeaths() {
+    public List<Map<Object, Object>> getDeaths() {
         return queryDB('select * from deaths ORDER BY name ASC', [])
     }
-    public Iterable<Map<Object, Object>> getRecords(String group, Order order, int start, int end) {
+    public Map<Object, Object> getRecord(String steamID64) {
+        return sql.firstRow('SElECT * FROM records WHERE steamid64=?', [steamID64])
+    }
+    public List<Map<Object, Object>> getRecords(String group, Order order, int start, int end) {
         def query= "SELECT s.name,r.wins,r.losses,r.disconnects,r.steamid64 FROM records r INNER JOIN steaminfo s ON r.steamid64=s.steamid64 "
         
         if (group != null && order != Order.NONE) {
@@ -47,10 +50,13 @@ public class DataReaderImpl implements DataReader {
         query+= "LIMIT ?, ?"
         return queryDB(query, [start, end - start])
     }
-    public Iterable<Map<Object, Object>> getRecords() {
-        return queryDB("SELECT s.name,r.wins,r.losses,r.disconnects,r.steamid64 FROM records r INNER JOIN steaminfo s ON r.steamid64=s.steamid64")
+    public Integer getNumRecords() {
+        return sql.firstRow('SELECT count(*) FROM records')[0]
     }
-    public Iterable<Map<Object, Object>> getSessions(String steamID64, String group, Order order, int start, int end) {
+    public List<Map<Object, Object>> getRecords() {
+        return queryDB("SELECT s.name,r.wins,r.losses,r.disconnects,r.steamid64 FROM records r INNER JOIN steaminfo s ON r.steamid64=s.steamid64", [])
+    }
+    public List<Map<Object, Object>> getSessions(String steamID64, String group, Order order, int start, int end) {
         def query= "SELECT * FROM sessions WHERE steamid64=?"
         
         if (group != null && order != Order.NONE) {
@@ -59,16 +65,16 @@ public class DataReaderImpl implements DataReader {
         query+= "LIMIT ?, ?"
         return queryDB(query, [steamID64, start, end - start])
     }
-    public Iterable<Map<Object, Object>> getSessions(String steamID64) {
+    public List<Map<Object, Object>> getSessions(String steamID64) {
         return queryDB("SELECT * FROM sessions WHERE steamid64=?", [start, end - start])
     }
-    public Iterable<String> getAggregateCategories() {
-        return queryDB('SELECT category FROM aggregate GROUP BY category')
+    public List<String> getAggregateCategories() {
+        return queryDB('SELECT category FROM aggregate GROUP BY category', []).collect { it.category }
     }
-    public Iterable<Map<Object, Object>> getAggregateData(String category) {
+    public List<Map<Object, Object>> getAggregateData(String category) {
         return queryDB("SELECT * from aggregate where category=? ORDER BY stat ASC", [category])
     }
-    public Iterable<Map<Object, Object>> getAggregateData(String category, String steamID64) {
+    public List<Map<Object, Object>> getAggregateData(String category, String steamID64) {
         return queryDB("SELECT * from player where steamid64=? and category=? ORDER BY stat ASC", [steamID64, category])
     }
     public Map<Object, Object> getSteamIDInfo(String steamID64) {

@@ -3,10 +3,10 @@
  * and open the template in the editor.
  */
 
+import com.github.etsai.kfsxtrackingserver.DataReader
 import com.github.etsai.kfsxtrackingserver.web.Resource
 import com.github.etsai.utils.Time
 import groovy.json.JsonBuilder
-import groovy.sql.Sql
 
 /**
  * Generates the json data for the page data.json
@@ -15,7 +15,7 @@ import groovy.sql.Sql
 public class DataJson implements Resource {
     private static def colStyle= "text-align:center"
     
-    public String generatePage(Sql sql, Map<String, String> queries) {
+    public String generatePage(DataReader reader, Map<String, String> queries) {
         def columns
         def data= []
         def builder= new JsonBuilder()
@@ -28,7 +28,7 @@ public class DataJson implements Resource {
                     ["Losses", "number"], ["Avg Wave", "number"], ["Time", "number"]].collect {
                     [label: it[0], type: it[1]]
                 }
-                sql.eachRow('select * from difficulties') {row ->
+                reader.getDifficulties().each {row ->
                     data << [c: [[v: row.name, f:null, p: null], 
                         [v: row.length, f: null, p:[style: colStyle]],
                         [v: row.wins, f: null, p:[style: colStyle]],
@@ -53,7 +53,7 @@ public class DataJson implements Resource {
                 columns= [["Name", "string"], ["Wins", "number"], ["Losses", "number"], ["Time", "number"]].collect {
                     [label: it[0], type: it[1]]
                 }
-                sql.eachRow('select * from levels') {row ->
+                reader.getLevels().each {row ->
                     data << [c: [[v: row.name, f:null, p: null], 
                         [v: row.wins, f: null, p:[style: colStyle]],
                         [v: row.losses, f: null, p:[style: colStyle]],
@@ -73,7 +73,7 @@ public class DataJson implements Resource {
                 columns= [["Death", "string"], ["Count", "number"]].collect {
                     [label: it[0], type: it[1]]
                 }
-                sql.eachRow('select * from deaths ORDER BY name ASC') {row ->
+                reader.getDeaths().each {row ->
                     data << [c: [[v: row.name, f:null, p: null], 
                         [v: row.count, f: null, p:[style: colStyle]],
                     ]]
@@ -84,20 +84,19 @@ public class DataJson implements Resource {
                     [label: it[0], type: it[1]]
                 }
 
-                WebCommon.partialQuery(sql, queryValues, "SELECT s.name,r.wins,r.losses,r.disconnects,r.steamid64 FROM records r INNER JOIN steaminfo s ON r.steamid64=s.steamid64", 
-                    [], {row ->
+                WebCommon.partialQuery(reader, queryValues, true).each {row -> 
                     data << [c: [[v: row.name, f: "<a href=profile.html?steamid64=${row.steamid64}>${row.name}</a>", p: null], 
                         [v: row.wins, f: null, p:[style: colStyle]],
                         [v: row.losses, f: null, p:[style: colStyle]],
                         [v: row.disconnects, f: null, p:[style: colStyle]]]]
-                })
+                }
                 break
             case "sessions":
                 columns= [["Level", "string"], ["Difficulty", "string"], ["Length", "string"],
                         ["Result", "string"], ["Wave", "number"], ["Timestamp", "string"]].collect {
                     [label: it[0], type: it[1]]
                 }
-                WebCommon.partialQuery(sql, queryValues, "SELECT * FROM sessions WHERE steamid64=?", [queryValues[Queries.steamid64]], {row ->
+                WebCommon.partialQuery(reader, queryValues, false).each {row ->
                     data << [c: [[v: row.level, f:null, p: null], 
                         [v: row.difficulty, f: null, p:[style: colStyle]],
                         [v: row.length, f: null, p:[style: colStyle]],
@@ -105,22 +104,21 @@ public class DataJson implements Resource {
                         [v: row.wave, f: null, p:[style: colStyle]],
                         [v: row.timestamp, f: null, p:[style: colStyle]],
                     ]]
-                })
+                }
                 break
             default:
                 def query, psValues
+                def results
 
                 columns= [["Stat", "string"], ["Count", "number"]].collect {
                     [label: it[0], type: it[1]]
                 }
                 if (queryValues[Queries.steamid64] == null) {
-                    query= 'SELECT * from aggregate where category=? ORDER BY stat ASC'
-                    psValues= [queryValues[Queries.table]]
+                    results= reader.getAggregateData(queryValues[Queries.table])
                 } else {
-                    query= 'SELECT * from player where steamid64=? and category=? ORDER BY stat ASC'
-                    psValues= [queryValues[Queries.steamid64], queryValues[Queries.table]]
+                    results= reader.getAggregateData(queryValues[Queries.table], queryValues[Queries.steamid64])
                 }
-                sql.eachRow(query, psValues) {row ->
+                results.each {row ->
                     def fVal= null
                     def lower= row.stat.toLowerCase()
 

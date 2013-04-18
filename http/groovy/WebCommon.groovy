@@ -1,3 +1,4 @@
+import com.github.etsai.kfsxtrackingserver.DataReader.Order
 import com.github.etsai.utils.Time
 import groovy.xml.MarkupBuilder
 
@@ -12,33 +13,29 @@ public class WebCommon {
         }
     """
 
-    public static def partialQuery(sql, queryValues, sqlQuery, basePsVals, rowHandler) {
+    public static def partialQuery(reader, queryValues, records) {
         def pageSize= queryValues[Queries.rows].toInteger()
         def start= queryValues[Queries.page].toInteger() * pageSize
         def end= start + pageSize
+        def order= Order.NONE, group
 
         if (queryValues[Queries.group] != Queries.defaults[Queries.group]) {
-            sqlQuery+= " ORDER BY ${queryValues[Queries.group]} ${queryValues[Queries.order]}"
+            order= Order.valueOf(Order.class, queryValues[Queries.order].toUpperCase())
+            group= queryValues[Queries.group]
         }
-        sqlQuery+= " LIMIT ?,?"
-        sql.eachRow(sqlQuery, basePsVals.plus([start, end - start]), rowHandler)
+        if (records) {
+            return reader.getRecords(group, order, start, end)
+        }
+        return reader.getSessions(queryValues[Queries.steamid64], group, order, start, end)
     }
 
-    public static def getCategories(sql) {
-        def categories= []
-        sql.eachRow('SELECT category FROM aggregate GROUP BY category') {row ->
-            categories << row.category
-        }
-        return categories
-    }
-
-    public static def generateSummary(sql) {
+    public static def generateSummary(reader) {
         def games= 0, playTime= 0, playerCount
-        sql.eachRow('select * from difficulties') {row ->
+        reader.getDifficulties().each {row ->
                 games+= row.wins + row.losses
                 playTime+= row.time
         }
-        playerCount= sql.firstRow('SELECT count(*) FROM records')[0]
+        playerCount= reader.getNumRecords()
 
         return [["Games", games], ["Play Time", Time.secToStr(playTime)], ["Player Count", playerCount]].collect {
             [name: it[0], value: it[1]]
@@ -70,7 +67,7 @@ public class WebCommon {
                 queries << "steamid64=$steamid64"
             case "records":
                 js= """
-        var page= 0, pageSize= 25, group="none", order= "asc";
+        var page= 0, pageSize= 25, group="none", order= "ASC";
         var data, chart;
 
         function buildQuery() {

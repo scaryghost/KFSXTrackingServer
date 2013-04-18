@@ -68,8 +68,10 @@ public abstract class Page {
                     gcl.addClasspath(root.toString())
                     def clazz = gcl.parseClass(resources[filename].toFile())
                     def aScript = (Resource)clazz.newInstance();
+                    def conn= Common.connPool.getConnection()
                     
-                    body= aScript.generatePage(new DataReaderImpl(Common.connPool.getConnection()), queries)
+                    body= aScript.generatePage(new DataReaderImpl(conn), queries)
+                    Common.connPool.release(conn)
                 }              
             }
         } catch (Exception ex) {

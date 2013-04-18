@@ -3,8 +3,8 @@
  * and open the template in the editor.
  */
 
+import com.github.etsai.kfsxtrackingserver.DataReader
 import com.github.etsai.kfsxtrackingserver.web.*
-import groovy.sql.Sql
 import groovy.xml.MarkupBuilder
 
 /**
@@ -15,7 +15,7 @@ public class DataHtml implements Resource {
     private static def colStyle= "text-align:center"
     private static def tableAttr= [class: "content-table"]
     
-    public String generatePage(Sql sql, Map<String, String> queries) {
+    public String generatePage(DataReader reader, Map<String, String> queries) {
         def writer= new StringWriter()
         def xml= new MarkupBuilder(writer)
         def queryValues= Queries.parseQuery(queries)
@@ -25,7 +25,7 @@ public class DataHtml implements Resource {
                 xml.center() {
                     table(tableAttr) {
                         tbody() {
-                            WebCommon.generateSummary(sql).each {attr ->
+                            WebCommon.generateSummary(reader).each {attr ->
                                 tr() {
                                     td(attr['name'])
                                     td(attr['value'])
@@ -37,14 +37,14 @@ public class DataHtml implements Resource {
                 break
             case "profile":
                 def steamid64= queryValues[Queries.steamid64]
-                def row= sql.firstRow("SELECT * FROM records where steamid64=?", [steamid64])
+                def row= reader.getRecord(steamid64);
 
                 if (row == null) {
                     xml.center("No records found for SteamID64: ") {
-                        a(href: "<a href='http://steamcommunity.com/profiles/" + steamid64, steamid64)
+                        a(href: "http://steamcommunity.com/profiles/" + steamid64, steamid64)
                     }
                 } else {
-                    def steamIdInfo= SteamIDInfo.getSteamIDInfo(steamid64)
+                    def steamIdInfo= reader.getSteamIDInfo(steamid64)
 
                     xml.center() {
                         table(tableAttr) {

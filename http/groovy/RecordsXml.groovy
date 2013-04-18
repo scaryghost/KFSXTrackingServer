@@ -3,8 +3,8 @@
  * and open the template in the editor.
  */
 
+import com.github.etsai.kfsxtrackingserver.DataReader
 import com.github.etsai.kfsxtrackingserver.web.Resource
-import groovy.sql.Sql
 import groovy.xml.MarkupBuilder
 
 /**
@@ -12,7 +12,7 @@ import groovy.xml.MarkupBuilder
  * @author etsai
  */
 public class RecordsXml implements Resource {
-    public String generatePage(Sql sql, Map<String, String> queries) {
+    public String generatePage(DataReader reader, Map<String, String> queries) {
         def writer= new StringWriter()
         def xmlBuilder= new MarkupBuilder(writer)
         def queryValues= Queries.parseQuery(queries)
@@ -31,14 +31,12 @@ public class RecordsXml implements Resource {
             }
             
             xmlBuilder.'records'(attrs) {
-                WebCommon.partialQuery(sql, queryValues, 
-                        "SELECT r.steamid64,r.wins,r.losses,r.disconnects,s.name FROM records r INNER JOIN steaminfo s ON r.steamid64=s.steamid64 ", [], {row ->
-                    def result= row.toRowResult()
-                    result["pos"]= pos + 1
+                WebCommon.partialQuery(reader, queryValues, true).each {row ->
+                    row["pos"]= pos + 1
 
-                    xmlBuilder.'record'(result)
+                    xmlBuilder.'record'(row)
                     pos++
-                })
+                }
             }
         }
         return writer

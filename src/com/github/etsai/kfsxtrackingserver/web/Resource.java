@@ -4,7 +4,7 @@
  */
 package com.github.etsai.kfsxtrackingserver.web;
 
-import groovy.sql.Sql;
+import com.github.etsai.kfsxtrackingserver.DataReader;
 import java.util.Map;
 
 /**
@@ -12,5 +12,5 @@ import java.util.Map;
  * @author eric
  */
 public interface Resource {
-    public String generatePage(Sql sql, Map<String, String> queries);
+    public String generatePage(DataReader reader, Map<String, String> queries);
 }
