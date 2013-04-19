@@ -1,0 +1,3 @@
+[submodule "KFStatsXTSWebContent"]
+	path = KFStatsXTSWebContent
+	url = git@github.com:scaryghost/KFStatsXTSWebContent.git
