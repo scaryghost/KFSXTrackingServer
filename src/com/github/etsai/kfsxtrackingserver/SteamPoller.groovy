@@ -34,7 +34,7 @@ public class SteamPoller implements Runnable {
         } else {
             def tempName= steamXmlRoot.steamID.text()
             name= new String(tempName.getBytes(Charset.availableCharsets()["US-ASCII"]))
-            avatar= steamXmlRoot.avatarMedium
+            avatar= steamXmlRoot.avatarMedium.text()
         }
         return [name, avatar]
     }
