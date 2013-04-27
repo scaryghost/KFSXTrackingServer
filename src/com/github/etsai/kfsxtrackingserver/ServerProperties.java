@@ -48,7 +48,7 @@ public class ServerProperties {
             props.setProperty(dbName, "share/etc/kfsxdb.sqlite");
             props.setProperty(numDbConn, "10");
             props.setProperty(logLevel, "INFO");
-            props.setProperty(numThreads, "8");
+            props.setProperty(numThreads, "-1");
             props.setProperty(steamPollingThreads, "1");
             defaults= new ServerProperties(props);
         }
@@ -102,13 +102,13 @@ public class ServerProperties {
         
         try {
             Integer nthreads= Integer.valueOf(properties.getProperty(numThreads));
-            if (nthreads < 4) {
+            if (nthreads < 4 && nthreads > 0) {
                 Common.logger.log(Level.WARNING, "Property num.threads requires a minimum of 4 threads, only {0} set.  Using minimum value of 4", nthreads);
                 return 4;
             }
             return nthreads;
         } catch (NumberFormatException ex) {
-            Common.logger.log(Level.WARNING, "Invalid number given for num.threads.  Using default value of 8", ex);
+            Common.logger.log(Level.WARNING, "Invalid number given for num.threads.  Using cached thread pool", ex);
             return 8;
         }
     }

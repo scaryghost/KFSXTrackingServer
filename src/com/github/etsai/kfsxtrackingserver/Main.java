@@ -55,6 +55,7 @@ public class Main {
         
         Common.pool.submit(new UDPListener(props.getUdpPort()));
         Common.pool.submit(new HTTPListener(props.getHttpPort()));
+        Common.pool.submit(new SteamPoller(Common.connPool.getConnection(), props.getSteamPollingThreads()));
     }
     
     public static void initModules(ServerProperties props) throws ClassNotFoundException, SQLException {
@@ -70,8 +71,11 @@ public class Main {
         Packet.password= props.getPassword();
         HTTPListener.httpRootDir= props.getHttpRootDir();
         
-        Common.pool= Executors.newFixedThreadPool(props.getNumThreads());
-        Common.pool.submit(new SteamPoller(Common.connPool.getConnection(), props.getSteamPollingThreads()));
+        if (props.getNumThreads() < 0) {
+            Common.pool= Executors.newCachedThreadPool();
+        } else {
+            Common.pool= Executors.newFixedThreadPool(props.getNumThreads());
+        }
     }
     public static void initLogging(Level logLevel) {
         try {
