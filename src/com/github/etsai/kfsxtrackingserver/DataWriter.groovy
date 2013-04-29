@@ -63,8 +63,8 @@ public class DataWriter {
                 packet.getStats().each {stat, value ->
                     sql.execute("""insert or ignore into wavedata (difficulty_id, wave, category, stat) select d.id, ?, ?, ? from difficulty d 
                         where d.name=? and d.length=?""", [packet.getWave(), category, stat, packet.getDifficulty(), packet.getLength()])
-                    sql.execute("""update wavedata set value= value + ? where stat=? and category=? and difficulty_id=(select id from difficulty where 
-                        name=? and length=?)""", [value, stat, category, packet.getDifficulty(), packet.getLength()])
+                    sql.execute("""update wavedata set value= value + ? where stat=? and category=? and wave=? and difficulty_id=(select id from difficulty where 
+                        name=? and length=?)""", [value, stat, category, packet.getWave(), packet.getDifficulty(), packet.getLength()])
                 }
             }
         }
