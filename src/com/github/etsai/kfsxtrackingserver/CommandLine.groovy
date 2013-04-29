@@ -5,8 +5,6 @@
 
 package com.github.etsai.kfsxtrackingserver
 
-import com.github.etsai.kfsxtrackingserver.impl.MatchPacket
-import com.github.etsai.kfsxtrackingserver.impl.PlayerPacket
 import groovy.util.CliBuilder
 
 /**
@@ -29,8 +27,8 @@ public class CommandLine {
         }
         if (options.version) {
             println "KFSXTrackingServer - Version ${Version.gitTag}"
-            println "Match protocol version: ${MatchPacket.VERSION}"
-            println "Player protocol version: ${PlayerPacket.VERSION}"
+            println "Match protocol version: ${PacketParser.MatchPacket.VERSION}"
+            println "Player protocol version: ${PacketParser.PlayerPacket.VERSION}"
             System.exit(0)
         }
         if (options.help) {
