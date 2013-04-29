@@ -15,6 +15,9 @@ import java.sql.Connection
  * @author etsai
  */
 public class DataWriter {
+    public static def waveCountCategory= "count"
+    public static def waveReached= "reached"
+    
     private final def sql
     
     public DataWriter(Connection conn) {
@@ -37,16 +40,13 @@ public class DataWriter {
             def wins= (attrs.result == PacketParser.Result.WIN) ? 1 : 0
             def losses= (attrs.result == PacketParser.Result.LOSS) ? 1 : 0
 
-            println "Writing result packet"
             sql.withTransaction {
                 sql.execute("insert or ignore into difficulty (name, length) values(?, ?)", 
                     [packet.getDifficulty(), packet.getLength()])
-                sql.execute("""update difficulty set wins= wins + ?, losses= losses + ?, wave= wave + ?, 
-                    time= time + ? where name= ? and length= ?""", 
+                sql.execute("update difficulty set wins= wins + ?, losses= losses + ?, wave= wave + ?, time= time + ? where name= ? and length= ?", 
                     [wins, losses, packet.getWave(), attrs.duration, packet.getDifficulty(), packet.getLength()])
                 sql.execute("insert or ignore into level (name) values(?)", [attrs.level])
-                sql.execute("""update level set wins= wins + ?, losses= losses + ?, 
-                    time= time + ? where name=?""", 
+                sql.execute("update level set wins= wins + ?, losses= losses + ?, time= time + ? where name=?", 
                     [wins, losses, attrs.duration, attrs.level])
             }
         } else {
@@ -57,14 +57,18 @@ public class DataWriter {
                         sql.execute("insert or ignore into aggregate (stat, category) values (?,?);", [stat, category])
                         sql.execute("update aggregate set value= value + ? where stat=? and category=?", [value, stat, category])
                     }
+                    sql.execute("""insert or ignore into wavedata (difficulty_id, wave, category, stat) select d.id, ?, ?, ? from difficulty d 
+                        where d.name=? and d.length=?""", [packet.getWave(), waveCountCategory, waveReached, packet.getDifficulty(), packet.getLength()])
+                    sql.execute("""update wavedata set value= value + ? where stat=? and category=? and wave=? and difficulty_id=(select id from 
+                        difficulty where name=? and length=?)""", [1, waveReached, waveCountCategory, packet.getWave(), packet.getDifficulty(), packet.getLength()])
                 }
                 sql.execute("insert or ignore into difficulty (name, length) values(?, ?)", 
                     [packet.getDifficulty(), packet.getLength()])
                 packet.getStats().each {stat, value ->
                     sql.execute("""insert or ignore into wavedata (difficulty_id, wave, category, stat) select d.id, ?, ?, ? from difficulty d 
                         where d.name=? and d.length=?""", [packet.getWave(), category, stat, packet.getDifficulty(), packet.getLength()])
-                    sql.execute("""update wavedata set value= value + ? where stat=? and category=? and wave=? and difficulty_id=(select id from difficulty where 
-                        name=? and length=?)""", [value, stat, category, packet.getWave(), packet.getDifficulty(), packet.getLength()])
+                    sql.execute("""update wavedata set value= value + ? where stat=? and category=? and wave=? and difficulty_id=(select id from 
+                        difficulty where name=? and length=?)""", [value, stat, category, packet.getWave(), packet.getDifficulty(), packet.getLength()])
                 }
             }
         }
