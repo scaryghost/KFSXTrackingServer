@@ -5,9 +5,8 @@
 
 package com.github.etsai.kfsxtrackingserver
 
-import com.github.etsai.kfsxtrackingserver.impl.MatchPacket
-import com.github.etsai.kfsxtrackingserver.impl.PlayerPacket
-import com.github.etsai.kfsxtrackingserver.impl.PlayerPacket.MatchInfo
+import com.github.etsai.kfsxtrackingserver.PacketParser.MatchPacket
+import com.github.etsai.kfsxtrackingserver.PacketParser.PlayerPacket
 import groovy.sql.Sql;
 import java.sql.Connection
 
@@ -24,30 +23,50 @@ public class DataWriter {
     
     public synchronized void writeSteamInfo(String steamID64, String name, String avatar) {
         sql.withTransaction {
-            sql.execute("insert or ignore into steaminfo values (?, ?, ?)", [steamID64, "null", "null"])
-            sql.execute("update steaminfo set name=?, avatar=? where steamid64=?", [name, avatar, steamID64])
+            sql.execute("insert or ignore into record (steamid64) values (?);", [steamID64])
+            sql.execute("insert or ignore into steaminfo (record_id) select r.id from record r where steamid64=?", [steamID64])
+            sql.execute("update steaminfo set name=?, avatar=? where record_id=(select id from record where steamid64=?)", [name, avatar, steamID64])
         }
     }
     public synchronized void writeMatchData(MatchPacket packet) {
-        def result= packet.getResult()
-        def wins= (result == MatchPacket.Result.WIN) ? 1 : 0
-        def losses= (result == MatchPacket.Result.LOSS) ? 1 : 0
-
         Common.logger.finer("Match data: $packet")
-        sql.withTransaction {
-            packet.getStats().each {stat, value ->
-                sql.execute("insert or ignore into deaths (name) values (?);", [stat])
-                sql.execute("update deaths set count= count + ? where name=?", [value, stat])
+        def category= packet.getCategory()
+
+        if (category == "result") {
+            def attrs= packet.getAttributes()
+            def wins= (attrs.result == PacketParser.Result.WIN) ? 1 : 0
+            def losses= (attrs.result == PacketParser.Result.LOSS) ? 1 : 0
+
+            println "Writing result packet"
+            sql.withTransaction {
+                sql.execute("insert or ignore into difficulty (name, length) values(?, ?)", 
+                    [packet.getDifficulty(), packet.getLength()])
+                sql.execute("""update difficulty set wins= wins + ?, losses= losses + ?, wave= wave + ?, 
+                    time= time + ? where name= ? and length= ?""", 
+                    [wins, losses, packet.getWave(), attrs.duration, packet.getDifficulty(), packet.getLength()])
+                sql.execute("insert or ignore into level (name) values(?)", [attrs.level])
+                sql.execute("""update level set wins= wins + ?, losses= losses + ?, 
+                    time= time + ? where name=?""", 
+                    [wins, losses, attrs.duration, attrs.level])
             }
-            sql.execute("insert or ignore into difficulties (name, length) values(?, ?)", 
-                [packet.getDifficulty(), packet.getLength()])
-            sql.execute("""update difficulties set wins= wins + ?, losses= losses + ?, wave= wave + ?, 
-                time= time + ? where name= ? and length= ?""", 
-                [wins, losses, packet.getWave(), packet.getElapsedTime(), packet.getDifficulty(), packet.getLength()])
-            sql.execute("insert or ignore into levels (name) values(?)", [packet.getLevelName()])
-            sql.execute("""update levels set wins= wins + ?, losses= losses + ?, 
-                time= time + ? where name=?""", 
-                [wins, losses, packet.getElapsedTime(), packet.getLevelName()])
+        } else {
+            println "Writing some other packet"
+            sql.withTransaction {
+                if (category == "deaths") {
+                    packet.getStats().each {stat, value ->
+                        sql.execute("insert or ignore into aggregate (stat, category) values (?,?);", [stat, category])
+                        sql.execute("update aggregate set value= value + ? where stat=? and category=?", [value, stat, category])
+                    }
+                }
+                sql.execute("insert or ignore into difficulty (name, length) values(?, ?)", 
+                    [packet.getDifficulty(), packet.getLength()])
+                packet.getStats().each {stat, value ->
+                    sql.execute("""insert or ignore into wavedata (difficulty_id, wave, category, stat) select d.id, ?, ?, ? from difficulty d 
+                        where d.name=? and d.length=?""", [packet.getWave(), category, stat, packet.getDifficulty(), packet.getLength()])
+                    sql.execute("""update wavedata set value= value + ? where stat=? and category=? and difficulty_id=(select id from difficulty where 
+                        name=? and length=?)""", [value, stat, category, packet.getDifficulty(), packet.getLength()])
+                }
+            }
         }
     }
     
@@ -62,22 +81,23 @@ public class DataWriter {
                             sql.execute("insert or ignore into aggregate (stat, category) values (?,?);", [stat, category])
                             sql.execute("update aggregate set value= value + ? where stat=? and category=?", [value, stat, category])
                             if (steamID64 != "") {
-                                sql.execute("insert or ignore into player (steamid64, stat, category) values(?, ?, ?)", 
-                                    [steamID64, stat, category])
-                                sql.execute("update player set value=value + ? where steamid64=? and stat=? and category=?", 
-                                    [value, steamID64, stat, category])
+                                sql.execute("insert or ignore into player (record_id, stat, category) select r.id, ?, ? from record r where r.steamid64=?", 
+                                    [stat, category, steamID64])
+                                sql.execute("update player set value=value + ? where stat=? and category=? and record_id=(select id from record where steamid64=?)", 
+                                    [value, stat, category, steamID64])
                             }
                         }
                     }
                 } else {
-                    def matchInfo= packet.getMatchInfo()
+                    def attrs= packet.getAttributes()
 
-                    sql.execute("insert or ignore into records (steamid64) values (?);", [steamID64])
-                    sql.execute("update records set wins= wins + ?, losses= losses + ?, disconnects= disconnects + ? where steamid64=?", 
-                        [matchInfo.result == MatchInfo.Result.WIN ? 1 : 0, matchInfo.result == MatchInfo.Result.LOSS ? 1 : 0, 
-                        matchInfo.result == MatchInfo.Result.DISCONNECT ? 1 : 0, steamID64])
-                    sql.execute("insert into sessions (steamid64, level, difficulty, length, result, wave) values (?,?,?,?,?,?)",
-                        [steamID64, matchInfo.level, matchInfo.difficulty, matchInfo.length, matchInfo.result.toString().toLowerCase(), matchInfo.wave])
+                    sql.execute("insert or ignore into record (steamid64) values (?);", [steamID64])
+                    sql.execute("""update record set wins= wins + ?, losses= losses + ?, disconnects= disconnects + ?, 
+                        final_wave_survived= final_wave_survived + ?, final_wave_reached= final_wave_reached + ? where steamid64=?""", 
+                        [attrs.result == PacketParser.Result.WIN ? 1 : 0, attrs.result == PacketParser.Result.LOSS ? 1 : 0, 
+                        attrs.result == PacketParser.Result.DISCONNECT ? 1 : 0, attrs.finalWaveSurvived, attrs.finalWave, steamID64])
+                    sql.execute("insert into session (record_id, level, difficulty_id, result, wave, duration) select r.id,?,d.id,?,?,? from record r inner join difficulty d where r.steamid64=? and d.name=? and d.length=?",
+                        [attrs.level, attrs.result.toString().toLowerCase(), attrs.wave, attrs.duration, steamID64, attrs.difficulty, attrs.length])
                 }
             }
         }

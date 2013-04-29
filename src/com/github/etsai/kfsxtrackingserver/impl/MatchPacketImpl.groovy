@@ -6,6 +6,7 @@
 package com.github.etsai.kfsxtrackingserver.impl
 
 import com.github.etsai.kfsxtrackingserver.PacketParser.MatchPacket
+import com.github.etsai.kfsxtrackingserver.PacketParser.Result
 
 /**
  * Represents a match message
@@ -35,7 +36,7 @@ public class MatchPacketImpl implements MatchPacket {
                     attrs["result"]= Result.WIN
                     break
                 default:
-                    throw new RuntimeException("Unrecognized result value: ${parts[6]}")
+                    throw new RuntimeException("Unrecognized result value: ${parts[7]}")
             }
         } else {
             stats= [:]

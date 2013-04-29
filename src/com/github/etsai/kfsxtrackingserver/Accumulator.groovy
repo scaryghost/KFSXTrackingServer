@@ -6,8 +6,8 @@
 package com.github.etsai.kfsxtrackingserver
 
 import com.github.etsai.kfsxtrackingserver.Common
-import com.github.etsai.kfsxtrackingserver.impl.MatchPacket
-import com.github.etsai.kfsxtrackingserver.impl.PlayerPacket
+import com.github.etsai.kfsxtrackingserver.PacketParser.MatchPacket
+import com.github.etsai.kfsxtrackingserver.PacketParser.PlayerPacket
 import java.util.logging.Level
 import java.util.TimerTask
 import java.util.Timer
@@ -21,13 +21,14 @@ public class Accumulator {
     private static def timer= new Timer()
     public static def writer
     public static Long statMsgTTL
+    public static def packetParser
     
     public synchronized static def accumulate(String data) {
         def id
         
         try {
             Common.logger.finest(data);
-            def packet= Packet.parse(data);
+            def packet= packetParser.parse(data);
             if (packet instanceof MatchPacket) {
                 writer.writeMatchData((MatchPacket)packet)
             } else if (packet instanceof PlayerPacket) {
@@ -61,9 +62,9 @@ public class Accumulator {
                         try {
                             def info= SteamPoller.poll(id)
                             writer.writeSteamInfo(id, info[0], info[1])
-                            writer.writePlayerData(packets)
+                            writer.writePlayerData(packets.reverse())
                         } catch (IOException ex) {
-                            writer.writePlayerData(packets)
+                            writer.writePlayerData(packets.reverse())
                         } catch (Exception ex) {
                             Common.logger.log(Level.SEVERE, "Invalid steamID64: $id", ex)
                         } 

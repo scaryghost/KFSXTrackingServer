@@ -6,7 +6,6 @@ package com.github.etsai.kfsxtrackingserver;
 
 import com.github.etsai.utils.logging.TeeLogger;
 import com.github.etsai.utils.sql.ConnectionPool;
-import groovy.sql.Sql;
 import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
@@ -59,16 +58,15 @@ public class Main {
     }
     
     public static void initModules(ServerProperties props) throws ClassNotFoundException, SQLException {
-        Common.logger.log(Level.INFO,"Loading stats from databse: {0}", props.getDbName());
+        Common.logger.log(Level.INFO,"Loading stats from database: {0}", props.getDbName());
         
         Class.forName("org.sqlite.JDBC");
         Common.connPool= new ConnectionPool(props.getNumThreads());
         Common.connPool.setJdbcUrl(String.format("jdbc:sqlite:%s", props.getDbName()));
-        Common.executeStmt("CREATE TABLE IF NOT EXISTS steaminfo (steamid64 TEXT PRIMARY KEY  NOT NULL , name TEXT, avatar TEXT)");
         
         Accumulator.writer= new DataWriter(Common.connPool.getConnection());
         Accumulator.statMsgTTL= props.getStatsMsgTTL();
-        Packet.password= props.getPassword();
+        Accumulator.packetParser= new PacketParser(props.getPassword());
         HTTPListener.httpRootDir= props.getHttpRootDir();
         
         if (props.getNumThreads() < 0) {

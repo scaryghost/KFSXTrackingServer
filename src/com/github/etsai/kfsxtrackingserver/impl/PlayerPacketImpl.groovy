@@ -41,9 +41,10 @@ public class PlayerPacketImpl implements PlayerPacket {
         
 
         if (category == "match") {
-            attrs= [level: parts[4].toLowerCase(), difficulty: parts[5], 
-                length: parts[6], wave: parts[8].toInteger()]
+            attrs= [level: parts[4].toLowerCase(), difficulty: parts[5], length: parts[6], 
+                wave: parts[8].toInteger(), finalWave: parts[9].toInteger(), duration: parts[11].toInteger()]
 
+            attrs["finalWaveSurvived"]= attrs.finalWave != 0 ? parts[10].toInteger() : 0
             switch(parts[7].toInteger()) {
                 case 0:
                     attrs["result"]= Result.DISCONNECT
@@ -57,6 +58,7 @@ public class PlayerPacketImpl implements PlayerPacket {
                 default:
                     throw new RuntimeException("Unrecognized result: ${parts[7]}")
             }
+            
         } else {
             stats= [:]
             parts[4].tokenize(",").each {
