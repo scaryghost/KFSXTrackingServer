@@ -74,7 +74,7 @@ public class SteamPoller implements Runnable {
             
             pollSteam= false
             PollerThread.count.set(0)
-            sql.eachRow("select steamid64,id from record except select record_id,name from steaminfo") {row ->
+            sql.eachRow("select steamid64 from record where id=(SELECT id from record except select record_id from steaminfo)") {row ->
                 pool.submit(new PollerThread(steamid64: row.steamid64, steamInfo: steamInfo))
                 pollSteam= true
             }

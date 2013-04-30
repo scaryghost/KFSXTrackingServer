@@ -19,7 +19,6 @@ public interface DataReader {
     }
     public List<Map<Object, Object>> getDifficulties();
     public List<Map<Object, Object>> getLevels();
-    public List<Map<Object, Object>> getDeaths();
     public Integer getNumRecords();
     public Map<Object, Object> getRecord(String steamID64);
     public List<Map<Object, Object>> getRecords(String group, Order order, int start, int end);

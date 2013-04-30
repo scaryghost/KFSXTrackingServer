@@ -30,19 +30,16 @@ public class DataReaderImpl implements DataReader {
         return rows
     }
     public List<Map<Object, Object>> getDifficulties() {
-        return queryDB('select * from difficulties', [])
+        return queryDB('select * from difficulty', [])
     }
     public List<Map<Object, Object>> getLevels() {
-        return queryDB('select * from levels', [])
-    }
-    public List<Map<Object, Object>> getDeaths() {
-        return queryDB('select * from deaths ORDER BY name ASC', [])
+        return queryDB('select * from level', [])
     }
     public Map<Object, Object> getRecord(String steamID64) {
-        return sql.firstRow('SElECT * FROM records WHERE steamid64=?', [steamID64])
+        return sql.firstRow('SElECT * FROM record r INNER JOIN steaminfo s on r.id=s.record_id WHERE steamid64=?', [steamID64])
     }
     public List<Map<Object, Object>> getRecords(String group, Order order, int start, int end) {
-        def query= "SELECT s.name,r.wins,r.losses,r.disconnects,r.steamid64 FROM records r INNER JOIN steaminfo s ON r.steamid64=s.steamid64 "
+        def query= "SELECT * FROM record r INNER JOIN steaminfo s ON r.id=s.record_id "
         
         if (group != null && order != Order.NONE) {
             query+= "ORDER BY $group $order "
@@ -51,13 +48,13 @@ public class DataReaderImpl implements DataReader {
         return queryDB(query, [start, end - start])
     }
     public Integer getNumRecords() {
-        return sql.firstRow('SELECT count(*) FROM records')[0]
+        return sql.firstRow('SELECT count(*) FROM record')[0]
     }
     public List<Map<Object, Object>> getRecords() {
-        return queryDB("SELECT s.name,r.wins,r.losses,r.disconnects,r.steamid64 FROM records r INNER JOIN steaminfo s ON r.steamid64=s.steamid64", [])
+        return queryDB("SELECT * FROM record r INNER JOIN steaminfo s ON r.id=s.record_id", [])
     }
     public List<Map<Object, Object>> getSessions(String steamID64, String group, Order order, int start, int end) {
-        def query= "SELECT * FROM sessions WHERE steamid64=?"
+        def query= "SELECT s.*,d.name,d.length FROM session s inner join difficulty d where s.difficulty_id=d.id and record_id=(select id from record r where r.steamid64=?) "
         
         if (group != null && order != Order.NONE) {
             query+= "ORDER BY $group $order "
@@ -66,7 +63,7 @@ public class DataReaderImpl implements DataReader {
         return queryDB(query, [steamID64, start, end - start])
     }
     public List<Map<Object, Object>> getSessions(String steamID64) {
-        return queryDB("SELECT * FROM sessions WHERE steamid64=?", [start, end - start])
+        return queryDB("SELECT s.*,d.name,d.length FROM session s inner join difficulty d where s.difficulty_id=d.id and record_id=(select id from record r where r.steamid64=?)", [steamID64])
     }
     public List<String> getAggregateCategories() {
         return queryDB('SELECT category FROM aggregate GROUP BY category', []).collect { it.category }
@@ -75,10 +72,10 @@ public class DataReaderImpl implements DataReader {
         return queryDB("SELECT * from aggregate where category=? ORDER BY stat ASC", [category])
     }
     public List<Map<Object, Object>> getAggregateData(String category, String steamID64) {
-        return queryDB("SELECT * from player where steamid64=? and category=? ORDER BY stat ASC", [steamID64, category])
+        return queryDB("SELECT * from player where record_id=(select id from record where steamid64=?) and category=? ORDER BY stat ASC", [steamID64, category])
     }
     public Map<Object, Object> getSteamIDInfo(String steamID64) {
-        def row= sql.firstRow("select * from steaminfo where steamid64=?", [steamID64])
+        def row= sql.firstRow("select * from steaminfo where record_id=(select id from record where steamid64=?)", [steamID64])
         
         if (row == null) {
             try {
