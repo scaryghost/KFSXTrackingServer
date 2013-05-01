@@ -61,9 +61,11 @@ public class PlayerPacketImpl implements PlayerPacket {
             
         } else {
             stats= [:]
-            parts[4].tokenize(",").each {
-                def statParts= it.tokenize("=")
-                stats[statParts[0]]= statParts[1].toInteger()
+            if (parts.size() >= 5) {
+                parts[4].tokenize(",").each {
+                    def statParts= it.tokenize("=")
+                    stats[statParts[0]]= statParts[1].toInteger()
+                }
             }
         }
     }

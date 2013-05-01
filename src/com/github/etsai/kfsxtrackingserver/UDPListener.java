@@ -38,6 +38,7 @@ public class UDPListener implements Runnable {
                     String data= new String(packet.getData(), 0, packet.getLength());
                     logger.info(String.format("Received UDP packet from %s:%d", 
                             packet.getAddress().getHostAddress(), packet.getPort()));
+                    logger.info(String.format("Data: %s", data));
                     Accumulator.accumulate(data);
                 } catch (IOException ex) {
                     logger.log(Level.SEVERE, "Error reading data on UDP socket", ex);

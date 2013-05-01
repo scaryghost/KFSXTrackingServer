@@ -16,7 +16,7 @@ import java.sql.Connection
  */
 public class DataWriter {
     public static def waveCountCategory= "count"
-    public static def waveReached= "reached"
+    public static def waveReached= "Reached"
     
     private final def sql
     
@@ -50,7 +50,6 @@ public class DataWriter {
                     [wins, losses, attrs.duration, attrs.level])
             }
         } else {
-            println "Writing some other packet"
             sql.withTransaction {
                 if (category == "deaths") {
                     packet.getStats().each {stat, value ->
@@ -97,7 +96,7 @@ public class DataWriter {
 
                     sql.execute("insert or ignore into record (steamid64) values (?);", [steamID64])
                     sql.execute("""update record set wins= wins + ?, losses= losses + ?, disconnects= disconnects + ?, 
-                        final_wave_survived= final_wave_survived + ?, final_wave_reached= final_wave_reached + ? where steamid64=?""", 
+                        finale_survived= finale_survived + ?, finale_played= finale_played + ? where steamid64=?""", 
                         [attrs.result == PacketParser.Result.WIN ? 1 : 0, attrs.result == PacketParser.Result.LOSS ? 1 : 0, 
                         attrs.result == PacketParser.Result.DISCONNECT ? 1 : 0, attrs.finalWaveSurvived, attrs.finalWave, steamID64])
                     sql.execute("insert into session (record_id, level, difficulty_id, result, wave, duration) select r.id,?,d.id,?,?,? from record r inner join difficulty d where r.steamid64=? and d.name=? and d.length=?",
