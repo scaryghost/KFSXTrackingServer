@@ -93,7 +93,7 @@
         <copy file="${src.dir}/${version.path}/Version.template" tofile="${src.dir}/${version.path}/Version.java" />
         <replace file="${src.dir}/${version.path}/Version.java" token="@@@" value="${git.version}" />
     </target>
-    
+    <!--
     <target name="-post-jar">
         <copy todir="${dist.dir}/http" >
             <fileset dir="KFStatsXTSWebContent/http" />
@@ -106,4 +106,5 @@
             <arg value="${dist.dir}/." />
         </exec>
     </target>
+    -->
 </project>

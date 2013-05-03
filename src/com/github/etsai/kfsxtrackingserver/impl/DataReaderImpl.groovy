@@ -95,5 +95,8 @@ public class DataReaderImpl implements DataReader {
     public List<Map<Object, Object>> getWaveData(String name, String length, String category) {
         return queryDB("SELECT * FROM wavedata WHERE difficulty_id=(select id from difficulty where name=? and length=?) and category=?", [name, length, category])
     }
+    public List<String> getWaveDataCategories() {
+        return queryDB('SELECT category FROM wavedata GROUP BY category', []).collect { it.category }
+    }
 }
 
