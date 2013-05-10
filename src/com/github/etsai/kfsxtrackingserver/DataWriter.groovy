@@ -15,8 +15,8 @@ import java.sql.Connection
  * @author etsai
  */
 public class DataWriter {
-    public static def waveCountCategory= "count"
-    public static def waveReached= "Reached"
+    public static def waveCountCategory= "frequency"
+    public static def waveReached= "Played"
     
     private final def sql
     
@@ -57,12 +57,6 @@ public class DataWriter {
             }
         } else {
             sql.withTransaction {
-                if (category == "deaths") {
-                    packet.getStats().each {stat, value ->
-                        sql.execute("insert or ignore into aggregate (stat, category) values (?,?);", [stat, category])
-                        sql.execute("update aggregate set value= value + ? where stat=? and category=?", [value, stat, category])
-                    }
-                }
                 sql.execute("insert or ignore into difficulty (name, length) values(?, ?)", 
                     [packet.getDifficulty(), packet.getLength()])
                 packet.getStats().each {stat, value ->
