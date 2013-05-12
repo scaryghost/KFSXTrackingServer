@@ -9,7 +9,7 @@ import java.util.Map;
 
 /**
  *
- * @author eric
+ * @author etsai
  */
 public interface DataReader {
     public enum Order {
@@ -29,6 +29,7 @@ public interface DataReader {
     public List<Map<Object, Object>> getAggregateData(String category);
     public List<Map<Object, Object>> getAggregateData(String category, String steamID64);
     public Map<Object, Object> getSteamIDInfo(String steamID64);
-    public List<Map<Object, Object>> getWaveData(String name, String length, String category);
+    public List<Map<Object, Object>> getWaveData(String diffName, String diffLength, String category);
     public List<String> getWaveDataCategories();
+    public List<Map<Object, Object>> getLevelData(String levelName);
 }
