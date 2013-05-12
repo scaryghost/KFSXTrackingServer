@@ -43,11 +43,16 @@ public class DataWriter {
             sql.withTransaction {
                 sql.execute("insert or ignore into difficulty (name, length) values(?, ?)", 
                     [packet.getDifficulty(), packet.getLength()])
-                sql.execute("update difficulty set wins= wins + ?, losses= losses + ?, wave= wave + ?, time= time + ? where name= ? and length= ?", 
+                sql.execute("update difficulty set wins= wins + ?, losses= losses + ?, waveaccum= waveaccum + ?, time= time + ? where name= ? and length= ?", 
                     [wins, losses, packet.getWave(), attrs.duration, packet.getDifficulty(), packet.getLength()])
                 sql.execute("insert or ignore into level (name) values(?)", [attrs.level])
                 sql.execute("update level set wins= wins + ?, losses= losses + ?, time= time + ? where name=?", 
                     [wins, losses, attrs.duration, attrs.level])
+                sql.execute("insert or ignore into leveldata (level_id, difficulty_id) select l.id, d.id from level l, difficulty d where l.name=? and d.name=? and d.length=?",
+                    [attrs.level, packet.getDifficulty(), packet.getLength()])
+                sql.execute("""update leveldata set wins= wins + ?, losses= losses + ?, time= time + ?, waveaccum= waveaccum + ? where 
+                        level_id=(select id from level where name=?) and difficulty_id=(select id from difficulty where name=? and length=?)""",
+                    [wins, losses, attrs.duration, packet.getWave(), attrs.level, packet.getDifficulty(), packet.getLength()])
                 (1 .. packet.getWave()).each {waveNum ->
                     sql.execute("""insert or ignore into wavedata (difficulty_id, wave, category, stat) select d.id, ?, ?, ? from difficulty d 
                         where d.name=? and d.length=?""", [waveNum, waveCountCategory, waveReached, packet.getDifficulty(), packet.getLength()])
