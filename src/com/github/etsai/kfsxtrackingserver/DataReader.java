@@ -30,6 +30,7 @@ public interface DataReader {
     public List<Map<Object, Object>> getAggregateData(String category, String steamID64);
     public Map<Object, Object> getSteamIDInfo(String steamID64);
     public List<Map<Object, Object>> getWaveData(String diffName, String diffLength, String category);
+    public List<Map<Object, Object>> getWaveData(String levelName, String diffName, String diffLength, String category);
     public List<String> getWaveDataCategories();
     public List<Map<Object, Object>> getLevelData(String levelName);
 }

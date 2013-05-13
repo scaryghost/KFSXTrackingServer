@@ -36,6 +36,7 @@ public class PacketParser {
         
         public String getDifficulty();
         public String getLength();
+        public String getLevel();
         public int getWave();
     }
     

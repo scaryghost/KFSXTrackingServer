@@ -13,21 +13,17 @@ import com.github.etsai.kfsxtrackingserver.PacketParser.Result
  * @author etsai
  */
 public class MatchPacketImpl implements MatchPacket {
-    private final def difficulty
-    private final def length
-    private final def wave
-    private final def attrs
-    private final def stats
-    private final def category
+    private final def difficulty, length, level, wave, attrs, stats, category
     
     public MatchPacketImpl(String[] parts) {
         difficulty= parts[2]
         length= parts[3]
         wave= parts[4].toInteger()
         category= parts[1]
+        level= parts[5]
         
         if (parts[1] == "result") {
-            attrs= [level: parts[5], duration: parts[6].toInteger()]
+            attrs= [duration: parts[6].toInteger()]
             switch (parts[7]) {
                 case "1":
                     attrs["result"]= Result.LOSS
@@ -40,7 +36,7 @@ public class MatchPacketImpl implements MatchPacket {
             }
         } else {
             stats= [:]
-            parts[5].tokenize(",").each {
+            parts[6].tokenize(",").each {
                 def statParts= it.tokenize("=")
                 stats[statParts[0]]= statParts[1].toInteger()
             }
@@ -51,6 +47,9 @@ public class MatchPacketImpl implements MatchPacket {
     }
     public String getDifficulty() {
         return difficulty
+    }
+    public String getLevel() {
+        return level
     }
     
     public String getLength() {
@@ -71,6 +70,6 @@ public class MatchPacketImpl implements MatchPacket {
     
     @Override
     public String toString() {
-        return [difficulty, length, wave, attrs, stats]
+        return [difficulty, length, level, wave, attrs, stats]
     }
 }
