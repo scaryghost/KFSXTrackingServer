@@ -36,10 +36,10 @@ public class DataReaderImpl implements DataReader {
         return queryDB('select * from level', [])
     }
     public Map<Object, Object> getRecord(String steamID64) {
-        return sql.firstRow('SElECT * FROM record r INNER JOIN steaminfo s on r.id=s.record_id WHERE steamid64=?', [steamID64])
+        return sql.firstRow('SElECT * FROM record r INNER JOIN steam_info s on r.id=s.record_id WHERE steamid64=?', [steamID64])
     }
     public List<Map<Object, Object>> getRecords(String group, Order order, int start, int end) {
-        def query= "SELECT * FROM record r INNER JOIN steaminfo s ON r.id=s.record_id "
+        def query= "SELECT * FROM record r INNER JOIN steam_info s ON r.id=s.record_id "
         
         if (group != null && order != Order.NONE) {
             query+= "ORDER BY $group $order "
@@ -51,7 +51,7 @@ public class DataReaderImpl implements DataReader {
         return sql.firstRow('SELECT count(*) FROM record')[0]
     }
     public List<Map<Object, Object>> getRecords() {
-        return queryDB("SELECT * FROM record r INNER JOIN steaminfo s ON r.id=s.record_id", [])
+        return queryDB("SELECT * FROM record r INNER JOIN steam_info s ON r.id=s.record_id", [])
     }
     public List<Map<Object, Object>> getSessions(String steamID64, String group, Order order, int start, int end) {
         def query= "SELECT s.*,d.name,d.length FROM session s inner join difficulty d where s.difficulty_id=d.id and record_id=(select id from record r where r.steamid64=?) "
@@ -75,7 +75,7 @@ public class DataReaderImpl implements DataReader {
         return queryDB("SELECT * from player where record_id=(select id from record where steamid64=?) and category=? ORDER BY stat ASC", [steamID64, category])
     }
     public Map<Object, Object> getSteamIDInfo(String steamID64) {
-        def row= sql.firstRow("select * from steaminfo where record_id=(select id from record where steamid64=?)", [steamID64])
+        def row= sql.firstRow("select * from steam_info where record_id=(select id from record where steamid64=?)", [steamID64])
         
         if (row == null) {
             try {

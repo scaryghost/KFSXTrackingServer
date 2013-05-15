@@ -74,7 +74,7 @@ public class SteamPoller implements Runnable {
             
             pollSteam= false
             PollerThread.count.set(0)
-            sql.eachRow("select steamid64 from record where id=(SELECT id from record except select record_id from steaminfo)") {row ->
+            sql.eachRow("select steamid64 from record where id=(SELECT id from record except select record_id from steam_info)") {row ->
                 pool.submit(new PollerThread(steamid64: row.steamid64, steamInfo: steamInfo))
                 pollSteam= true
             }
@@ -85,8 +85,8 @@ public class SteamPoller implements Runnable {
             if (pollSteam) {
                 sql.withTransaction {
                     steamInfo.each {steamID64, info ->
-                        sql.execute("insert or ignore into steaminfo (record_id) select r.id from record r where steamid64=?", [steamID64])
-                        sql.execute("update steaminfo set name=?, avatar=? where record_id=(select id from record where steamid64=?)", [info[0], info[1], steamID64])
+                        sql.execute("insert or ignore into steam_info (record_id) select r.id from record r where steamid64=?", [steamID64])
+                        sql.execute("update steam_info set name=?, avatar=? where record_id=(select id from record where steamid64=?)", [info[0], info[1], steamID64])
                     }
                 }
                 Common.logger.fine("Attempted to poll ${PollerThread.count.get()} profiles.  Repolling missed steamid64s")

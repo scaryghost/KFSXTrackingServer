@@ -31,8 +31,8 @@ public class DataWriter {
     public synchronized void writeSteamInfo(String steamID64, String name, String avatar) {
         sql.withTransaction {
             sql.execute("insert or ignore into record (steamid64) values (?);", [steamID64])
-            sql.execute("insert or ignore into steaminfo (record_id) select r.id from record r where steamid64=?", [steamID64])
-            sql.execute("update steaminfo set name=?, avatar=? where record_id=(select id from record where steamid64=?)", [name, avatar, steamID64])
+            sql.execute("insert or ignore into steam_info (record_id) select r.id from record r where steamid64=?", [steamID64])
+            sql.execute("update steam_info set name=?, avatar=? where record_id=(select id from record where steamid64=?)", [name, avatar, steamID64])
         }
     }
     public synchronized void writeMatchData(MatchPacket packet) {
