@@ -106,8 +106,12 @@ public class DataReaderImpl implements DataReader {
         return queryDB('SELECT category FROM wavedata GROUP BY category', []).collect { it.category }
     }
     public List<Map<Object, Object>> getLevelData(String levelName) {
-        return queryDB("""SELECT ld.*,d.name,d.length FROM leveldata ld INNER JOIN level l ON l.id=ld.level_id 
+        return queryDB("""SELECT ld.*,d.name,d.length FROM level_difficulty_join ld INNER JOIN level l ON l.id=ld.level_id 
                 INNER JOIN difficulty d ON d.id=ld.difficulty_id where l.name=?""", [levelName])
+    }
+    public List<Map<Object, Object>> getDifficultyData(String diffName, String length) {
+        return queryDB("""SELECT ld FROM level_difficulty_join ld INNER JOIN difficulty d on d.id=ld.difficulty_id  
+                INNER JOIN level l ON l.id=ld.level_id where d.name=? and d.length""", [diffname, length])
     }
 }
 

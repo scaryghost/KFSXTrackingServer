@@ -15,9 +15,9 @@ import java.sql.Connection
  * @author etsai
  */
 public class DataWriter {
-    private static def wavedataSqlInsert= """insert or ignore into wavedata (difficulty_id, level_id, wave, category, stat) select d.id, l.id, ?, ?, ? 
+    private static def wavedataSqlInsert= """insert or ignore into wave_data (difficulty_id, level_id, wave, category, stat) select d.id, l.id, ?, ?, ? 
             from difficulty d, level l where d.name=? and d.length=? and l.name=?"""
-    private static def wavedataSqlUpdate= """update wavedata set value= value + ? where stat=? and category=? and wave=? and difficulty_id=(select id from 
+    private static def wavedataSqlUpdate= """update wave_data set value= value + ? where stat=? and category=? and wave=? and difficulty_id=(select id from 
             difficulty where name=? and length=?) and level_id=(select id from level where name=?)"""
     public static def waveCountCategory= "frequency"
     public static def waveReached= "Played"
@@ -52,6 +52,11 @@ public class DataWriter {
                 sql.execute("insert or ignore into level (name) values(?)", [packet.getLevel()])
                 sql.execute("update level set wins= wins + ?, losses= losses + ?, time= time + ? where name=?", 
                     [wins, losses, attrs.duration, packet.getLevel()])
+                sql.execute("insert or ignore into level_difficulty_join (difficulty_id, level_id) select d.id, l.id from difficulty d, level l where d.name=? and d.length=? and l.name=?",
+                    [packet.getDifficulty(), packet.getLength(), packet.getLevel()])
+                sql.execute("""update level_difficulty_join set wins= wins + ?, losses= losses + ?, waveaccum= waveaccum + ?, time= time + ? where 
+                    difficulty_id=(elect id from  difficulty where name=? and length=?) and level_id=(select id from level where name=?)""",
+                    [wins, losses, packet.getWave(), attrs.duration, packet.getDifficulty(), packet.getLength(), packet.getLevel()])
                 (1 .. packet.getWave()).each {waveNum ->
                     sql.execute(wavedataSqlInsert, [waveNum, waveCountCategory, waveReached, packet.getDifficulty(), packet.getLength(), packet.getLevel()])
                     sql.execute(wavedataSqlUpdate, [1, waveReached, waveCountCategory, waveNum, packet.getDifficulty(), packet.getLength(), packet.getLevel()])

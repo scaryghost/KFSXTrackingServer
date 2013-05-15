@@ -18,7 +18,9 @@ public interface DataReader {
         NONE
     }
     public List<Map<Object, Object>> getDifficulties();
+    public List<Map<Object, Object>> getDifficultyData(String diffName, String length);
     public List<Map<Object, Object>> getLevels();
+    public List<Map<Object, Object>> getLevelData(String levelName);
     public Integer getNumRecords();
     public Map<Object, Object> getRecord(String steamID64);
     public List<Map<Object, Object>> getRecords(String group, Order order, int start, int end);
@@ -32,5 +34,4 @@ public interface DataReader {
     public List<Map<Object, Object>> getWaveData(String diffName, String diffLength, String category);
     public List<Map<Object, Object>> getWaveData(String levelName, String diffName, String diffLength, String category);
     public List<String> getWaveDataCategories();
-    public List<Map<Object, Object>> getLevelData(String levelName);
 }
