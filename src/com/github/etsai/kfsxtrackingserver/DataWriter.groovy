@@ -55,7 +55,7 @@ public class DataWriter {
                 sql.execute("insert or ignore into level_difficulty_join (difficulty_id, level_id) select d.id, l.id from difficulty d, level l where d.name=? and d.length=? and l.name=?",
                     [packet.getDifficulty(), packet.getLength(), packet.getLevel()])
                 sql.execute("""update level_difficulty_join set wins= wins + ?, losses= losses + ?, waveaccum= waveaccum + ?, time= time + ? where 
-                    difficulty_id=(elect id from  difficulty where name=? and length=?) and level_id=(select id from level where name=?)""",
+                    difficulty_id=(select id from  difficulty where name=? and length=?) and level_id=(select id from level where name=?)""",
                     [wins, losses, packet.getWave(), attrs.duration, packet.getDifficulty(), packet.getLength(), packet.getLevel()])
                 (1 .. packet.getWave()).each {waveNum ->
                     sql.execute(wavedataSqlInsert, [waveNum, waveCountCategory, waveReached, packet.getDifficulty(), packet.getLength(), packet.getLevel()])
