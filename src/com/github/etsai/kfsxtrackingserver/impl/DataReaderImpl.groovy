@@ -110,8 +110,8 @@ public class DataReaderImpl implements DataReader {
                 INNER JOIN difficulty d ON d.id=ld.difficulty_id where l.name=?""", [levelName])
     }
     public List<Map<Object, Object>> getDifficultyData(String diffName, String length) {
-        return queryDB("""SELECT ld FROM level_difficulty_join ld INNER JOIN difficulty d on d.id=ld.difficulty_id  
-                INNER JOIN level l ON l.id=ld.level_id where d.name=? and d.length""", [diffname, length])
+        return queryDB("""SELECT ld.*,l.name FROM level_difficulty_join ld INNER JOIN difficulty d on d.id=ld.difficulty_id  
+                INNER JOIN level l ON l.id=ld.level_id where d.name=? and d.length=?""", [diffName, length])
     }
 }
 
