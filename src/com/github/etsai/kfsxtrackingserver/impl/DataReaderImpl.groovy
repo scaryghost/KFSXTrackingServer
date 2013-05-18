@@ -17,6 +17,8 @@ import java.sql.Connection
  * @author eric
  */
 public class DataReaderImpl implements DataReader {
+    private final def sessionsSql= """SELECT s.*,datetime(s.timestamp, 'localtime') as timestamp, d.name as difficulty,d.length,l.name as level FROM session s 
+            inner join difficulty d inner join level l where s.difficulty_id=d.id and s.level_id=l.id and record_id=(select id from record r where r.steamid64=?) """
     private final def sql
     
     public def DataReaderImpl(def conn) {
@@ -54,7 +56,7 @@ public class DataReaderImpl implements DataReader {
         return queryDB("SELECT * FROM record r INNER JOIN steam_info s ON r.id=s.record_id", [])
     }
     public List<Map<Object, Object>> getSessions(String steamID64, String group, Order order, int start, int end) {
-        def query= "SELECT s.*,d.name,d.length FROM session s inner join difficulty d where s.difficulty_id=d.id and record_id=(select id from record r where r.steamid64=?) "
+        def query= sessionsSql
         
         if (group != null && order != Order.NONE) {
             query+= "ORDER BY $group $order "
@@ -63,7 +65,7 @@ public class DataReaderImpl implements DataReader {
         return queryDB(query, [steamID64, start, end - start])
     }
     public List<Map<Object, Object>> getSessions(String steamID64) {
-        return queryDB("SELECT s.*,d.name,d.length FROM session s inner join difficulty d where s.difficulty_id=d.id and record_id=(select id from record r where r.steamid64=?)", [steamID64])
+        return queryDB(sessionsSql, [steamID64])
     }
     public List<String> getAggregateCategories() {
         return queryDB('SELECT category FROM aggregate GROUP BY category', []).collect { it.category }
