@@ -72,6 +72,10 @@ public abstract class Page {
                     
                     body= aScript.generatePage(new DataReaderImpl(conn), queries)
                     Common.connPool.release(conn)
+
+                    if (queries.xml != null) {
+                        extension= "xml"
+                    }
                 }              
             }
         } catch (Exception ex) {
