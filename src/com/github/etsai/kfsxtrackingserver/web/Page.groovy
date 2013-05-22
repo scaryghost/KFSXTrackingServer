@@ -1,7 +1,7 @@
 package com.github.etsai.kfsxtrackingserver.web;
 
 import com.github.etsai.kfsxtrackingserver.Common
-import com.github.etsai.kfsxtrackingserver.impl.DataReaderImpl
+import com.github.etsai.kfsxtrackingserver.impl.SQLiteReader
 import com.github.etsai.utils.Time
 import groovy.sql.Sql
 import java.io.OutputStream
@@ -25,15 +25,15 @@ public abstract class Page {
         def uri= URI.create(request[1])
         def filename= uri.getPath().substring(1)
         def extension= filename.substring(filename.lastIndexOf(".") + 1, filename.length());
-        def queries= [:]
         
+        def queries= [:]
         if (uri.getQuery() != null) {
             uri.getQuery().tokenize("&").each {token ->
                 def keyVal= token.split("=")
                 queries[keyVal[0]]= keyVal[1]
             }
         }
-        
+         
         try {
             def xmlRoot= new XmlSlurper().parse(httpRootDir.resolve(webpages).toFile())
             def resources= [:]
@@ -70,7 +70,9 @@ public abstract class Page {
                     def aScript = (Resource)clazz.newInstance();
                     def conn= Common.connPool.getConnection()
                     
-                    body= aScript.generatePage(new DataReaderImpl(conn), queries)
+                    aScript.setQueries(queries)
+                    aScript.setDataReader(new SQLiteReader(conn))
+                    body= aScript.generatePage()
                     Common.connPool.release(conn)
 
                     if (queries.xml != null) {

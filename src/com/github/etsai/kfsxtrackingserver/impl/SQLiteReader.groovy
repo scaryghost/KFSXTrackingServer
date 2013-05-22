@@ -16,14 +16,14 @@ import java.sql.Connection
 
 /**
  *
- * @author eric
+ * @author etsai
  */
-public class DataReaderImpl implements DataReader {
+public class SQLiteReader implements DataReader {
     private final def sessionsSql= """SELECT s.*,datetime(s.timestamp, 'localtime') as timestamp, d.name as difficulty,d.length,l.name as level FROM session s 
             inner join difficulty d inner join level l where s.difficulty_id=d.id and s.level_id=l.id and record_id=(select id from record r where r.steamid64=?) """
     private final def sql
     
-    public def DataReaderImpl(def conn) {
+    public def SQLiteReader(def conn) {
         this.sql= new Sql(conn)
     }
     private def queryDB(def query, def ps) {
