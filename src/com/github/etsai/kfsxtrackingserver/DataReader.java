@@ -13,6 +13,7 @@ import java.util.Map;
  */
 public interface DataReader {
     /**
+     * List order for a set of data
      */
     public enum Order {
         /** Sort in ascending order */
@@ -23,24 +24,73 @@ public interface DataReader {
         NONE
     }
     /**
-     * Get the difficulty information for each difficulty setting.  The keys for the map are: name, length, wins, losses, waveaccum, and time.
+     * Get the difficulty information for each difficulty setting.  Map keys are:
+     * <table>
+     * <thead>
+     *   <tr><th>Key</th><th>Type</th><th>Description</th></tr>
+     * </thead>
+     * <tbody>
+     *   <tr><td>name</td><td>String</td><td>Name of the difficulty</td></tr>
+     *   <tr><td>length</td><td>String</td><td>Game length</td></tr>
+     *   <tr><td>wins</td><td>Integer</td><td>Number of wins</td></tr>
+     *   <tr><td>losses</td><td>Integer</td><td>Number of losses</td></tr>
+     *   <tr><td>waveaccum</td><td>Integer</td><td>Accumulated sum of waves each game ended on </td></tr>
+     *   <tr><td>time</td><td>Integer</td><td>Accumulated play time for each match played on the difficulty and length in seconds</td></tr>
+     * </tbody>
+     * </table>
      * @return  List of a map of attributes for each difficulty
      */
     public List<Map<Object, Object>> getDifficulties();
     /**
-     * Get the level breakdown for the given difficulty setting.  The keys for the map are: name, wins, losses, waveaccum, and time
+     * Get the level breakdown for the given difficulty setting.  Map keys are:
+     * <table>
+     * <thead>
+     *   <tr><th>Key</th><th>Type</th><th>Description</th></tr>
+     * </thead>
+     * <tbody>
+     *   <tr><td>name</td><td>String</td><td>Name of the level</td></tr>
+     *   <tr><td>wins</td><td>Integer</td><td>Number of wins</td></tr>
+     *   <tr><td>losses</td><td>Integer</td><td>Number of losses</td></tr>
+     *   <tr><td>waveaccum</td><td>Integer</td><td>Accumulated sum of waves each game ended on </td></tr>
+     *   <tr><td>time</td><td>Integer</td><td>Accumulated play time for each match played on the difficulty and length in seconds</td></tr>
+     * </tbody>
+     * </table>
      * @param   diffName    Difficulty name
      * @param   length      Game length
      * @return  List of statistics for each map played on the given difficulty setting
      */
     public List<Map<Object, Object>> getDifficultyData(String diffName, String length);
     /**
-     * Get the totals for each played level, across all difficulty settings.  The keys for the map are: name, wins, losses, and time
+     * Get the totals for each played level, across all difficulty settings.  Map keys are:
+     * <table>
+     * <thead>
+     *   <tr><th>Key</th><th>Type</th><th>Description</th></tr>
+     * </thead>
+     * <tbody>
+     *   <tr><td>name</td><td>String</td><td>Name of the level</td></tr>
+     *   <tr><td>wins</td><td>Integer</td><td>Number of wins</td></tr>
+     *   <tr><td>losses</td><td>Integer</td><td>Number of losses</td></tr>
+     *   <tr><td>time</td><td>Integer</td><td>Accumulated play time for each match played on the level in seconds</td></tr>
+     * </tbody>
+     * </table>
      * @return  List of totals for all levels
      */
     public List<Map<Object, Object>> getLevels();
     /**
-     * Get the difficulty breakdown for specific level.  The keys for the map are: name, length, wins, losses, waveaccum, and time
+     * Get the difficulty breakdown for specific level.  Map keys are:
+     * <table>
+     * <thead>
+     *   <tr><th>Key</th><th>Type</th><th>Description</th></tr>
+     * </thead>
+     * <tbody>
+     *   <tr><td>name</td><td>String</td><td>Name of the difficulty</td></tr>
+     *   <tr><td>length</td><td>String</td><td>Game length</td></tr>
+     *   <tr><td>wins</td><td>Integer</td><td>Number of wins</td></tr>
+     *   <tr><td>losses</td><td>Integer</td><td>Number of losses</td></tr>
+     *   <tr><td>waveaccum</td><td>Integer</td><td>Accumulated sum of waves each game ended on </td></tr>
+     *   <tr><td>time</td><td>Integer</td><td>Accumulated play time for each match played on the difficulty and length in seconds</td></tr>
+     * </tbody>
+     * </table>
      * @param   levelName   Name of the level to lookup
      * @return  List of difficulty breakdowns for all levels played
      */
@@ -51,40 +101,70 @@ public interface DataReader {
      */
     public Integer getNumRecords();
     /**
-     * Get the record for the given player.  The keys for the map are: name, avatar, wins, losses, disconnects, finale_played, finale_survived, time_connected.
-     * If the steamID64 is invalid, null is returned.
+     * Get the record for the given player.  If the steamID64 is invalid, null is returned.  See documentation for getRecords() for map keys.
      * @param   steamID64   SteamID64 of the desired player.
      * @return  Map of attributes for the given player, null if invalid steamID64 is given
+     * @see DataReader#getRecords()
      */
     public Map<Object, Object> getRecord(String steamID64);
     /**
-     * Get a subset of all the player records, sorted by a specific category in a given order.  The keys for the map are: name, avatar, wins, losses, disconnects, 
-     * finale_played, finale_survived, time_connected.
+     * Get a subset of all the player records, sorted by a specific category in a given order.  See documentation for getRecords() for map keys.
      * @param   group   The group to sort on.  If order is NONE, this parameter is ignored
      * @param   order   Order to sort the group if desired
      * @param   start   The first row to return in the given ordering
      * @param   end     The last row to return in the given ordering
      * @return  Ordered list of player records, limitted by a start and end.
+     * @see DataReader#getRecords()
      */
     public List<Map<Object, Object>> getRecords(String group, Order order, int start, int end);
     /**
-     * Get all stored player records.  The keys for the map are: name, avatar, wins, losses, disconnects, finale_played, finale_survived, time_connected.
+     * Get all stored player records.  *
+     * Get the record for the given player.  If the steamID64 is invalid, null is returned.  Map keys are:
+     * <table>
+     * <thead>
+     *   <tr><th>Key</th><th>Type</th><th>Description</th></tr>
+     * </thead>
+     * <tbody>
+     *   <tr><td>name</td><td>String</td><td>Steam community name for the steamID64</td></tr>
+     *   <tr><td>avatar</td><td>String</td><td>Steam community profile picture</td></tr>
+     *   <tr><td>wins</td><td>Integer</td><td>Number of matches wins</td></tr>
+     *   <tr><td>losses</td><td>Integer</td><td>Number of matches losses</td></tr>
+     *   <tr><td>disconnects</td><td>Integer</td><td>Number of times the player prematurely left the match</td></tr>
+     *   <tr><td>finale_played</td><td>Integer</td><td>Number of boss waves the player participated in</td></tr>
+     *   <tr><td>finale_survived</td><td>Integer</td><td>Number of boss waves the player survived</td></tr>
+     *   <tr><td>time_connected</td><td>Integer</td><td>Total time spent on the server in seconds</td></tr>
+     * </tbody>
+     * </table>
      * @return  All player records
      */
     public List<Map<Object, Object>> getRecords();
     /**
-     * Get a subset of the match history for the specific player.  The list can be ordered based on a grouping.  The keys for the map are:
-     * result, wave, duration, timestamp, difficulty, length, and level.  
+     * Get a subset of the match history for the specific player.  The list can be ordered based on a grouping.  See getSessions(String) for the map keys.  
      * @param   steamID64   SteamID64 of the player to lookup
      * @param   group   The group to sort on.  If order is NONE, this parameter is ignored
      * @param   order   Order to sort the group if desired
      * @param   start   The first row to return in the given ordering
      * @param   end     The last row to return in the given ordering
      * @return  Ordered list of the match history for a player.
+     * @see DataReader#getSessions(String)
      */
     public List<Map<Object, Object>> getSessions(String steamID64, String group, Order order, int start, int end);
     /**
      * Get all games in a player's match history.  The keys for the map are:result, wave, duration, timestamp, difficulty, length, and level.
+     * <table>
+     * <thead>
+     *   <tr><th>Key</th><th>Type</th><th>Description</th></tr>
+     * </thead>
+     * <tbody>
+     *   <tr><td>result</td><td>String</td><td>Result of the match</td></tr>
+     *   <tr><td>wave</td><td>Integer</td><td>Wave reached upon disconnecting or match ending</td></tr>
+     *   <tr><td>duration</td><td>Integer</td><td>How long the player was in the match, in seconds</td></tr>
+     *   <tr><td>timestamp</td><td>String</td><td>Date and time of when the player left or match ended.  Timezone will be where the tracking server is hosted</td></tr>
+     *   <tr><td>difficulty</td><td>String</td><td>Difficulty setting of the match</td></tr>
+     *   <tr><td>length</td><td>String</td><td>Game length of the match</td></tr>
+     *   <tr><td>level</td><td>String</td><td>Level the match took place on</td></tr>
+     * </tbody>
+     * </table>
      * @param   steamID64   SteamID64 of the player to lookup
      * @return  All games played by the player
      */
@@ -95,20 +175,39 @@ public interface DataReader {
      */
     public List<String> getAggregateCategories();
     /**
-     * Get the aggregate statistics for a specific category.  Map keys are: stat and value
+     * Get the aggregate statistics for a specific category.  Map keys are: 
+     * <table>
+     * <thead>
+     *   <tr><th>Key</th><th>Type</th><th>Description</th></tr>
+     * </thead>
+     * <tbody>
+     *   <tr><td>stat</td><td>String</td><td>Name of the statistic</td></tr>
+     *   <tr><td>value</td><td>Integer</td><td>Store value corresponding to the statistic</td></tr>
+     * </tbody>
+     * </table>
      * @param   category    Aggregate category to lookup
      * @return  List of all statistics for a category
      */
     public List<Map<Object, Object>> getAggregateData(String category);
     /**
-     * Get the aggregate statistics for a specific category and player.  Map keys are: stat and value
+     * Get the aggregate statistics for a specific category and player.  See getAggregateData(String) for map keys.
      * @param   category    Aggregate category to lookup
      * @param   steamID64   SteamID64 of the player to lookup
      * @return  List of all statistics for a category and player
+     * @see DataReader#getAggregateData(String)
      */
     public List<Map<Object, Object>> getAggregateData(String category, String steamID64);
     /**
-     * Get the steam community info for a player.  Map keys are: name, avatar
+     * Get the steam community info for a player.  Map keys are: 
+     * <table>
+     * <thead>
+     *   <tr><th>Key</th><th>Type</th><th>Description</th></tr>
+     * </thead>
+     * <tbody>
+     *   <tr><td>name</td><td>String</td><td>Steam community name of the steamID64</td></tr>
+     *   <tr><td>avatar</td><td>String</td><td>Picture of the steam community profile</td></tr>
+     * </tbody>
+     * </table>
      * @param   steamID64   SteamID64 of the player to lookup
      * @return  Steam community info for a player
      */
@@ -119,20 +218,31 @@ public interface DataReader {
      */
     public List<String> getWaveDataCategories();
     /**
-     * Get detailed wave by wave numbers for a given difficulty setting.  Map keys are: wave, stat, and value
+     * Get detailed wave by wave numbers for a given difficulty setting.  Map keys are: 
+     * <table>
+     * <thead>
+     *   <tr><th>Key</th><th>Type</th><th>Description</th></tr>
+     * </thead>
+     * <tbody>
+     *   <tr><td>wave</td><td>Integer</td><td>Wave the statistic corresponds to</td></tr>
+     *   <tr><td>stat</td><td>String</td><td>Name of the statistic</td></tr>
+     *   <tr><td>value</td><td>Integer</td><td>Store value corresponding to the statistic</td></tr>
+     * </tbody>
+     * </table>
      * @param   diffName    Difficulty name
-     * @param   length      Game length
+     * @param   diffLength  Game length
      * @param   category    Category of statistics to retrieve
      * @return  List of wave by wave statistics
      */
     public List<Map<Object, Object>> getWaveData(String diffName, String diffLength, String category);
     /**
-     * Get detailed wave by wave numbers for a given difficulty setting and map.  Map keys are: wave, stat, and value
+     * Get detailed wave by wave numbers for a given difficulty setting and map.  See getWaveData(String, String, String) for map keys.
      * @param   levelName   Name of the level
      * @param   diffName    Difficulty name
-     * @param   length      Game length
+     * @param   diffLength  Game length
      * @param   category    Category of statistics to retrieve
      * @return  List of wave by wave statistics
+     * @see DataReader#getWaveData(String, String, String)
      */
     public List<Map<Object, Object>> getWaveData(String levelName, String diffName, String diffLength, String category);
 }
