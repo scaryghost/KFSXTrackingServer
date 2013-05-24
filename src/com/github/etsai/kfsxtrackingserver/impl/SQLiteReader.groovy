@@ -26,21 +26,32 @@ public class SQLiteReader implements DataReader {
     public def SQLiteReader(def conn) {
         this.sql= new Sql(conn)
     }
-    private def queryDB(def query, def ps) {
+    private def queryDB(def query, def ps, def filteredCols) {
         def rows= []
         sql.eachRow(query, ps) {row ->
-            rows << row.toRowResult()
+            def result= row.toRowResult()
+            filteredCols.each {col ->
+                result.remove(col)
+            }
+            rows << result
         }
         return rows
     }
     public List<Map<Object, Object>> getDifficulties() {
-        return queryDB('select * from difficulty', [])
+        return queryDB('select * from difficulty', [], ['id'])
     }
     public List<Map<Object, Object>> getLevels() {
-        return queryDB('select * from level', [])
+        return queryDB('select * from level', [], ['id'])
     }
     public Map<Object, Object> getRecord(String steamID64) {
-        return sql.firstRow('SElECT * FROM record r INNER JOIN steam_info s on r.id=s.record_id WHERE steamid64=?', [steamID64])
+        def row= sql.firstRow('SElECT * FROM record r INNER JOIN steam_info s on r.id=s.record_id WHERE steamid64=?', [steamID64])
+
+        if (row != null) {
+            ['id', 'record_id'].each {column ->
+                row.remove(column)
+            }
+        }
+        return row
     }
     public List<Map<Object, Object>> getRecords(String group, Order order, int start, int end) {
         def query= "SELECT * FROM record r INNER JOIN steam_info s ON r.id=s.record_id "
@@ -49,13 +60,13 @@ public class SQLiteReader implements DataReader {
             query+= "ORDER BY $group $order "
         }
         query+= "LIMIT ?, ?"
-        return queryDB(query, [start, end - start])
+        return queryDB(query, [start, end - start], ['id', 'record_id'])
     }
     public Integer getNumRecords() {
         return sql.firstRow('SELECT count(*) FROM record')[0]
     }
     public List<Map<Object, Object>> getRecords() {
-        return queryDB("SELECT * FROM record r INNER JOIN steam_info s ON r.id=s.record_id", [])
+        return queryDB("SELECT * FROM record r INNER JOIN steam_info s ON r.id=s.record_id", [], ['id', 'steamid64', 'record_id'])
     }
     public List<Map<Object, Object>> getSessions(String steamID64, String group, Order order, int start, int end) {
         def query= sessionsSql
@@ -64,19 +75,19 @@ public class SQLiteReader implements DataReader {
             query+= "ORDER BY $group $order "
         }
         query+= "LIMIT ?, ?"
-        return queryDB(query, [steamID64, start, end - start])
+        return queryDB(query, [steamID64, start, end - start], ['record_id', 'level_id', 'difficulty_id'])
     }
     public List<Map<Object, Object>> getSessions(String steamID64) {
-        return queryDB(sessionsSql, [steamID64])
+        return queryDB(sessionsSql, [steamID64], ['record_id', 'level_id', 'difficulty_id'])
     }
     public List<String> getAggregateCategories() {
-        return queryDB('SELECT category FROM aggregate GROUP BY category', []).collect { it.category }
+        return queryDB('SELECT category FROM aggregate GROUP BY category', [], []).collect { it.category }
     }
     public List<Map<Object, Object>> getAggregateData(String category) {
-        return queryDB("SELECT * from aggregate where category=? ORDER BY stat ASC", [category])
+        return queryDB("SELECT * from aggregate where category=? ORDER BY stat ASC", [category], ['category'])
     }
     public List<Map<Object, Object>> getAggregateData(String category, String steamID64) {
-        return queryDB("SELECT * from player where record_id=(select id from record where steamid64=?) and category=? ORDER BY stat ASC", [steamID64, category])
+        return queryDB("SELECT * from player where record_id=(select id from record where steamid64=?) and category=? ORDER BY stat ASC", [steamID64, category],  ['steamid64', 'category'])
     }
     public Map<Object, Object> getSteamIDInfo(String steamID64) {
         def row= sql.firstRow("select * from steam_info where record_id=(select id from record where steamid64=?)", [steamID64])
@@ -93,29 +104,31 @@ public class SQLiteReader implements DataReader {
             } catch (Exception ex) {
                 Common.logger.log(Level.SEVERE, "Invalid steamID64: $steamID64", ex)
             } 
+        } else {
+            row.remove('record_id')
         }
         return row
     }
     public List<Map<Object, Object>> getWaveData(String diffName, String diffLength, String category) {
         return queryDB("select wave, stat, sum(value) as value from wave_data where difficulty_id=(select id from difficulty where name=? and length=?) and category=? group by wave, stat", 
-                [diffName, diffLength, category])
+                [diffName, diffLength, category], [])
     }
     public List<Map<Object, Object>> getWaveData(String levelName, String diffName, String diffLength, String category) {
         return queryDB("""SELECT wave, stat, value FROM wave_data WHERE difficulty_id=(select id from difficulty where name=? and length=?) 
                 and level_id=(select id from level where name=?) and category=?""", 
-                [diffName, diffLength, levelName, category])
+                [diffName, diffLength, levelName, category], [])
     }
 
     public List<String> getWaveDataCategories() {
-        return queryDB('SELECT category FROM wave_data GROUP BY category', []).collect { it.category }
+        return queryDB('SELECT category FROM wave_data GROUP BY category', [], []).collect { it.category }
     }
     public List<Map<Object, Object>> getLevelData(String levelName) {
         return queryDB("""SELECT ld.*,d.name,d.length FROM level_difficulty_join ld INNER JOIN level l ON l.id=ld.level_id 
-                INNER JOIN difficulty d ON d.id=ld.difficulty_id where l.name=?""", [levelName])
+                INNER JOIN difficulty d ON d.id=ld.difficulty_id where l.name=?""", [levelName], ['difficulty_id', 'level_id'])
     }
     public List<Map<Object, Object>> getDifficultyData(String diffName, String length) {
         return queryDB("""SELECT ld.*,l.name FROM level_difficulty_join ld INNER JOIN difficulty d on d.id=ld.difficulty_id  
-                INNER JOIN level l ON l.id=ld.level_id where d.name=? and d.length=?""", [diffName, length])
+                INNER JOIN level l ON l.id=ld.level_id where d.name=? and d.length=?""", [diffName, length], ['difficulty_id', 'level_id'])
     }
 }
 

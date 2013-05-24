@@ -125,6 +125,7 @@ public interface DataReader {
      *   <tr><th>Key</th><th>Type</th><th>Description</th></tr>
      * </thead>
      * <tbody>
+     *   <tr><td>steamid64</td><td>String</td><td>Unique int64 id of the player</td></tr>
      *   <tr><td>name</td><td>String</td><td>Steam community name for the steamID64</td></tr>
      *   <tr><td>avatar</td><td>String</td><td>Steam community profile picture</td></tr>
      *   <tr><td>wins</td><td>Integer</td><td>Number of matches wins</td></tr>
