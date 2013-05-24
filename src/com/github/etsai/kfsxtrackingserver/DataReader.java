@@ -30,7 +30,7 @@ public interface DataReader {
      *   <tr><th>Key</th><th>Type</th><th>Description</th></tr>
      * </thead>
      * <tbody>
-     *   <tr><td>name</td><td>String</td><td>Name of the difficulty</td></tr>
+     *   <tr><td>difficulty</td><td>String</td><td>Name of the difficulty</td></tr>
      *   <tr><td>length</td><td>String</td><td>Game length</td></tr>
      *   <tr><td>wins</td><td>Integer</td><td>Number of wins</td></tr>
      *   <tr><td>losses</td><td>Integer</td><td>Number of losses</td></tr>
@@ -48,18 +48,18 @@ public interface DataReader {
      *   <tr><th>Key</th><th>Type</th><th>Description</th></tr>
      * </thead>
      * <tbody>
-     *   <tr><td>name</td><td>String</td><td>Name of the level</td></tr>
+     *   <tr><td>level</td><td>String</td><td>Name of the level</td></tr>
      *   <tr><td>wins</td><td>Integer</td><td>Number of wins</td></tr>
      *   <tr><td>losses</td><td>Integer</td><td>Number of losses</td></tr>
      *   <tr><td>waveaccum</td><td>Integer</td><td>Accumulated sum of waves each game ended on </td></tr>
      *   <tr><td>time</td><td>Integer</td><td>Accumulated play time for each match played on the difficulty and length in seconds</td></tr>
      * </tbody>
      * </table>
-     * @param   diffName    Difficulty name
+     * @param   difficulty    Difficulty name
      * @param   length      Game length
      * @return  List of statistics for each map played on the given difficulty setting
      */
-    public List<Map<Object, Object>> getDifficultyData(String diffName, String length);
+    public List<Map<Object, Object>> getDifficultyData(String diffculty, String length);
     /**
      * Get the totals for each played level, across all difficulty settings.  Map keys are:
      * <table>
@@ -67,7 +67,7 @@ public interface DataReader {
      *   <tr><th>Key</th><th>Type</th><th>Description</th></tr>
      * </thead>
      * <tbody>
-     *   <tr><td>name</td><td>String</td><td>Name of the level</td></tr>
+     *   <tr><td>level</td><td>String</td><td>Name of the level</td></tr>
      *   <tr><td>wins</td><td>Integer</td><td>Number of wins</td></tr>
      *   <tr><td>losses</td><td>Integer</td><td>Number of losses</td></tr>
      *   <tr><td>time</td><td>Integer</td><td>Accumulated play time for each match played on the level in seconds</td></tr>
@@ -83,7 +83,7 @@ public interface DataReader {
      *   <tr><th>Key</th><th>Type</th><th>Description</th></tr>
      * </thead>
      * <tbody>
-     *   <tr><td>name</td><td>String</td><td>Name of the difficulty</td></tr>
+     *   <tr><td>difficulty</td><td>String</td><td>Name of the difficulty</td></tr>
      *   <tr><td>length</td><td>String</td><td>Game length</td></tr>
      *   <tr><td>wins</td><td>Integer</td><td>Number of wins</td></tr>
      *   <tr><td>losses</td><td>Integer</td><td>Number of losses</td></tr>
@@ -91,10 +91,10 @@ public interface DataReader {
      *   <tr><td>time</td><td>Integer</td><td>Accumulated play time for each match played on the difficulty and length in seconds</td></tr>
      * </tbody>
      * </table>
-     * @param   levelName   Name of the level to lookup
+     * @param   level      Name of the level to lookup
      * @return  List of difficulty breakdowns for all levels played
      */
-    public List<Map<Object, Object>> getLevelData(String levelName);
+    public List<Map<Object, Object>> getLevelData(String level);
     /**
      * Get the number of player records in the database
      * @return  Number of players in the database
@@ -230,20 +230,20 @@ public interface DataReader {
      *   <tr><td>value</td><td>Integer</td><td>Store value corresponding to the statistic</td></tr>
      * </tbody>
      * </table>
-     * @param   diffName    Difficulty name
-     * @param   diffLength  Game length
-     * @param   category    Category of statistics to retrieve
+     * @param   difficulty      Difficulty name
+     * @param   length          Game length
+     * @param   category        Category of statistics to retrieve
      * @return  List of wave by wave statistics
      */
-    public List<Map<Object, Object>> getWaveData(String diffName, String diffLength, String category);
+    public List<Map<Object, Object>> getWaveData(String difficulty, String length, String category);
     /**
      * Get detailed wave by wave numbers for a given difficulty setting and map.  See getWaveData(String, String, String) for map keys.
-     * @param   levelName   Name of the level
-     * @param   diffName    Difficulty name
-     * @param   diffLength  Game length
-     * @param   category    Category of statistics to retrieve
+     * @param   level           Name of the level
+     * @param   difficulty      Difficulty name
+     * @param   length          Game length
+     * @param   category        Category of statistics to retrieve
      * @return  List of wave by wave statistics
      * @see DataReader#getWaveData(String, String, String)
      */
-    public List<Map<Object, Object>> getWaveData(String levelName, String diffName, String diffLength, String category);
+    public List<Map<Object, Object>> getWaveData(String level, String difficulty, String length, String category);
 }
