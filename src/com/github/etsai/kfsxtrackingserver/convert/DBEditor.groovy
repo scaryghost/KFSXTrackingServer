@@ -21,61 +21,56 @@ public class DBEditor {
      */
     public static void convert(Sql src, Sql dest) {
         dest.withTransaction {
-            println "Converting deaths"
-            dest.withBatch("insert into deaths values (?, ?)") {ps ->
+            dest.withBatch("insert into aggregate values (?, ?, ?)") {ps ->
                 src.eachRow("select * from deaths") {row ->
-                    ps.addBatch([row.name, row.count])
+                    ps.addBatch([row.name, "deaths", row.count])
                 }
-            }
-            
-            println "Converting aggregate stats"
-            dest.withBatch('insert into aggregate values (?, ?, ?)') { ps ->
                 src.eachRow("select * from aggregate") {row ->
                     ps.addBatch([row.stat, row.category, row.value])
                 }
             }
-            
-            println "Converting difficulties"
-            dest.withBatch('insert into difficulties values (?, ?, ?, ?, ?, ?)') {ps  ->
+
+            dest.withBatch("insert into difficulty (name, length, wins, losses, waveaccum, time) values (?, ?, ?, ?, ?, ?)") {ps ->
                 src.eachRow("select * from difficulties") {row ->
-                    try {
-                        def time= new Time(row.time)
-                        ps.addBatch([row.name, row.length, row.wins, row.losses, row.wave, time.toSeconds()])
-                        
-                    } catch (TimeFormatException ex) {
-                        println ex.getMessage()
-                    }
+                    ps.addBatch([row.name, row.length, row.wins, row.losses, row.wave, row.time])
                 }
             }
-            
-            println "Converting levels"
-            dest.withBatch('insert into levels values (?, ?, ?, ?)') {ps ->
+
+            dest.withBatch("insert into level (name, wins, losses, time) values (?, ?, ?, ?)") {ps ->
                 src.eachRow("select * from levels") {row ->
-                    try {
-                        def time= new Time(row.time)
-                        ps.addBatch([row.name, row.wins, row.losses, time.toSeconds()])
-                    } catch (TimeFormatException ex) {
-                        println ex.getMessage()
-                    }
+                    ps.addBatch([row.name, row.wins, row.losses, row.time])
                 }
             }
-                
-            println "Converting player records"
-            dest.withBatch('insert into records values (?, ?, ?, ?)') {ps ->
+
+            dest.withBatch("insert into record (steamid64, wins, losses, disconnects, finales_played, finales_survived, time_connected) values (?, ?, ?, ?, ?, ?, ?)") {ps ->
                 src.eachRow("select * from records") {row ->
-                    ps.addBatch([row.steamid, row.wins, row.losses, row.disconnects])
+                    ps.addBatch([row.steamid64, row.wins, row.losses, row.disconnects, 0, 0, 0])
                 }
             }
-            
-            println "Converting players"
-            dest.withBatch('insert into player values (?, ?, ?, ?)') {ps ->
+
+            def durations= [:]
+            dest.withBatch("insert into player (record_id, category, stat, value) select r.id, ?, ?, ? from record r where r.steamid64=?") {ps ->
                 src.eachRow("select * from player") {row ->
-                    row.stats.split(",").each {statval ->
-                        def split= statval.split("=")
-                        ps.addBatch([row.steamid, split[0], row.category, split[1]])
+                    if (row.stat == "Time Connected") {
+                        durations[row.steamid64]= row.value
+                    } else {
+                        ps.addBatch([row.category, row.stat, row.value, row.steamid64])
                     }
                 }
             }
+
+            dest.withBatch("update record set time_connected=? where steamid64=?") {ps ->
+                durations.each {steamid64, time ->
+                    ps.addBatch([time, steamid64])
+                }
+            }
+
+            dest.withBatch("insert into session (record_id, level_id, difficulty_id, result, wave, duration, timestamp) select r.id, l.id, d.id, ?, ?, 0, ? from record r, level l, difficulty d where r.steamid64=? and d.name=? and d.length=? and l.name=?") {ps ->
+                src.eachRow("select * from sessions") {row ->
+                    ps.addBatch([row.result, row.wave, row.timestamp, row.steamid64, row.difficulty, row.length, row.level])
+                }
+            }
+
         }
     }
 }
