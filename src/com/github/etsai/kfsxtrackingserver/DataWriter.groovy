@@ -97,7 +97,7 @@ public class DataWriter {
 
                     sql.execute("insert or ignore into record (steamid64) values (?);", [steamID64])
                     sql.execute("""update record set wins= wins + ?, losses= losses + ?, disconnects= disconnects + ?, 
-                        finale_survived= finale_survived + ?, finale_played= finale_played + ?, time_connected= time_connected + ? where steamid64=?""", 
+                        finales_survived= finales_survived + ?, finales_played= finales_played + ?, time_connected= time_connected + ? where steamid64=?""", 
                         [attrs.result == PacketParser.Result.WIN ? 1 : 0, attrs.result == PacketParser.Result.LOSS ? 1 : 0, 
                         attrs.result == PacketParser.Result.DISCONNECT ? 1 : 0, attrs.finalWaveSurvived, attrs.finalWave, attrs.duration, steamID64])
                     sql.execute("""insert into session (record_id, level_id, difficulty_id, result, wave, duration) select r.id,l.id,d.id,?,?,? from record r, 

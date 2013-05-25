@@ -131,8 +131,8 @@ public interface DataReader {
      *   <tr><td>wins</td><td>Integer</td><td>Number of matches wins</td></tr>
      *   <tr><td>losses</td><td>Integer</td><td>Number of matches losses</td></tr>
      *   <tr><td>disconnects</td><td>Integer</td><td>Number of times the player prematurely left the match</td></tr>
-     *   <tr><td>finale_played</td><td>Integer</td><td>Number of boss waves the player participated in</td></tr>
-     *   <tr><td>finale_survived</td><td>Integer</td><td>Number of boss waves the player survived</td></tr>
+     *   <tr><td>finales_played</td><td>Integer</td><td>Number of boss waves the player participated in</td></tr>
+     *   <tr><td>finales_survived</td><td>Integer</td><td>Number of boss waves the player survived</td></tr>
      *   <tr><td>time_connected</td><td>Integer</td><td>Total time spent on the server in seconds</td></tr>
      * </tbody>
      * </table>
