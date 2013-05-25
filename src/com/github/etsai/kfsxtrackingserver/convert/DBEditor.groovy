@@ -23,10 +23,13 @@ public class DBEditor {
         dest.withTransaction {
             dest.withBatch("insert into aggregate values (?, ?, ?)") {ps ->
                 src.eachRow("select * from deaths") {row ->
-                    ps.addBatch([row.name, "deaths", row.count])
+                    ps.addBatch(["deaths", row.name, row.count])
                 }
                 src.eachRow("select * from aggregate") {row ->
-                    ps.addBatch([row.stat, row.category, row.value])
+                    def category= row.category == "player" ? "summary" : row.category
+                    if (row.stat != "Time Connected") {
+                        ps.addBatch([category, row.stat, row.value])
+                    }
                 }
             }
 
@@ -51,10 +54,11 @@ public class DBEditor {
             def durations= [:]
             dest.withBatch("insert into player (record_id, category, stat, value) select r.id, ?, ?, ? from record r where r.steamid64=?") {ps ->
                 src.eachRow("select * from player") {row ->
+                    def category= row.category == "player" ? "summary" : row.category
                     if (row.stat == "Time Connected") {
                         durations[row.steamid64]= row.value
                     } else {
-                        ps.addBatch([row.category, row.stat, row.value, row.steamid64])
+                        ps.addBatch([category, row.stat, row.value, row.steamid64])
                     }
                 }
             }
