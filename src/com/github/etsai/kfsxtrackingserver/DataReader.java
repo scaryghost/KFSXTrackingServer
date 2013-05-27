@@ -140,16 +140,16 @@ public interface DataReader {
      */
     public List<Map<Object, Object>> getRecords();
     /**
-     * Get a subset of the match history for the specific player.  The list can be ordered based on a grouping.  See getSessions(String) for the map keys.  
+     * Get a subset of the match history for the specific player.  The list can be ordered based on a grouping.  See getMatchHistory(String) for the map keys.  
      * @param   steamID64   SteamID64 of the player to lookup
      * @param   group   The group to sort on.  If order is NONE, this parameter is ignored
      * @param   order   Order to sort the group if desired
      * @param   start   The first row to return in the given ordering
      * @param   end     The last row to return in the given ordering
      * @return  Ordered list of the match history for a player.
-     * @see DataReader#getSessions(String)
+     * @see DataReader#getMatchHistory(String)
      */
-    public List<Map<Object, Object>> getSessions(String steamID64, String group, Order order, int start, int end);
+    public List<Map<Object, Object>> getMatchHistory(String steamID64, String group, Order order, int start, int end);
     /**
      * Get all games in a player's match history.  The keys for the map are:result, wave, duration, timestamp, difficulty, length, and level.
      * <table>
@@ -169,7 +169,7 @@ public interface DataReader {
      * @param   steamID64   SteamID64 of the player to lookup
      * @return  All games played by the player
      */
-    public List<Map<Object, Object>> getSessions(String steamID64);
+    public List<Map<Object, Object>> getMatchHistory(String steamID64);
     /**
      * Get all stat categories that have an aggregate sum over all players
      * @return  Stat categories for aggregate stats

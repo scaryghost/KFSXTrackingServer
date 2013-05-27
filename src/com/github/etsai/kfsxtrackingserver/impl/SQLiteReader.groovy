@@ -19,7 +19,7 @@ import java.sql.Connection
  * @author etsai
  */
 public class SQLiteReader implements DataReader {
-    private final def sessionsSql= """SELECT s.*,datetime(s.timestamp, 'localtime') as timestamp, d.name as difficulty,d.length,l.name as level FROM session s 
+    private final def matchHistorySql= """SELECT s.*,datetime(s.timestamp, 'localtime') as timestamp, d.name as difficulty,d.length,l.name as level FROM match_history s 
             inner join difficulty d inner join level l where s.difficulty_id=d.id and s.level_id=l.id and record_id=(select id from record r where r.steamid64=?) """
     private final def sql
     
@@ -68,8 +68,8 @@ public class SQLiteReader implements DataReader {
     public List<Map<Object, Object>> getRecords() {
         return queryDB("SELECT * FROM record r INNER JOIN steam_info s ON r.id=s.record_id", [], ['id', 'steamid64', 'record_id'])
     }
-    public List<Map<Object, Object>> getSessions(String steamID64, String group, Order order, int start, int end) {
-        def query= sessionsSql
+    public List<Map<Object, Object>> getMatchHistory(String steamID64, String group, Order order, int start, int end) {
+        def query= matchHistorySql
         
         if (group != null && order != Order.NONE) {
             query+= "ORDER BY $group $order "
@@ -77,8 +77,8 @@ public class SQLiteReader implements DataReader {
         query+= "LIMIT ?, ?"
         return queryDB(query, [steamID64, start, end - start], ['record_id', 'level_id', 'difficulty_id'])
     }
-    public List<Map<Object, Object>> getSessions(String steamID64) {
-        return queryDB(sessionsSql, [steamID64], ['record_id', 'level_id', 'difficulty_id'])
+    public List<Map<Object, Object>> getMatchHistory(String steamID64) {
+        return queryDB(matchHistorySql, [steamID64], ['record_id', 'level_id', 'difficulty_id'])
     }
     public List<String> getAggregateCategories() {
         return queryDB('SELECT category FROM aggregate GROUP BY category', [], []).collect { it.category }
@@ -94,7 +94,7 @@ public class SQLiteReader implements DataReader {
         
         if (row == null) {
             try {
-                def info= SteamPoller.poll(id)
+                def info= SteamPoller.poll(steamID64)
                 row= [:]
                 Accumulator.writer.writeSteamInfo(steamID64, info[0], info[1])
             } catch (IOException ex) {

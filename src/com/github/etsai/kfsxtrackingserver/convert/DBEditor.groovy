@@ -69,7 +69,7 @@ public class DBEditor {
                 }
             }
 
-            dest.withBatch("insert into session (record_id, level_id, difficulty_id, result, wave, duration, timestamp) select r.id, l.id, d.id, ?, ?, 0, ? from record r, level l, difficulty d where r.steamid64=? and d.name=? and d.length=? and l.name=?") {ps ->
+            dest.withBatch("insert into match_history (record_id, level_id, difficulty_id, result, wave, duration, timestamp) select r.id, l.id, d.id, ?, ?, 0, ? from record r, level l, difficulty d where r.steamid64=? and d.name=? and d.length=? and l.name=?") {ps ->
                 src.eachRow("select * from sessions") {row ->
                     ps.addBatch([row.result, row.wave, row.timestamp, row.steamid64, row.difficulty, row.length, row.level])
                 }

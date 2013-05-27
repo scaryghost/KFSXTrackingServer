@@ -100,7 +100,7 @@ public class DataWriter {
                         finales_survived= finales_survived + ?, finales_played= finales_played + ?, time_connected= time_connected + ? where steamid64=?""", 
                         [attrs.result == PacketParser.Result.WIN ? 1 : 0, attrs.result == PacketParser.Result.LOSS ? 1 : 0, 
                         attrs.result == PacketParser.Result.DISCONNECT ? 1 : 0, attrs.finalWaveSurvived, attrs.finalWave, attrs.duration, steamID64])
-                    sql.execute("""insert into session (record_id, level_id, difficulty_id, result, wave, duration) select r.id,l.id,d.id,?,?,? from record r, 
+                    sql.execute("""insert into match_history (record_id, level_id, difficulty_id, result, wave, duration) select r.id,l.id,d.id,?,?,? from record r, 
                             difficulty d, level l where l.name=? and r.steamid64=? and d.name=? and d.length=?""",
                         [attrs.result.toString().toLowerCase(), attrs.wave, attrs.duration, attrs.level, steamID64, attrs.difficulty, attrs.length])
                 }
