@@ -36,7 +36,7 @@ public class DataWriter {
         }
     }
     public synchronized void writeMatchData(MatchPacket packet) {
-        Common.logger.finer("Match data: $packet")
+        Common.logger.finer("Match data= $packet")
         def category= packet.getCategory()
 
         if (category == "result") {
@@ -77,6 +77,7 @@ public class DataWriter {
     public synchronized void writePlayerData(Iterable<PlayerPacket> packets) {
         sql.withTransaction {
             packets.each {packet ->
+                Common.logger.finer("Player data= $packet")
                 def category= packet.getCategory()
                 def steamID64= packet.getSteamID64()
                 if (category != "match") {

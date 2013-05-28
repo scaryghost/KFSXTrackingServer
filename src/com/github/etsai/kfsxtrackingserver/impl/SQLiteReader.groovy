@@ -102,7 +102,7 @@ public class SQLiteReader implements DataReader {
                 row["steamid64"]= steamID64
                 row["name"]= "----Unavailable----"
             } catch (Exception ex) {
-                Common.logger.log(Level.SEVERE, "Invalid steamID64: $steamID64", ex)
+                Common.logger.log(Level.WARNING, "Invalid steamID64: $steamID64", ex)
             } 
         } else {
             row.remove('record_id')

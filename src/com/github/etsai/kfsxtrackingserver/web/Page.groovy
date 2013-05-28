@@ -99,7 +99,7 @@ public abstract class Page {
         def header= ["HTTP/1.1 ${code} ${returnCodes[code]}", "Connection: close", "Date: ${date}", "Content-Type: ${content}", 
                 "Content-Length: ${body.size()}", "\n"].join("\n")
         
-        Common.logger.finest("HTTP Response: ${header}")
+        Common.logger.info("HTTP Response: ${header}")
         output.write(header.getBytes())
         if (request[0] != "HEAD")
             output.write(body.getBytes())

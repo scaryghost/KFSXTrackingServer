@@ -22,7 +22,7 @@ public class HTTPListener implements Runnable {
 
     @Override
     public void run() {
-        logger.log(Level.INFO, "Listening for http requests on port: {0}", port);
+        logger.log(Level.CONFIG, "Listening for http requests on port: {0}", port);
         
         try {
             ServerSocket httpSocket= new ServerSocket(port);
@@ -51,7 +51,7 @@ public class HTTPListener implements Runnable {
                 String request= input.readLine();
                 String[] requestParts= request.split(" ");
 
-                logger.log(Level.FINEST, "HTTP request: {0}", request);
+                logger.log(Level.INFO, "HTTP request: {0}", request);
                 Page.generate(connection.getOutputStream(), requestParts, httpRootDir);
             } catch (IOException ex) {
                 logger.log(Level.SEVERE, null, ex);

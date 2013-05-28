@@ -58,7 +58,7 @@ public class Main {
     }
     
     public static void initModules(ServerProperties props) throws ClassNotFoundException, SQLException {
-        Common.logger.log(Level.INFO,"Loading stats from database: {0}", props.getDbName());
+        Common.logger.log(Level.CONFIG,"Loading stats from database: {0}", props.getDbName());
         
         Class.forName("org.sqlite.JDBC");
         Common.connPool= new ConnectionPool(props.getNumDbConn());

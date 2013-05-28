@@ -30,7 +30,7 @@ public class UDPListener implements Runnable {
             byte[] buffer= new byte[bufferSize];
             DatagramSocket socket= new DatagramSocket(port);
             DatagramPacket packet= new DatagramPacket(buffer, buffer.length);
-            logger.log(Level.INFO, "Listening for stats packets on port: {0}", port);
+            logger.log(Level.CONFIG, "Listening for stats packets on port: {0}", port);
             
             while(true) {
                 try {
@@ -38,7 +38,7 @@ public class UDPListener implements Runnable {
                     String data= new String(packet.getData(), 0, packet.getLength());
                     logger.info(String.format("Received UDP packet from %s:%d", 
                             packet.getAddress().getHostAddress(), packet.getPort()));
-                    logger.info(String.format("Data: %s", data));
+                    logger.info(String.format("Data= %s", data));
                     Accumulator.accumulate(data);
                 } catch (IOException ex) {
                     logger.log(Level.SEVERE, "Error reading data on UDP socket", ex);

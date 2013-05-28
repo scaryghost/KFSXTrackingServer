@@ -27,7 +27,6 @@ public class Accumulator {
         def id
         
         try {
-            Common.logger.finest(data);
             def packet= packetParser.parse(data);
             if (packet instanceof MatchPacket) {
                 writer.writeMatchData((MatchPacket)packet)
@@ -38,7 +37,7 @@ public class Accumulator {
 
                 if (id == null) {
                     if (category != "match") {
-                        Common.logger.info("Blank ID received.  Adding to aggregate stats only")
+                        Common.logger.warning("Blank ID received.  Adding to aggregate stats only")
                         writer.writePlayerData([playerPacket])
                     }
                 } else {

@@ -67,7 +67,7 @@ public class SteamPoller implements Runnable {
         def start= System.currentTimeMillis()
         def sql= new Sql(conn)
         
-        Common.logger.info("Polling steamcommunity.com with $nThreads threads")
+        Common.logger.config("Polling steamcommunity.com with $nThreads threads")
         while(pollSteam) {
             def pool= Executors.newFixedThreadPool(nThreads);
             def steamInfo= new ConcurrentHashMap()
