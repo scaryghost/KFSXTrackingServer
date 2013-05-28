@@ -15,8 +15,7 @@ import java.nio.file.NoSuchFileException
 public abstract class Page {
     private static def webpages= "webpages.xml"
     private static def methods= ["GET", "HEAD"]
-    private static def returnCodes= [200: "OK", 400: "Bad Request", 403: "Forbidden", 404: "Not Found", 500: "Internal Server Error", 
-            501: "Not Implemented"]
+    private static def returnCodes= [200: "OK", 400: "Bad Request", 403: "Forbidden", 404: "Not Found", 500: "Internal Server Error", 501: "Not Implemented"]
     private static def extensions= ["html":"text/html", "xml":"application/xml", "xsl":"application/xslt+xml", "css":"text/css", 
         "js":"text/javascript", "json":"application/json", "ico":"image/vdn.microsoft.icon"]
 
@@ -34,6 +33,7 @@ public abstract class Page {
             }
         }
          
+        def conn= Common.connPool.getConnection()
         try {
             def xmlRoot= new XmlSlurper().parse(httpRootDir.resolve(webpages).toFile())
             def resources= [:]
@@ -68,12 +68,10 @@ public abstract class Page {
                     gcl.addClasspath(root.toString())
                     def clazz = gcl.parseClass(resources[filename].toFile())
                     def aScript = (Resource)clazz.newInstance();
-                    def conn= Common.connPool.getConnection()
                     
                     aScript.setQueries(queries)
                     aScript.setDataReader(new SQLiteReader(conn))
                     body= aScript.generatePage()
-                    Common.connPool.release(conn)
 
                     if (queries.xml != null) {
                         extension= "xml"
@@ -89,6 +87,8 @@ public abstract class Page {
             ex.printStackTrace(pw)
             body= "<pre>${code} ${returnCodes[code]}\n\n${sw.toString()}</pre>"
             Common.logger.log(Level.SEVERE, "Error generating webpage", ex)
+        } finally {
+            Common.connPool.release(conn)
         }
         
         def httpFormat= new SimpleDateFormat("EEE, dd MMM yyyy HH:mm:ss zzz")

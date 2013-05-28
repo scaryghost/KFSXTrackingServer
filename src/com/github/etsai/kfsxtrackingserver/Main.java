@@ -61,7 +61,7 @@ public class Main {
         Common.logger.log(Level.INFO,"Loading stats from database: {0}", props.getDbName());
         
         Class.forName("org.sqlite.JDBC");
-        Common.connPool= new ConnectionPool(props.getNumThreads());
+        Common.connPool= new ConnectionPool(props.getNumDbConn());
         Common.connPool.setJdbcUrl(String.format("jdbc:sqlite:%s", props.getDbName()));
         
         Accumulator.writer= new DataWriter(Common.connPool.getConnection());
