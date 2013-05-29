@@ -19,7 +19,7 @@ import java.util.logging.Logger;
 public class Common {
     public static ConnectionPool connPool;
     public static final Logger logger= Logger.getLogger("KFSXTrackingServer");
-    public static ExecutorService pool;
+    public static ExecutorService threadPool;
     public static PrintStream oldStdOut, oldStdErr;
     
     public static void executeStmt(String stmt) throws SQLException {

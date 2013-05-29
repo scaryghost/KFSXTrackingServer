@@ -52,9 +52,9 @@ public class Main {
             }
         });
         
-        Common.pool.submit(new UDPListener(props.getUdpPort()));
-        Common.pool.submit(new HTTPListener(props.getHttpPort()));
-        Common.pool.submit(new SteamPoller(Common.connPool.getConnection(), props.getSteamPollingThreads()));
+        Common.threadPool.submit(new UDPListener(props.getUdpPort()));
+        Common.threadPool.submit(new TCPListener(props.getHttpPort(), props.getHttpRootDir()));
+        Common.threadPool.submit(new SteamPoller(Common.connPool.getConnection(), props.getSteamPollingThreads()));
     }
     
     public static void initModules(ServerProperties props) throws ClassNotFoundException, SQLException {
@@ -67,12 +67,11 @@ public class Main {
         Accumulator.writer= new DataWriter(Common.connPool.getConnection());
         Accumulator.statMsgTTL= props.getStatsMsgTTL();
         Accumulator.packetParser= new PacketParser(props.getPassword());
-        HTTPListener.httpRootDir= props.getHttpRootDir();
         
         if (props.getNumThreads() < 0) {
-            Common.pool= Executors.newCachedThreadPool();
+            Common.threadPool= Executors.newCachedThreadPool();
         } else {
-            Common.pool= Executors.newFixedThreadPool(props.getNumThreads());
+            Common.threadPool= Executors.newFixedThreadPool(props.getNumThreads());
         }
     }
     public static void initLogging(Level logLevel) {

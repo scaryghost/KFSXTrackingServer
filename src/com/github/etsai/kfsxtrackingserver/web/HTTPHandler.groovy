@@ -1,9 +1,10 @@
-package com.github.etsai.kfsxtrackingserver.web;
+package com.github.etsai.kfsxtrackingserver.web
 
 import com.github.etsai.kfsxtrackingserver.Common
 import com.github.etsai.kfsxtrackingserver.impl.SQLiteReader
 import com.github.etsai.utils.Time
 import groovy.sql.Sql
+import java.io.BufferedReader
 import java.io.OutputStream
 import java.text.SimpleDateFormat
 import java.util.logging.Level
@@ -12,15 +13,29 @@ import java.nio.file.Path
 import java.nio.file.Paths
 import java.nio.file.NoSuchFileException
 
-public abstract class Page {
+public class HTTPHandler implements Runnable {
     private static def webpages= "webpages.xml"
     private static def methods= ["GET", "HEAD"]
     private static def returnCodes= [200: "OK", 400: "Bad Request", 403: "Forbidden", 404: "Not Found", 500: "Internal Server Error", 501: "Not Implemented"]
     private static def extensions= ["html":"text/html", "xml":"application/xml", "xsl":"application/xslt+xml", "css":"text/css", 
         "js":"text/javascript", "json":"application/json", "ico":"image/vdn.microsoft.icon"]
 
-    public static String generate(OutputStream output, String[] request, Path httpRootDir) {
-        def code= 200, body
+    private final def input, output, httpRootDir, id
+    
+    public HTTPHandler(BufferedReader input, OutputStream output, Path httpRootDir, int id) {
+        this.input= input
+        this.output= output
+        this.httpRootDir= httpRootDir
+        this.id= id
+    }
+    
+    @Override
+    public void run() {
+        def line= input.readLine()
+        def request= line.tokenize(" ")
+        Common.logger.info("HTTP request ($id): $line")
+        
+        def code= 200, body, conn
         def uri= URI.create(request[1])
         def filename= uri.getPath().substring(1)
         def extension= filename.substring(filename.lastIndexOf(".") + 1, filename.length());
@@ -33,7 +48,6 @@ public abstract class Page {
             }
         }
          
-        def conn= Common.connPool.getConnection()
         try {
             def xmlRoot= new XmlSlurper().parse(httpRootDir.resolve(webpages).toFile())
             def resources= [:]
@@ -69,6 +83,7 @@ public abstract class Page {
                     def clazz = gcl.parseClass(resources[filename].toFile())
                     def aScript = (Resource)clazz.newInstance();
                     
+                    conn= Common.connPool.getConnection()
                     aScript.setQueries(queries)
                     aScript.setDataReader(new SQLiteReader(conn))
                     body= aScript.generatePage()
@@ -99,10 +114,9 @@ public abstract class Page {
         def header= ["HTTP/1.1 ${code} ${returnCodes[code]}", "Connection: close", "Date: ${date}", "Content-Type: ${content}", 
                 "Content-Length: ${body.size()}", "\n"].join("\n")
         
-        Common.logger.info("HTTP Response: ${header}")
+        Common.logger.info("HTTP Response ($id): ${header}")
         output.write(header.getBytes())
         if (request[0] != "HEAD")
             output.write(body.getBytes())
-        output.close()
     }
 }
