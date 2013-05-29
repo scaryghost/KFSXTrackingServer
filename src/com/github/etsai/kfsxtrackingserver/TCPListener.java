@@ -30,17 +30,11 @@ public class TCPListener implements Runnable {
         try {
             ServerSocket httpSocket= new ServerSocket(port);
             while(true) {
-                try (Socket connection= httpSocket.accept()) {
-                    logger.info(String.format("Received TCP connection from %s:%d", 
-                            connection.getInetAddress().getHostAddress(), connection.getPort()));
-                    BufferedReader input= new BufferedReader(new InputStreamReader(connection.getInputStream()));
-                    OutputStream output= connection.getOutputStream();
-                    
-                    threadPool.submit(new HTTPHandler(input, output, httpRootDir, id));
-                    id++;
-                } catch (IOException ex) {
-                    logger.log(Level.SEVERE, null, ex);
-                }
+                Socket connection= httpSocket.accept();
+                logger.info(String.format("Received TCP connection from %s:%d", 
+                        connection.getInetAddress().getHostAddress(), connection.getPort()));
+                threadPool.submit(new HTTPHandler(connection, httpRootDir, id));
+                id++;
             }
         } catch (IOException ex) {
             logger.log(Level.SEVERE, null, ex);

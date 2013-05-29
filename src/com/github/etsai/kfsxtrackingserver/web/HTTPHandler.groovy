@@ -6,6 +6,7 @@ import com.github.etsai.utils.Time
 import groovy.sql.Sql
 import java.io.BufferedReader
 import java.io.OutputStream
+import java.net.Socket
 import java.text.SimpleDateFormat
 import java.util.logging.Level
 import java.util.TimeZone
@@ -22,9 +23,9 @@ public class HTTPHandler implements Runnable {
 
     private final def input, output, httpRootDir, id
     
-    public HTTPHandler(BufferedReader input, OutputStream output, Path httpRootDir, int id) {
-        this.input= input
-        this.output= output
+    public HTTPHandler(Socket connection, Path httpRootDir, int id) {
+        this.input= new BufferedReader(new InputStreamReader(connection.getInputStream()))
+        this.output= connection.getOutputStream()
         this.httpRootDir= httpRootDir
         this.id= id
     }
@@ -38,7 +39,7 @@ public class HTTPHandler implements Runnable {
         def code= 200, body, conn
         def uri= URI.create(request[1])
         def filename= uri.getPath().substring(1)
-        def extension= filename.substring(filename.lastIndexOf(".") + 1, filename.length());
+        def extension= filename.isEmpty() ? "html" : filename.substring(filename.lastIndexOf(".") + 1, filename.length());
         
         def queries= [:]
         if (uri.getQuery() != null) {
@@ -118,5 +119,7 @@ public class HTTPHandler implements Runnable {
         output.write(header.getBytes())
         if (request[0] != "HEAD")
             output.write(body.getBytes())
+        output.close()
+        input.close()
     }
 }
