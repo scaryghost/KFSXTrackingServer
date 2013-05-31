@@ -6,6 +6,7 @@
 package com.github.etsai.kfsxtrackingserver
 
 import groovy.sql.Sql
+import java.io.IOException
 import java.nio.charset.Charset
 import java.util.concurrent.ExecutorService
 import java.util.concurrent.Executors
@@ -25,7 +26,7 @@ public class SteamPoller implements Runnable {
         }
     }
     
-    public static def poll(def steamID64) throws InvalidSteamIDException {
+    public static def poll(def steamID64) throws InvalidSteamIDException, IOException {
         def url= new URL("http://steamcommunity.com/profiles/${steamID64}?xml=1")
         def content= url.getContent().readLines().join("\n")
         def steamXmlRoot= new XmlSlurper().parseText(content)
@@ -46,17 +47,12 @@ public class SteamPoller implements Runnable {
     }
     
     static class PollerThread implements Runnable {
-        public static final def count= new AtomicInteger()
         public def steamid64
         public def steamInfo
         
-        @Override public void run() {
+        @Override 
+        public void run() {
             steamInfo[steamid64]= poll(steamid64)
-            
-            count.getAndAdd(1)
-            if (count.get() % 50 == 0) {
-                Common.logger.info("${count.get()} records polled")
-            }
         }
     }
     
@@ -75,14 +71,18 @@ public class SteamPoller implements Runnable {
         
         Common.logger.config("Polling steamcommunity.com with $nThreads threads")
         while(pollSteam) {
+            def count= 0
             def pool= Executors.newFixedThreadPool(nThreads);
             def steamInfo= new ConcurrentHashMap()
             
             pollSteam= false
-            PollerThread.count.set(0)
             sql.eachRow("select steamid64 from record where id=(SELECT id from record except select record_id from steam_info)") {row ->
                 pool.submit(new PollerThread(steamid64: row.steamid64, steamInfo: steamInfo))
                 pollSteam= true
+                count++
+                if (count % 50 == 0) {
+                    Common.logger.info("$count records polled")
+                }
             }
 
             pool.shutdown()

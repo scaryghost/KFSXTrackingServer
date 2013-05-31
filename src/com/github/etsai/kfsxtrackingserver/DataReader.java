@@ -59,7 +59,7 @@ public interface DataReader {
      * @param   length      Game length
      * @return  List of statistics for each map played on the given difficulty setting
      */
-    public List<Map<Object, Object>> getDifficultyData(String diffculty, String length);
+    public List<Map<Object, Object>> getDifficultyData(String difficulty, String length);
     /**
      * Get the totals for each played level, across all difficulty settings.  Map keys are:
      * <table>
