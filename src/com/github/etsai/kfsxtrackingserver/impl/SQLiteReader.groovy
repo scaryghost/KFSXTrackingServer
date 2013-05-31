@@ -10,6 +10,7 @@ import com.github.etsai.kfsxtrackingserver.Accumulator
 import com.github.etsai.kfsxtrackingserver.Common
 import com.github.etsai.kfsxtrackingserver.DataReader
 import com.github.etsai.kfsxtrackingserver.SteamPoller
+import com.github.etsai.kfsxtrackingserver.SteamPoller.InvalidSteamIDException
 import groovy.sql.Sql
 import java.util.logging.Level
 import java.sql.Connection
@@ -96,13 +97,19 @@ public class SQLiteReader implements DataReader {
             try {
                 def info= SteamPoller.poll(steamID64)
                 row= [:]
-                Accumulator.writer.writeSteamInfo(steamID64, info[0], info[1])
+                sql.withTransaction {
+                    sql.execute("insert or ignore into record (steamid64) values (?);", [steamID64])
+                    sql.execute("insert or ignore into steam_info (record_id) select r.id from record r where steamid64=?", [steamID64])
+                    sql.execute("update steam_info set name=?, avatar=? where record_id=(select id from record where steamid64=?)", [info[0], info[1], steamID64])
+                }
             } catch (IOException ex) {
                 row= [:]
                 row["steamid64"]= steamID64
                 row["name"]= "----Unavailable----"
+            } catch (InvalidSteamIDException ex) {
+                Common.logger.log(Level.SEVERE, "Invalid steamID64: $steamID64", ex)
             } catch (Exception ex) {
-                Common.logger.log(Level.WARNING, "Invalid steamID64: $steamID64", ex)
+                Common.logger.log(Level.SEVERE, "Error retrieving steam community info for:$steamID64", ex)
             } 
         } else {
             row.remove('record_id')
