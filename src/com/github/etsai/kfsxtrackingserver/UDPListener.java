@@ -18,10 +18,12 @@ import java.util.logging.Level;
  */
 public class UDPListener implements Runnable {
     private final Integer port;
+    private final Accumulator dataAccumulator;
     public static final Integer bufferSize= 32767;
     
-    public UDPListener(Integer port) {
+    public UDPListener(Integer port, Accumulator dataAccumulator) {
         this.port= port;
+        this.dataAccumulator= dataAccumulator;
     }
     
     @Override
@@ -39,7 +41,7 @@ public class UDPListener implements Runnable {
                     logger.info(String.format("Received UDP packet from %s:%d", 
                             packet.getAddress().getHostAddress(), packet.getPort()));
                     logger.info(String.format("Data= %s", data));
-                    Accumulator.accumulate(data);
+                    dataAccumulator.accumulate(data);
                 } catch (IOException ex) {
                     logger.log(Level.SEVERE, "Error reading data on UDP socket", ex);
                 }

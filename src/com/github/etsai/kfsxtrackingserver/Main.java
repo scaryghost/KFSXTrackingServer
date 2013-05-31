@@ -52,7 +52,8 @@ public class Main {
             }
         });
         
-        Common.threadPool.submit(new UDPListener(props.getUdpPort()));
+        Common.threadPool.submit(new UDPListener(props.getUdpPort(), 
+                new Accumulator(new DataWriter(Common.connPool.getConnection()), props.getPassword(), props.getStatsMsgTTL())));
         Common.threadPool.submit(new TCPListener(props.getHttpPort(), props.getHttpRootDir()));
         Common.threadPool.submit(new SteamPoller(Common.connPool.getConnection(), props.getSteamPollingThreads()));
     }
@@ -63,10 +64,6 @@ public class Main {
         Class.forName("org.sqlite.JDBC");
         Common.connPool= new ConnectionPool(props.getNumDbConn());
         Common.connPool.setJdbcUrl(String.format("jdbc:sqlite:%s", props.getDbName()));
-        
-        Accumulator.writer= new DataWriter(Common.connPool.getConnection());
-        Accumulator.statMsgTTL= props.getStatsMsgTTL();
-        Accumulator.packetParser= new PacketParser(props.getPassword());
         
         if (props.getNumThreads() < 0) {
             Common.threadPool= Executors.newCachedThreadPool();
