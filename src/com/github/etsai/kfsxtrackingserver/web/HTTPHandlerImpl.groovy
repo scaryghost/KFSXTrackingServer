@@ -2,8 +2,8 @@ package com.github.etsai.kfsxtrackingserver.web
 
 import com.github.etsai.kfsxtrackingserver.Common
 import com.github.etsai.kfsxtrackingserver.impl.SQLiteReader
+import com.github.etsai.kfsxtrackingserver.TCPListener
 import com.github.etsai.utils.Time
-import groovy.sql.Sql
 import java.io.BufferedReader
 import java.io.OutputStream
 import java.net.Socket
@@ -14,30 +14,28 @@ import java.nio.file.Path
 import java.nio.file.Paths
 import java.nio.file.NoSuchFileException
 
-public class HTTPHandler implements Runnable {
+public class HTTPHandlerImpl extends TCPListener.HTTPHandler {
     private static def webpages= "webpages.xml"
     private static def methods= ["GET", "HEAD"]
     private static def returnCodes= [200: "OK", 400: "Bad Request", 403: "Forbidden", 404: "Not Found", 500: "Internal Server Error", 501: "Not Implemented"]
     private static def extensions= ["html":"text/html", "xml":"application/xml", "xsl":"application/xslt+xml", "css":"text/css", 
         "js":"text/javascript", "json":"application/json", "ico":"image/vdn.microsoft.icon"]
-
-    private final def input, output, httpRootDir, id
     
-    public HTTPHandler(Socket connection, Path httpRootDir, int id) {
-        this.input= new BufferedReader(new InputStreamReader(connection.getInputStream()))
-        this.output= connection.getOutputStream()
-        this.httpRootDir= httpRootDir
-        this.id= id
+    private final def httpRootDir, id
+    
+    public HTTPHandlerImpl(Socket connection, Path httpRootDir, int id) {
+        super(connection)
+        this.httpRootDir= httpRootDir;
+        this.id= id;
     }
     
     @Override
-    public void run() {
-        def line= input.readLine()
-        def request= line.tokenize(" ")
-        Common.logger.info("HTTP request ($id): $line")
+    public void processRequest(String request, OutputStream output) {
+        def requestParts= request.tokenize(" ")
+        Common.logger.info("HTTP request ($id): $request")
         
         def code= 200, body, conn
-        def uri= URI.create(request[1])
+        def uri= URI.create(requestParts[1])
         def filename= uri.getPath().substring(1)
         def extension= filename.isEmpty() ? "html" : filename.substring(filename.lastIndexOf(".") + 1, filename.length());
         
@@ -58,7 +56,7 @@ public class HTTPHandler implements Runnable {
                 resources[it.@name.toString()]= root.resolve(it.@script.toString())
             }
             
-            if(!methods.contains(request[0])) {
+            if(!methods.contains(requestParts[0])) {
                 code= 501
                 body= "${code} ${returnCodes[code]}"
             } else {
@@ -117,9 +115,7 @@ public class HTTPHandler implements Runnable {
         
         Common.logger.info("HTTP Response ($id): ${header}")
         output.write(header.getBytes())
-        if (request[0] != "HEAD")
+        if (requestParts[0] != "HEAD")
             output.write(body.getBytes())
-        output.close()
-        input.close()
     }
 }

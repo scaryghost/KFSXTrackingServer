@@ -2,7 +2,7 @@ package com.github.etsai.kfsxtrackingserver;
 
 import static com.github.etsai.kfsxtrackingserver.Common.logger;
 import static com.github.etsai.kfsxtrackingserver.Common.threadPool;
-import com.github.etsai.kfsxtrackingserver.web.HTTPHandler;
+import com.github.etsai.kfsxtrackingserver.web.HTTPHandlerImpl;
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
@@ -11,6 +11,7 @@ import java.net.ServerSocket;
 import java.net.Socket;
 import java.nio.file.Path;
 import java.util.logging.Level;
+import java.util.logging.Logger;
 
 public class TCPListener implements Runnable {
     private int id;
@@ -33,11 +34,31 @@ public class TCPListener implements Runnable {
                 Socket connection= httpSocket.accept();
                 logger.info(String.format("Received TCP connection from %s:%d", 
                         connection.getInetAddress().getHostAddress(), connection.getPort()));
-                threadPool.submit(new HTTPHandler(connection, httpRootDir, id));
+                threadPool.submit(new HTTPHandlerImpl(connection, httpRootDir, id));
                 id++;
             }
         } catch (IOException ex) {
             logger.log(Level.SEVERE, null, ex);
+        }
+    }
+    
+    public abstract class HTTPHandler implements Runnable {
+        private final Socket connection;
+        
+        public HTTPHandler(Socket connection) {
+            this.connection= connection;
+        }
+        
+        public abstract void processRequest(String request, OutputStream output);
+        
+        @Override
+        public void run() {
+            try (BufferedReader input= new BufferedReader(new InputStreamReader(connection.getInputStream()));
+                    OutputStream output= connection.getOutputStream()) {
+                processRequest(input.readLine(), output);
+            } catch (IOException ex) {
+                Logger.getLogger(TCPListener.class.getName()).log(Level.SEVERE, null, ex);
+            }
         }
     }
 }
