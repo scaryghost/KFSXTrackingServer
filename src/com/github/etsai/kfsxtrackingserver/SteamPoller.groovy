@@ -32,7 +32,6 @@ public class SteamPoller implements Runnable {
         def steamXmlRoot= new XmlSlurper().parseText(content)
         def name, avatar
 
-        Common.logger.finest("Polling steamcommunity for steamID64: ${steamID64}")
         if (steamXmlRoot.error != "") {
             throw new InvalidSteamIDException("Invalid steamID64: $steamID64")
         } else if (steamXmlRoot.privacyMessage != "") {
@@ -47,12 +46,18 @@ public class SteamPoller implements Runnable {
     }
     
     static class PollerThread implements Runnable {
+        public static final def count= new AtomicInteger()
         public def steamid64
         public def steamInfo
         
         @Override 
         public void run() {
             steamInfo[steamid64]= poll(steamid64)
+
+            count.getAndAdd(1)
+            if (count.get() % 50 == 0) {
+                Common.logger.info("${count.get()} records polled")
+            }
         }
     }
     
@@ -71,18 +76,14 @@ public class SteamPoller implements Runnable {
         
         Common.logger.config("Polling steamcommunity.com with $nThreads threads")
         while(pollSteam) {
-            def count= 0
             def pool= Executors.newFixedThreadPool(nThreads);
             def steamInfo= new ConcurrentHashMap()
             
             pollSteam= false
-            sql.eachRow("select steamid64 from record where id=(SELECT id from record except select record_id from steam_info)") {row ->
+            PollerThread.count.set(0)
+            sql.eachRow("select steamid64 from record where id in (SELECT id from record except select record_id from steam_info)") {row ->
                 pool.submit(new PollerThread(steamid64: row.steamid64, steamInfo: steamInfo))
                 pollSteam= true
-                count++
-                if (count % 50 == 0) {
-                    Common.logger.info("$count records polled")
-                }
             }
 
             pool.shutdown()
@@ -95,7 +96,7 @@ public class SteamPoller implements Runnable {
                         sql.execute("update steam_info set name=?, avatar=? where record_id=(select id from record where steamid64=?)", [info[0], info[1], steamID64])
                     }
                 }
-                Common.logger.fine("Attempted to poll ${PollerThread.count.get()} profiles.  Repolling missed steamid64s")
+                Common.logger.info("Attempted to poll ${PollerThread.count.get()} profiles.  Repolling missed steamid64s")
             }
         }
         def end= System.currentTimeMillis()
