@@ -21,7 +21,7 @@ import java.util.Timer
  * @author etsai
  */
 public class Accumulator {
-    private final def receivedPackets, writer, statMsgTTL, packetParser
+    private final def receivedPackets, writer, statMsgTTL, packetParser, tasks
     private def timer
     
     public Accumulator(DataWriter writer, String password, long statMsgTTL) {
@@ -30,6 +30,7 @@ public class Accumulator {
         this.statMsgTTL= statMsgTTL
         this.packetParser= new PacketParser(password)
         this.timer= new Timer()
+        tasks= [:]
     }
     
     public def accumulate(String data) {
@@ -45,7 +46,8 @@ public class Accumulator {
                 id= playerPacket.getSteamID64()
                 if (receivedPackets[id] == null) {
                     receivedPackets[id]= []
-                    timer.schedule(new PacketCleaner(steamID64: id, receivedPackets: receivedPackets), statMsgTTL)
+                    tasks[id]= new PacketCleaner(steamID64: id, receivedPackets: receivedPackets)
+                    timer.schedule(tasks[id], statMsgTTL)
                 }
                 storedPackets= receivedPackets[id]
                 storedPackets[playerPacket.getSeqNo()]= playerPacket
@@ -54,6 +56,8 @@ public class Accumulator {
                     storedPackets.inject(true) {acc, val -> acc && (val != null) }
                 if (completed) {
                     receivedPackets.remove(id)
+                    tasks[id].cancel()
+                    tasks.remove(id)
                     Common.logger.info("Saving packets for steamID64: $id")
                     try {
                         def info= SteamPoller.poll(id)
@@ -70,7 +74,8 @@ public class Accumulator {
             }
         } catch (IllegalStateException ex) {
             timer= new Timer()
-            timer.schedule(new PacketCleaner(steamID64: id, receivedPackets: receivedPackets), statMsgTTL)
+            tasks[id]= new PacketCleaner(steamID64: id, receivedPackets: receivedPackets)
+            timer.schedule(tasks[id], statMsgTTL)
         } catch (InvalidPacketFormatException ex) {
             Common.logger.log(Level.SEVERE, "Error parsing the packet", ex)
         } catch (Exception ex) {
@@ -83,10 +88,8 @@ public class Accumulator {
         
         @Override
         public void run() {
-            if (receivedPackets[steamID64] != null) {
-                Common.logger.info("Discarding packets for steamID64: ${steamID64}")
-                receivedPackets.remove(steamID64)
-            }
+            Common.logger.info("Discarding packets for steamID64: ${steamID64}")
+            receivedPackets.remove(steamID64)
         }
     }
 }
