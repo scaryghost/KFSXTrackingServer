@@ -2,7 +2,7 @@ package com.github.etsai.kfsxtrackingserver.web
 
 import com.github.etsai.kfsxtrackingserver.Common
 import com.github.etsai.kfsxtrackingserver.impl.SQLiteReader
-import com.github.etsai.kfsxtrackingserver.TCPListener
+import com.github.etsai.kfsxtrackingserver.TCPListener.HTTPHandler
 import com.github.etsai.utils.Time
 import java.io.BufferedReader
 import java.io.OutputStream
@@ -14,7 +14,7 @@ import java.nio.file.Path
 import java.nio.file.Paths
 import java.nio.file.NoSuchFileException
 
-public class HTTPHandlerImpl extends TCPListener.HTTPHandler {
+public class HTTPHandlerImpl extends HTTPHandler {
     private static def webpages= "webpages.xml"
     private static def methods= ["GET", "HEAD"]
     private static def returnCodes= [200: "OK", 400: "Bad Request", 403: "Forbidden", 404: "Not Found", 500: "Internal Server Error", 501: "Not Implemented"]

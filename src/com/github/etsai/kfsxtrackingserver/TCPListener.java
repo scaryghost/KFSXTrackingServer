@@ -42,7 +42,7 @@ public class TCPListener implements Runnable {
         }
     }
     
-    public abstract class HTTPHandler implements Runnable {
+    public abstract static class HTTPHandler implements Runnable {
         private final Socket connection;
         
         public HTTPHandler(Socket connection) {
