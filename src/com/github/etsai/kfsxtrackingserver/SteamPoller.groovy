@@ -19,7 +19,13 @@ import java.sql.Connection
  * @author eric
  */
 public class SteamPoller implements Runnable {
-    public static def poll(def steamID64) {
+    public static class InvalidSteamIDException extends Exception {
+        InvalidSteamIDException(String msg) {
+            super(msg)
+        }
+    }
+    
+    public static def poll(def steamID64) throws InvalidSteamIDException {
         def url= new URL("http://steamcommunity.com/profiles/${steamID64}?xml=1")
         def content= url.getContent().readLines().join("\n")
         def steamXmlRoot= new XmlSlurper().parseText(content)
@@ -27,7 +33,7 @@ public class SteamPoller implements Runnable {
 
         Common.logger.finest("Polling steamcommunity for steamID64: ${steamID64}")
         if (steamXmlRoot.error != "") {
-            throw new RuntimeException("Invalid steamID64: $steamID64")
+            throw new InvalidSteamIDException("Invalid steamID64: $steamID64")
         } else if (steamXmlRoot.privacyMessage != "") {
             name= "---Profile not setup---"
             avatar= ""

@@ -6,8 +6,10 @@
 package com.github.etsai.kfsxtrackingserver
 
 import com.github.etsai.kfsxtrackingserver.Common
+import com.github.etsai.kfsxtrackingserver.PacketParser.InvalidPacketFormatException
 import com.github.etsai.kfsxtrackingserver.PacketParser.MatchPacket
 import com.github.etsai.kfsxtrackingserver.PacketParser.PlayerPacket
+import com.github.etsai.kfsxtrackingserver.SteamPoller.InvalidSteamIDException
 import java.util.logging.Level
 import java.util.TimerTask
 import java.util.Timer
@@ -35,44 +37,42 @@ public class Accumulator {
                 id= playerPacket.getSteamID64()
                 def category= playerPacket.getCategory()
 
-                if (id == null) {
-                    if (category != "match") {
-                        Common.logger.warning("Blank ID received.  Adding to aggregate stats only")
-                        writer.writePlayerData([playerPacket])
-                    }
-                } else {
-                    def seqNo= playerPacket.getSeqNo()
-                    def packets
+                def seqNo= playerPacket.getSeqNo()
+                def packets
 
-                    synchronized(receivedPackets) {
-                        if (receivedPackets[id] == null) {
-                            receivedPackets[id]= []
-                            timer.schedule(new PacketCleaner(steamID64: id), statMsgTTL)
-                        }
-                        packets= receivedPackets[id]
+                synchronized(receivedPackets) {
+                    if (receivedPackets[id] == null) {
+                        receivedPackets[id]= []
+                        timer.schedule(new PacketCleaner(steamID64: id), statMsgTTL)
                     }
-
-                    packets[seqNo]= playerPacket
-                    def completed= packets.last().isClose() && 
-                        packets.inject(true) {acc, val -> acc && (val != null) }
-                    if (completed) {
-                        receivedPackets.remove(id)
-                        Common.logger.info("Saving packets for steamID64: $id")
-                        try {
-                            def info= SteamPoller.poll(id)
-                            writer.writeSteamInfo(id, info[0], info[1])
-                            writer.writePlayerData(packets.reverse())
-                        } catch (IOException ex) {
-                            writer.writePlayerData(packets.reverse())
-                        } catch (Exception ex) {
-                            Common.logger.log(Level.SEVERE, "Invalid steamID64: $id", ex)
-                        } 
-                    }
+                    packets= receivedPackets[id]
                 }
+
+                packets[seqNo]= playerPacket
+                def completed= packets.last().isClose() && 
+                    packets.inject(true) {acc, val -> acc && (val != null) }
+                if (completed) {
+                    receivedPackets.remove(id)
+                    Common.logger.info("Saving packets for steamID64: $id")
+                    try {
+                        def info= SteamPoller.poll(id)
+                        writer.writeSteamInfo(id, info[0], info[1])
+                        writer.writePlayerData(packets.reverse())
+                    } catch (IOException ex) {
+                        writer.writePlayerData(packets.reverse())
+                    } catch (InvalidSteamIDException ex) {
+                        Common.logger.log(Level.SEVERE, "Invalid steamID64: $id", ex)
+                    } catch (Exception ex) {
+                        Common.logger.log(Level.SEVERE, "Error saving player statistics", ex)
+                    } 
+                }
+                
             }
         } catch (IllegalStateException ex) {
             timer= new Timer()
             timer.schedule(new PacketCleaner(steamID64: id), statMsgTTL)
+        } catch (InvalidPacketFormatException ex) {
+            Common.logger.log(Level.SEVERE, "Error parsing the packet", ex)
         } catch (Exception ex) {
             Common.logger.log(Level.SEVERE, null, ex)
         }

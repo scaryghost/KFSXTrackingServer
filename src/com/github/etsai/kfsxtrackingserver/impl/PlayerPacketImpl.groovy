@@ -5,6 +5,7 @@
 
 package com.github.etsai.kfsxtrackingserver.impl
 
+import com.github.etsai.kfsxtrackingserver.PacketParser.InvalidPacketFormatException
 import com.github.etsai.kfsxtrackingserver.PacketParser.PlayerPacket
 import com.github.etsai.kfsxtrackingserver.PacketParser.Result
 
@@ -26,7 +27,7 @@ public class PlayerPacketImpl implements PlayerPacket {
     /**
      * Constructs object given the pipe separated string of stat information
      */
-    public PlayerPacketImpl(String[] parts) {
+    public PlayerPacketImpl(String[] parts) throws InvalidPacketFormatException {
         //super((parts[3] == "match") ? "" : (parts.size() < 5 ? "" : parts[4]))
         
         steamID64= parts[1]
@@ -56,7 +57,7 @@ public class PlayerPacketImpl implements PlayerPacket {
                     attrs["result"]= Result.WIN
                     break
                 default:
-                    throw new RuntimeException("Unrecognized result: ${parts[7]}")
+                    throw new InvalidPacketFormatException("Unrecognized result: ${parts[7]}")
             }
             
         } else {
