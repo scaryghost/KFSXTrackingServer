@@ -30,8 +30,9 @@ public class HTTPHandlerImpl extends HTTPHandler {
     @Override
     public void processRequest(String request, OutputStream output) {
         Common.logger.info("HTTP request ($id): $request")
-        
+
         def requestParts= request.tokenize(" ")
+        def uri= URI.create(requestParts[1])
         def code= 200, body= "", conn
         def filename= uri.getPath().substring(1)
         def extension= filename.isEmpty() ? "html" : filename.substring(filename.lastIndexOf(".") + 1, filename.length());
@@ -66,15 +67,16 @@ public class HTTPHandlerImpl extends HTTPHandler {
                         extension= "html"
                     }
                 } else {
-                    def uri= URI.create(requestParts[1]), queries= [:]
+                    def queries= [:]
                     if (uri.getQuery() != null) {
                         uri.getQuery().tokenize("&").each {token ->
                             def keyVal= token.split("=")
                             queries[keyVal[0]]= keyVal[1]
                         }
                     }
+
                     conn= Common.connPool.getConnection()
-                    generatePage(root, resources[filename], conn, queries)
+                    body= generatePage(root, resources[filename], conn, queries)
                     
                     if (queries.xml != null) {
                         extension= "xml"
