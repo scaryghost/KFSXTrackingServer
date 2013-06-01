@@ -1,8 +1,6 @@
 package com.github.etsai.kfsxtrackingserver.web
 
 import com.github.etsai.kfsxtrackingserver.Common
-import com.github.etsai.kfsxtrackingserver.impl.SQLiteReader
-import com.github.etsai.kfsxtrackingserver.TCPListener.HTTPHandler
 import com.github.etsai.utils.Time
 import java.io.BufferedReader
 import java.io.OutputStream
@@ -31,21 +29,12 @@ public class HTTPHandlerImpl extends HTTPHandler {
     
     @Override
     public void processRequest(String request, OutputStream output) {
-        def requestParts= request.tokenize(" ")
         Common.logger.info("HTTP request ($id): $request")
         
-        def code= 200, body, conn
-        def uri= URI.create(requestParts[1])
+        def requestParts= request.tokenize(" ")
+        def code= 200, body= "", conn
         def filename= uri.getPath().substring(1)
         def extension= filename.isEmpty() ? "html" : filename.substring(filename.lastIndexOf(".") + 1, filename.length());
-        
-        def queries= [:]
-        if (uri.getQuery() != null) {
-            uri.getQuery().tokenize("&").each {token ->
-                def keyVal= token.split("=")
-                queries[keyVal[0]]= keyVal[1]
-            }
-        }
          
         try {
             def xmlRoot= new XmlSlurper().parse(httpRootDir.resolve(webpages).toFile())
@@ -77,16 +66,16 @@ public class HTTPHandlerImpl extends HTTPHandler {
                         extension= "html"
                     }
                 } else {
-                    def gcl= new GroovyClassLoader()
-                    gcl.addClasspath(root.toString())
-                    def clazz = gcl.parseClass(resources[filename].toFile())
-                    def aScript = (Resource)clazz.newInstance();
-                    
+                    def uri= URI.create(requestParts[1]), queries= [:]
+                    if (uri.getQuery() != null) {
+                        uri.getQuery().tokenize("&").each {token ->
+                            def keyVal= token.split("=")
+                            queries[keyVal[0]]= keyVal[1]
+                        }
+                    }
                     conn= Common.connPool.getConnection()
-                    aScript.setQueries(queries)
-                    aScript.setDataReader(new SQLiteReader(conn))
-                    body= aScript.generatePage()
-
+                    generatePage(root, resources[filename], conn, queries)
+                    
                     if (queries.xml != null) {
                         extension= "xml"
                     }
@@ -103,19 +92,16 @@ public class HTTPHandlerImpl extends HTTPHandler {
             Common.logger.log(Level.SEVERE, "Error generating webpage", ex)
         } finally {
             Common.connPool.release(conn)
+            def httpFormat= new SimpleDateFormat("EEE, dd MMM yyyy HH:mm:ss zzz")
+            httpFormat.setTimeZone(TimeZone.getTimeZone("GMT"))
+
+            def header= ["HTTP/1.1 ${code} ${returnCodes[code]}", "Connection: close", "Date: ${httpFormat.format(Calendar.getInstance().getTime())}", 
+                    "Content-Type: ${extensions[extension]}", "Content-Length: ${body.size()}", "\n"].join("\n")
+
+            Common.logger.info("HTTP Response ($id): ${header}")
+            output.write(header.getBytes())
+            if (requestParts[0] != "HEAD")
+                output.write(body.getBytes())
         }
-        
-        def httpFormat= new SimpleDateFormat("EEE, dd MMM yyyy HH:mm:ss zzz")
-        httpFormat.setTimeZone(TimeZone.getTimeZone("GMT"))
-        def date= httpFormat.format(Calendar.getInstance().getTime())
-        
-        def content= extensions[extension]
-        def header= ["HTTP/1.1 ${code} ${returnCodes[code]}", "Connection: close", "Date: ${date}", "Content-Type: ${content}", 
-                "Content-Length: ${body.size()}", "\n"].join("\n")
-        
-        Common.logger.info("HTTP Response ($id): ${header}")
-        output.write(header.getBytes())
-        if (requestParts[0] != "HEAD")
-            output.write(body.getBytes())
     }
 }
