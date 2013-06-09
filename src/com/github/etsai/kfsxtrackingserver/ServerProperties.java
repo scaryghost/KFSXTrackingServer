@@ -45,7 +45,7 @@ public class ServerProperties {
             props.setProperty(httpRootDir, "http");
             props.setProperty(password, "server");
             props.setProperty(statsMsgTTL, "60000");
-            props.setProperty(dbName, "share/etc/kfsxdb.sqlite");
+            props.setProperty(dbName, "share/etc/kfsxdb.sqlite3");
             props.setProperty(numDbConn, "10");
             props.setProperty(logLevel, "INFO");
             props.setProperty(numThreads, "-1");
@@ -109,7 +109,7 @@ public class ServerProperties {
             return nthreads;
         } catch (NumberFormatException ex) {
             Common.logger.log(Level.WARNING, "Invalid number given for num.threads.  Using cached thread pool", ex);
-            return 8;
+            return -1;
         }
     }
     public Integer getSteamPollingThreads() {

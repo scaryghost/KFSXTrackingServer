@@ -25,7 +25,7 @@ For v2.1 and on, the following properties have been removed:
 
 while the following properties have been added:
 * num.threads (must be at least 4)
-* steam.polling.threads (set to 0 to disable)
+* steam.polling.threads
 
 Also, the database by default now resides in the "share/etc" folder.  Remember to update your current 
 server.properties file before replacing the default one, also located in "share/etc".  
