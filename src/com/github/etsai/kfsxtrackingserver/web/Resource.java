@@ -13,7 +13,7 @@ import java.util.Map;
  */
 public abstract class Resource {
     /** 
-     * The queries given in the reqsust, split on the '=' character.  For example,
+     * The queries given in the request, split on the '=' character.  For example,
      * the query a=b becomes an entry in the map, with key 'a' and value 'b'.
      */
     protected Map<String, String> queries;

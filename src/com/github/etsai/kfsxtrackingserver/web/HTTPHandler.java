@@ -4,7 +4,6 @@
  */
 package com.github.etsai.kfsxtrackingserver.web;
 
-import com.github.etsai.kfsxtrackingserver.Common;
 import com.github.etsai.kfsxtrackingserver.impl.SQLiteReader;
 import com.github.etsai.kfsxtrackingserver.TCPListener;
 import groovy.lang.GroovyClassLoader;

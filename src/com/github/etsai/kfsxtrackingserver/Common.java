@@ -12,16 +12,24 @@ import java.util.concurrent.ExecutorService;
 import java.util.logging.Logger;
 
 /**
- * Central variables used by all classes.
- * The objects must be thread safe
+ * Central variables used by all classes.  The objects must be thread safe
  * @author etsai
  */
 public class Common {
+    /** Pool of open connections to the database */
     public static ConnectionPool connPool;
+    /** Logging object to use for all logging */
     public static final Logger logger= Logger.getLogger("KFSXTrackingServer");
+    /** Thread pool to use for spawned threads */
     public static ExecutorService threadPool;
+    /** Streams to the default standard out and standard error */
     public static PrintStream oldStdOut, oldStdErr;
     
+    /**
+     * Retrieves an open connection, executes the desired SQL, and releases the connection
+     * @param stmt SQL statement to execute
+     * @throws SQLException If a connection cannot be made to the database
+     */
     public static void executeStmt(String stmt) throws SQLException {
         Connection conn= connPool.getConnection();
         conn.createStatement().execute(stmt);
