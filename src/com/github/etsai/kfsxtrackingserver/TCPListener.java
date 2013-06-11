@@ -1,40 +1,42 @@
 package com.github.etsai.kfsxtrackingserver;
 
-import static com.github.etsai.kfsxtrackingserver.Common.logger;
-import static com.github.etsai.kfsxtrackingserver.Common.threadPool;
-import com.github.etsai.kfsxtrackingserver.web.HTTPHandlerImpl;
+import fi.iki.elonen.NanoHTTPD;
 import java.io.IOException;
-import java.net.ServerSocket;
-import java.net.Socket;
 import java.nio.file.Path;
+import java.util.Map;
 import java.util.logging.Level;
 
-public class TCPListener implements Runnable {
-    private int id;
-    private final int port;
-    private final Path httpRootDir;
-
-    public TCPListener(int port, Path httpRootDir) {
-        this.port= port;
+public class TCPListener extends NanoHTTPD implements Runnable {
+    final Path httpRootDir;
+    
+    public TCPListener(int port, Path httpRootDir){
+        super(port);
         this.httpRootDir= httpRootDir;
-        this.id= 0;
+    }
+
+    @Override
+    public Response serve(String uri, Method method, Map<String, String> header, Map<String, String> parms, Map<String, String> files) {
+        StringBuilder sb = new StringBuilder();
+        sb.append("<html>");
+        sb.append("<head><title>Debug Server</title></head>");
+        sb.append("<body>");
+        sb.append("<h1>Response</h1>");
+        sb.append("<p><blockquote><b>URI -</b> ").append(String.valueOf(uri)).append("<br />");
+        sb.append("<b>Method -</b> ").append(String.valueOf(method)).append("</blockquote></p>");
+        sb.append("<h3>Headers</h3><p><blockquote>").append(String.valueOf(header)).append("</blockquote></p>");
+        sb.append("<h3>Parms</h3><p><blockquote>").append(String.valueOf(parms)).append("</blockquote></p>");
+        sb.append("<h3>Files</h3><p><blockquote>").append(String.valueOf(files)).append("</blockquote></p>");
+        sb.append("</body>");
+        sb.append("</html>");
+        return new Response(sb.toString());
     }
 
     @Override
     public void run() {
-        logger.log(Level.CONFIG, "Listening for http requests on port: {0}", port);
-        
         try {
-            ServerSocket httpSocket= new ServerSocket(port);
-            while(true) {
-                Socket connection= httpSocket.accept();
-                logger.info(String.format("Received TCP connection from %s:%d", 
-                        connection.getInetAddress().getHostAddress(), connection.getPort()));
-                threadPool.submit(new HTTPHandlerImpl(connection, httpRootDir, id));
-                id++;
-            }
+            start();
         } catch (IOException ex) {
-            logger.log(Level.SEVERE, null, ex);
+            Common.logger.log(Level.SEVERE, null, ex);
         }
     }
 }
