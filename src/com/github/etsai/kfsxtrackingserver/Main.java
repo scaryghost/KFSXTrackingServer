@@ -97,7 +97,10 @@ public class Main {
             logConsoleHandler.setLevel(logLevel);
             Common.logger.setLevel(Level.ALL);
             Common.logger.addHandler(logConsoleHandler);
-            Common.logger.setUseParentHandlers(false);   
+            Common.logger.setUseParentHandlers(false);
+            
+            NanoHTTPD.logger= Common.logger;
+            NanoHTTPD.logLevel= logLevel;
         } catch (IOException ex) {
             Common.logger.log(Level.WARNING, "Output will not be saved to file...", ex);
         }
