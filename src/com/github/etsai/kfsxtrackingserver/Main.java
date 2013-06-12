@@ -4,6 +4,7 @@
  */
 package com.github.etsai.kfsxtrackingserver;
 
+import com.github.etsai.kfsxtrackingserver.web.WebHandler;
 import com.github.etsai.utils.logging.TeeLogger;
 import com.github.etsai.utils.sql.ConnectionPool;
 import fi.iki.elonen.NanoHTTPD;
@@ -58,7 +59,7 @@ public class Main {
         });
         
         try {
-            webHandler= new TCPListener(props.getHttpPort(), props.getHttpRootDir());
+            webHandler= new WebHandler(props.getHttpPort(), props.getHttpRootDir());
             webHandler.start();
         } catch (IOException ex) {
             Common.logger.log(Level.SEVERE, null, ex);
