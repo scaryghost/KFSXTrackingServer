@@ -46,7 +46,12 @@ public class Accumulator {
                 id= playerPacket.getSteamID64()
                 if (receivedPackets[id] == null) {
                     receivedPackets[id]= []
-                    tasks[id]= new PacketCleaner(steamID64: id, receivedPackets: receivedPackets)
+                    tasks[id]= new TimerTask() {
+                        @Override public void run() {
+                            Common.logger.info("Discarding packets for steamID64: $id")
+                            receivedPackets.remove(id)
+                        }
+                    }
                     timer.schedule(tasks[id], statMsgTTL)
                 }
                 storedPackets= receivedPackets[id]
@@ -74,7 +79,12 @@ public class Accumulator {
             }
         } catch (IllegalStateException ex) {
             timer= new Timer()
-            tasks[id]= new PacketCleaner(steamID64: id, receivedPackets: receivedPackets)
+            tasks[id]= new TimerTask() {
+                @Override public void run() {
+                    Common.logger.info("Discarding packets for steamID64: $id")
+                    receivedPackets.remove(id)
+                }
+            }
             timer.schedule(tasks[id], statMsgTTL)
         } catch (InvalidPacketFormatException ex) {
             Common.logger.log(Level.SEVERE, "Error parsing the packet", ex)
@@ -82,15 +92,4 @@ public class Accumulator {
             Common.logger.log(Level.SEVERE, null, ex)
         }
     }
-    
-    static class PacketCleaner extends TimerTask {
-        public def steamID64, receivedPackets
-        
-        @Override
-        public void run() {
-            Common.logger.info("Discarding packets for steamID64: ${steamID64}")
-            receivedPackets.remove(steamID64)
-        }
-    }
-}
-
+}    

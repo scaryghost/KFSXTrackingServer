@@ -45,22 +45,6 @@ public class SteamPoller implements Runnable {
         return [name, avatar]
     }
     
-    static class PollerThread implements Runnable {
-        public static final def count= new AtomicInteger()
-        public def steamid64
-        public def steamInfo
-        
-        @Override 
-        public void run() {
-            steamInfo[steamid64]= poll(steamid64)
-
-            count.getAndAdd(1)
-            if (count.get() % 50 == 0) {
-                Common.logger.info("${count.get()} records polled")
-            }
-        }
-    }
-    
     private final def conn
     private final def nThreads
     
@@ -73,16 +57,28 @@ public class SteamPoller implements Runnable {
         def pollSteam= true
         def start= System.currentTimeMillis()
         def sql= new Sql(conn)
-        
+        def count= new AtomicInteger()
+
         Common.logger.config("Polling steamcommunity.com with $nThreads threads")
         while(pollSteam) {
             def pool= Executors.newFixedThreadPool(nThreads);
             def steamInfo= new ConcurrentHashMap()
             
             pollSteam= false
-            PollerThread.count.set(0)
+            count.set(0)
             sql.eachRow("select steamid64 from record where id in (SELECT id from record except select record_id from steam_info)") {row ->
-                pool.submit(new PollerThread(steamid64: row.steamid64, steamInfo: steamInfo))
+                def steamid64= row.steamid64
+
+                pool.submit(new Runnable() {
+                    @Override public void run() {
+                        steamInfo[steamid64]= poll(steamid64)
+
+                        count.getAndAdd(1)
+                        if (count.get() % 50 == 0) {
+                            Common.logger.info("${count.get()} records polled")
+                        }
+                    }
+                })
                 pollSteam= true
             }
 
