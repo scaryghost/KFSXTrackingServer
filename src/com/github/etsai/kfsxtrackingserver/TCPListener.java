@@ -1,12 +1,10 @@
 package com.github.etsai.kfsxtrackingserver;
 
 import fi.iki.elonen.NanoHTTPD;
-import java.io.IOException;
 import java.nio.file.Path;
 import java.util.Map;
-import java.util.logging.Level;
 
-public class TCPListener extends NanoHTTPD implements Runnable {
+public class TCPListener extends NanoHTTPD {
     final Path httpRootDir;
     
     public TCPListener(int port, Path httpRootDir){
@@ -29,14 +27,5 @@ public class TCPListener extends NanoHTTPD implements Runnable {
         sb.append("</body>");
         sb.append("</html>");
         return new Response(sb.toString());
-    }
-
-    @Override
-    public void run() {
-        try {
-            start();
-        } catch (IOException ex) {
-            Common.logger.log(Level.SEVERE, null, ex);
-        }
     }
 }

@@ -6,6 +6,7 @@ package com.github.etsai.kfsxtrackingserver;
 
 import com.github.etsai.utils.logging.TeeLogger;
 import com.github.etsai.utils.sql.ConnectionPool;
+import fi.iki.elonen.NanoHTTPD;
 import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
@@ -21,6 +22,7 @@ import java.util.logging.*;
 public class Main {
     private static ConsoleHandler logConsoleHandler;
     private static FileWriter logWriter;
+    private static NanoHTTPD webHandler;
     
     /**
      * @param args the command line arguments
@@ -45,6 +47,9 @@ public class Main {
             public void run() {
                 try {
                     Common.connPool.close();
+                    if (webHandler != null) {
+                        webHandler.stop();
+                    }
                 } catch (SQLException ex) {
                     Common.logger.log(Level.SEVERE, "Error shutting down connections", ex);
                 }
@@ -52,9 +57,14 @@ public class Main {
             }
         });
         
+        try {
+            webHandler= new TCPListener(props.getHttpPort(), props.getHttpRootDir());
+            webHandler.start();
+        } catch (IOException ex) {
+            Common.logger.log(Level.SEVERE, null, ex);
+        }
         Common.threadPool.submit(new UDPListener(props.getUdpPort(), 
                 new Accumulator(new DataWriter(Common.connPool.getConnection()), props.getPassword(), props.getStatsMsgTTL())));
-        Common.threadPool.submit(new TCPListener(props.getHttpPort(), props.getHttpRootDir()));
         Common.threadPool.submit(new SteamPoller(Common.connPool.getConnection(), props.getSteamPollingThreads()));
     }
     
