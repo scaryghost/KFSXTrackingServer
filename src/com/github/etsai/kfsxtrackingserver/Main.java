@@ -14,6 +14,7 @@ import java.io.FileWriter;
 import java.io.IOException;
 import java.io.PrintStream;
 import java.sql.SQLException;
+import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.logging.*;
 
@@ -25,6 +26,7 @@ public class Main {
     private static ConsoleHandler logConsoleHandler;
     private static FileWriter logWriter;
     private static NanoHTTPD webHandler;
+    private static ExecutorService threadPool;
     
     /**
      * @param args the command line arguments
@@ -60,14 +62,19 @@ public class Main {
         });
         
         try {
-            webHandler= new WebHandler(props.getHttpPort(), props.getHttpRootDir());
-            webHandler.start();
+            if (props.getHttpPort() > 0) {
+                webHandler= new WebHandler(props.getHttpPort(), props.getHttpRootDir());
+                webHandler.start();
+            } else {
+                Common.logger.log(Level.CONFIG, "HTTP server disabled");
+            }
         } catch (IOException ex) {
             Common.logger.log(Level.SEVERE, null, ex);
         }
-        Common.threadPool.submit(new UDPListener(props.getUdpPort(), 
+        threadPool= Executors.newCachedThreadPool();
+        threadPool.submit(new UDPListener(props.getUdpPort(), 
                 new Accumulator(new SQLiteWriter(Common.connPool.getConnection()), props.getPassword(), props.getStatsMsgTTL())));
-        Common.threadPool.submit(new SteamPoller(Common.connPool.getConnection(), props.getSteamPollingThreads()));
+        threadPool.submit(new SteamPoller(Common.connPool.getConnection(), props.getSteamPollingThreads()));
     }
     
     public static void initModules(ServerProperties props) throws ClassNotFoundException, SQLException {
@@ -77,11 +84,6 @@ public class Main {
         Common.connPool= new ConnectionPool(props.getNumDbConn());
         Common.connPool.setJdbcUrl(String.format("jdbc:sqlite:%s", props.getDbName()));
         
-        if (props.getNumThreads() < 0) {
-            Common.threadPool= Executors.newCachedThreadPool();
-        } else {
-            Common.threadPool= Executors.newFixedThreadPool(props.getNumThreads());
-        }
     }
     public static void initLogging(Level logLevel) {
         try {

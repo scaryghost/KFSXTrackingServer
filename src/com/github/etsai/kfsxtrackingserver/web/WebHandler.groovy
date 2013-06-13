@@ -22,6 +22,7 @@ public class WebHandler extends NanoHTTPD {
     public WebHandler(int port, Path httpRootDir){
         super(port);
         this.httpRootDir= httpRootDir;
+        Common.logger.log(Level.CONFIG, "Listening for http requests on port: $port")
     }
 
     @Override

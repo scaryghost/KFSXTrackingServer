@@ -8,7 +8,6 @@ import com.github.etsai.utils.sql.ConnectionPool;
 import java.io.PrintStream;
 import java.sql.Connection;
 import java.sql.SQLException;
-import java.util.concurrent.ExecutorService;
 import java.util.logging.Logger;
 
 /**
@@ -20,8 +19,6 @@ public class Common {
     public static ConnectionPool connPool;
     /** Logging object to use for all logging */
     public static final Logger logger= Logger.getLogger("KFSXTrackingServer");
-    /** Thread pool to use for spawned threads */
-    public static ExecutorService threadPool;
     /** Streams to the default standard out and standard error */
     public static PrintStream oldStdOut, oldStdErr;
     

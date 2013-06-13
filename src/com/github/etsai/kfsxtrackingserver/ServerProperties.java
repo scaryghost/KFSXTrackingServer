@@ -27,7 +27,6 @@ public class ServerProperties {
     public static final String dbName= "db.name";
     public static final String numDbConn= "num.db.conn";
     public static final String logLevel= "log.level";
-    public static final String numThreads= "num.threads";
     public static final String steamPollingThreads= "steam.polling.threads";
     
     public static ServerProperties load(String filename) throws IOException {
@@ -48,7 +47,6 @@ public class ServerProperties {
             props.setProperty(dbName, "share/etc/kfsxdb.sqlite3");
             props.setProperty(numDbConn, "10");
             props.setProperty(logLevel, "INFO");
-            props.setProperty(numThreads, "-1");
             props.setProperty(steamPollingThreads, "1");
             defaults= new ServerProperties(props);
         }
@@ -93,24 +91,6 @@ public class ServerProperties {
     }
     public Level getLogLevel() {
         return Level.parse(properties.getProperty(logLevel));
-    }
-    public Integer getNumThreads() {
-        if (properties.getProperty(numThreads) == null) {
-            Common.logger.warning("Property " + numThreads + " not set.  Using default value of 4");
-            return 4;
-        }
-        
-        try {
-            Integer nthreads= Integer.valueOf(properties.getProperty(numThreads));
-            if (nthreads < 4 && nthreads > 0) {
-                Common.logger.log(Level.WARNING, "Property num.threads requires a minimum of 4 threads, only {0} set.  Using minimum value of 4", nthreads);
-                return 4;
-            }
-            return nthreads;
-        } catch (NumberFormatException ex) {
-            Common.logger.log(Level.WARNING, "Invalid number given for num.threads.  Using cached thread pool", ex);
-            return -1;
-        }
     }
     public Integer getSteamPollingThreads() {
         try {
