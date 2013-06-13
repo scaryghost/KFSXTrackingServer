@@ -4,6 +4,7 @@
  */
 package com.github.etsai.kfsxtrackingserver;
 
+import com.github.etsai.kfsxtrackingserver.impl.SQLiteWriter;
 import com.github.etsai.kfsxtrackingserver.web.WebHandler;
 import com.github.etsai.utils.logging.TeeLogger;
 import com.github.etsai.utils.sql.ConnectionPool;
@@ -65,7 +66,7 @@ public class Main {
             Common.logger.log(Level.SEVERE, null, ex);
         }
         Common.threadPool.submit(new UDPListener(props.getUdpPort(), 
-                new Accumulator(new DataWriter(Common.connPool.getConnection()), props.getPassword(), props.getStatsMsgTTL())));
+                new Accumulator(new SQLiteWriter(Common.connPool.getConnection()), props.getPassword(), props.getStatsMsgTTL())));
         Common.threadPool.submit(new SteamPoller(Common.connPool.getConnection(), props.getSteamPollingThreads()));
     }
     

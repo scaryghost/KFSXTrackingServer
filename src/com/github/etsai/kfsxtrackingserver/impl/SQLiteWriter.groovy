@@ -3,10 +3,12 @@
  * and open the template in the editor.
  */
 
-package com.github.etsai.kfsxtrackingserver
+package com.github.etsai.kfsxtrackingserver.impl
 
+import com.github.etsai.kfsxtrackingserver.DataWriter
 import com.github.etsai.kfsxtrackingserver.PacketParser.MatchPacket
 import com.github.etsai.kfsxtrackingserver.PacketParser.PlayerPacket
+import com.github.etsai.kfsxtrackingserver.PlayerContent
 import groovy.sql.Sql
 import java.sql.Connection
 
@@ -14,7 +16,7 @@ import java.sql.Connection
  *
  * @author etsai
  */
-public class DataWriter {
+public class SQLiteWriter implements DataWriter {
     private static def wavedataSqlInsert= """insert or ignore into wave_data (difficulty_id, level_id, wave, category, stat) select d.id, l.id, ?, ?, ? 
             from difficulty d, level l where d.name=? and d.length=? and l.name=?"""
     private static def wavedataSqlUpdate= """update wave_data set value= value + ? where stat=? and category=? and wave=? and difficulty_id=(select id from 
@@ -24,7 +26,7 @@ public class DataWriter {
     
     private final def sql
     
-    public DataWriter(Connection conn) {
+    public SQLiteWriter(Connection conn) {
         this.sql= new Sql(conn)
     }
     
@@ -74,12 +76,14 @@ public class DataWriter {
         }
     }
     
-    public synchronized void writePlayerData(Iterable<PlayerPacket> packets) {
+    public synchronized void writePlayerData(PlayerContent content) {
         sql.withTransaction {
-            packets.each {packet ->
+            def steamID64= content.getSteamID64()
+            sql.execute("insert or ignore into record (steamid64) values (?);", [steamID64])
+            
+            content.getPackets().each {packet ->
                 Common.logger.finer("Player data= $packet")
                 def category= packet.getCategory()
-                def steamID64= packet.getSteamID64()
                 if (category != "match") {
                     packet.getStats().each {stat, value ->
                         if (stat != "") {
@@ -96,7 +100,6 @@ public class DataWriter {
                 } else {
                     def attrs= packet.getAttributes()
 
-                    sql.execute("insert or ignore into record (steamid64) values (?);", [steamID64])
                     sql.execute("""update record set wins= wins + ?, losses= losses + ?, disconnects= disconnects + ?, 
                         finales_survived= finales_survived + ?, finales_played= finales_played + ?, time_connected= time_connected + ? where steamid64=?""", 
                         [attrs.result == PacketParser.Result.WIN ? 1 : 0, attrs.result == PacketParser.Result.LOSS ? 1 : 0, 

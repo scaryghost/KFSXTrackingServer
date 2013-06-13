@@ -34,44 +34,43 @@ public class Accumulator {
     }
     
     public def accumulate(String data) {
-        def id
+        def steamID64
         
         try {
             def packet= packetParser.parse(data);
             if (packet instanceof MatchPacket) {
                 writer.writeMatchData((MatchPacket)packet)
             } else if (packet instanceof PlayerPacket) {
-                def playerPacket= (PlayerPacket)packet, storedPackets
+                def playerPacket= (PlayerPacket)packet, content
 
-                id= playerPacket.getSteamID64()
-                if (receivedPackets[id] == null) {
-                    receivedPackets[id]= []
-                    tasks[id]= new TimerTask() {
+                steamID64= playerPacket.getSteamID64()
+                if (receivedPackets[steamID64] == null) {
+                    receivedPackets[steamID64]= []
+                    tasks[steamID64]= new TimerTask() {
                         @Override public void run() {
-                            Common.logger.info("Discarding packets for steamID64: $id")
-                            receivedPackets.remove(id)
+                            Common.logger.info("Discarding packets for steamID64: $steamID64")
+                            receivedPackets.remove(steamID64)
                         }
                     }
-                    timer.schedule(tasks[id], statMsgTTL)
+                    timer.schedule(tasks[steamID64], statMsgTTL)
                 }
-                storedPackets= receivedPackets[id]
-                storedPackets[playerPacket.getSeqNo()]= playerPacket
+                content= receivedPackets[steamID64]
+                content.addPacket(playerPacket)
                 
-                def completed= storedPackets.last().isClose() && 
-                    storedPackets.inject(true) {acc, val -> acc && (val != null) }
-                if (completed) {
-                    receivedPackets.remove(id)
-                    tasks[id].cancel()
-                    tasks.remove(id)
-                    Common.logger.info("Saving packets for steamID64: $id")
+                if (content.isCompleted()) {
+                    receivedPackets.remove(steamID64)
+                    tasks[steamID64].cancel()
+                    tasks.remove(steamID64)
+                    Common.logger.info("Saving packets for steamID64: $steamID64")
                     try {
-                        def info= SteamPoller.poll(id)
-                        writer.writeSteamInfo(id, info[0], info[1])
-                        writer.writePlayerData(storedPackets.reverse())
+                        def info= SteamPoller.poll(steamID64)
+                        writer.writeSteamInfo(steamID64, info[0], info[1])
+                        writer.writePlayerData(content)
                     } catch (IOException ex) {
-                        writer.writePlayerData(storedPackets.reverse())
+                        Common.logger.log(Level.WARNING, "Error contacting steam community.  Saving player statistics", ex)
+                        writer.writePlayerData(content)
                     } catch (InvalidSteamIDException ex) {
-                        Common.logger.log(Level.SEVERE, "Invalid steamID64: $id", ex)
+                        Common.logger.log(Level.SEVERE, "Invalid steamID64: $steamID64", ex)
                     } catch (Exception ex) {
                         Common.logger.log(Level.SEVERE, "Error saving player statistics", ex)
                     }
@@ -79,13 +78,13 @@ public class Accumulator {
             }
         } catch (IllegalStateException ex) {
             timer= new Timer()
-            tasks[id]= new TimerTask() {
+            tasks[steamID64]= new TimerTask() {
                 @Override public void run() {
-                    Common.logger.info("Discarding packets for steamID64: $id")
-                    receivedPackets.remove(id)
+                    Common.logger.info("Discarding packets for steamID64: $steamID64")
+                    receivedPackets.remove(steamID64)
                 }
             }
-            timer.schedule(tasks[id], statMsgTTL)
+            timer.schedule(tasks[steamID64], statMsgTTL)
         } catch (InvalidPacketFormatException ex) {
             Common.logger.log(Level.SEVERE, "Error parsing the packet", ex)
         } catch (Exception ex) {

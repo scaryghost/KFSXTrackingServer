@@ -102,6 +102,10 @@ public class PacketParser {
          * @return The level name the packet is holding statistics for
          */
         public String getLevel();
+        /**
+         * Get the wave number the match information relates to
+         * @return Wave number of the match
+         */
         public int getWave();
     }
     /**
@@ -159,13 +163,15 @@ public class PacketParser {
         switch (header[0]) {
             case PlayerPacket.PROTOCOL:
                 if (Integer.valueOf(header[1])!= PlayerPacket.VERSION) {
-                    throw new InvalidPacketFormatException(String.format("Wrong protocol version for player packet.  Read %s, expecting %d", header[1], PlayerPacket.VERSION));
+                    throw new InvalidPacketFormatException(String.format("Wrong protocol version for player packet.  Read %s, expecting %d", 
+                            header[1], PlayerPacket.VERSION));
                 }
                 packet= new PlayerPacketImpl(parts);
                 break;
             case MatchPacket.PROTOCOL:
                 if (Integer.valueOf(header[1])!= MatchPacket.VERSION) {
-                    throw new InvalidPacketFormatException(String.format("Wrong protocol version for player packet.  Read %s, expecting %d", header[1], MatchPacket.VERSION));
+                    throw new InvalidPacketFormatException(String.format("Wrong protocol version for player packet.  Read %s, expecting %d", 
+                            header[1], MatchPacket.VERSION));
                 }
                 packet= new MatchPacketImpl(parts);
                 break;
