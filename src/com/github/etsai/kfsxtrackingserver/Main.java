@@ -17,6 +17,7 @@ import java.lang.reflect.InvocationTargetException;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.net.URLClassLoader;
+import java.sql.Connection;
 import java.sql.SQLException;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -75,7 +76,7 @@ public class Main {
         } catch (IOException ex) {
             Common.logger.log(Level.SEVERE, null, ex);
         }
-        DataWriter writer= Common.dataWriterClass.getConstructor().newInstance(Common.connPool.getConnection());
+        DataWriter writer= Common.dataWriterClass.getConstructor(new Class<?>[] {Connection.class}).newInstance(new Object[] {Common.connPool.getConnection()});
         threadPool= Executors.newCachedThreadPool();
         threadPool.submit(new UDPListener(props.getUdpPort(), 
                 new Accumulator(writer, props.getPassword(), props.getStatsMsgTTL())));
@@ -89,11 +90,11 @@ public class Main {
         Common.connPool= new ConnectionPool(props.getNumDbConn());
         Common.connPool.setJdbcUrl(String.format("jdbc:sqlite:%s", props.getDbName()));
         try {
-            URL[] urls= {new URL("file://libs/DataConnection.jar")};
+            URL[] urls= {new URL("jar:file:lib/DataConnection.jar!/")};
             URLClassLoader urlCl= new URLClassLoader(urls, Main.class.getClassLoader());
             
-            Common.dataWriterClass= (Class<DataWriter>)urlCl.loadClass("SQLiteWriter");
-            Common.dataReaderClass= (Class<DataReader>)urlCl.loadClass("SQLiteReader");
+            Common.dataWriterClass= (Class<DataWriter>)Class.forName("SQLiteWriter", true, urlCl);
+            Common.dataReaderClass= (Class<DataReader>)Class.forName("SQLiteReader", true, urlCl);
             
         } catch (MalformedURLException ex) {
             Logger.getLogger(Main.class.getName()).log(Level.SEVERE, null, ex);

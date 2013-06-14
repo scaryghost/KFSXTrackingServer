@@ -1,6 +1,7 @@
 package com.github.etsai.kfsxtrackingserver.web;
 
 import com.github.etsai.kfsxtrackingserver.Common
+import com.github.etsai.kfsxtrackingserver.DataReader
 import com.github.etsai.kfsxtrackingserver.impl.SQLiteReader
 import fi.iki.elonen.NanoHTTPD
 import fi.iki.elonen.NanoHTTPD.Method
@@ -10,6 +11,7 @@ import java.io.FileInputStream
 import java.nio.file.Path
 import java.nio.file.Paths
 import java.nio.file.NoSuchFileException
+import java.sql.Connection
 import java.util.logging.Level
 
 public class WebHandler extends NanoHTTPD {
@@ -51,7 +53,7 @@ public class WebHandler extends NanoHTTPD {
                         extension= "html"
                     }
                 } catch (NoSuchFileException ex) {
-                    Common.logger.log(Level.SEVERE, "File: $filename does not exist", ex);
+                    Common.logger.log(Level.SEVERE, "File: $filename oes not exist", ex);
                     status= Status.NOT_FOUND
                     msg= status.getDescription()
                     extension= "html"
@@ -63,7 +65,7 @@ public class WebHandler extends NanoHTTPD {
                 gcl.addClasspath(root.toString());
             
                 def webResource= (Resource)gcl.parseClass(resources[filename].toFile()).newInstance()
-                def reader= Common.dataReaderClass.getConstructor().newInstance(Common.connPool.getConnection());
+                def reader= (DataReader)Common.dataReaderClass.getConstructor([Connection.class] as Class[]).newInstance(conn);
                 webResource.setQueries(parms)
                 webResource.setDataReader(reader)
                 msg= webResource.generatePage()
