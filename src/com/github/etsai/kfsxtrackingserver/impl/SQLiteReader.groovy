@@ -24,7 +24,7 @@ public class SQLiteReader implements DataReader {
             inner join difficulty d inner join level l where s.difficulty_id=d.id and s.level_id=l.id and record_id=(select id from record r where r.steamid64=?) """
     private final def sql
     
-    public def SQLiteReader(def conn) {
+    public SQLiteReader(Connection conn) {
         this.sql= new Sql(conn)
     }
     private def queryDB(def query, def ps, def filteredCols) {

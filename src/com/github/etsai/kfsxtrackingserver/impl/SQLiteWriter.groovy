@@ -5,7 +5,9 @@
 
 package com.github.etsai.kfsxtrackingserver.impl
 
+import com.github.etsai.kfsxtrackingserver.Common
 import com.github.etsai.kfsxtrackingserver.DataWriter
+import com.github.etsai.kfsxtrackingserver.PacketParser.Result
 import com.github.etsai.kfsxtrackingserver.PacketParser.MatchPacket
 import com.github.etsai.kfsxtrackingserver.PacketParser.PlayerPacket
 import com.github.etsai.kfsxtrackingserver.PlayerContent
@@ -43,8 +45,8 @@ public class SQLiteWriter implements DataWriter {
 
         if (category == "result") {
             def attrs= packet.getAttributes()
-            def wins= (attrs.result == PacketParser.Result.WIN) ? 1 : 0
-            def losses= (attrs.result == PacketParser.Result.LOSS) ? 1 : 0
+            def wins= (attrs.result == Result.WIN) ? 1 : 0
+            def losses= (attrs.result == Result.LOSS) ? 1 : 0
 
             sql.withTransaction {
                 sql.execute("insert or ignore into difficulty (name, length) values(?, ?)", 
@@ -102,8 +104,8 @@ public class SQLiteWriter implements DataWriter {
 
                     sql.execute("""update record set wins= wins + ?, losses= losses + ?, disconnects= disconnects + ?, 
                         finales_survived= finales_survived + ?, finales_played= finales_played + ?, time_connected= time_connected + ? where steamid64=?""", 
-                        [attrs.result == PacketParser.Result.WIN ? 1 : 0, attrs.result == PacketParser.Result.LOSS ? 1 : 0, 
-                        attrs.result == PacketParser.Result.DISCONNECT ? 1 : 0, attrs.finalWaveSurvived, attrs.finalWave, attrs.duration, steamID64])
+                        [attrs.result == Result.WIN ? 1 : 0, attrs.result == Result.LOSS ? 1 : 0, 
+                        attrs.result == Result.DISCONNECT ? 1 : 0, attrs.finalWaveSurvived, attrs.finalWave, attrs.duration, steamID64])
                     sql.execute("""insert into match_history (record_id, level_id, difficulty_id, result, wave, duration) select r.id,l.id,d.id,?,?,? from record r, 
                             difficulty d, level l where l.name=? and r.steamid64=? and d.name=? and d.length=?""",
                         [attrs.result.toString().toLowerCase(), attrs.wave, attrs.duration, attrs.level, steamID64, attrs.difficulty, attrs.length])

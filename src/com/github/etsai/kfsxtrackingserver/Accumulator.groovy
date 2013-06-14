@@ -10,6 +10,7 @@ import com.github.etsai.kfsxtrackingserver.PacketParser.InvalidPacketFormatExcep
 import com.github.etsai.kfsxtrackingserver.PacketParser.MatchPacket
 import com.github.etsai.kfsxtrackingserver.PacketParser.PlayerPacket
 import com.github.etsai.kfsxtrackingserver.SteamPoller.InvalidSteamIDException
+import com.github.etsai.kfsxtrackingserver.impl.PlayerContentImpl
 import java.io.IOException
 import java.util.concurrent.ConcurrentHashMap
 import java.util.logging.Level
@@ -45,7 +46,7 @@ public class Accumulator {
 
                 steamID64= playerPacket.getSteamID64()
                 if (receivedPackets[steamID64] == null) {
-                    receivedPackets[steamID64]= []
+                    receivedPackets[steamID64]= new PlayerContentImpl()
                     tasks[steamID64]= new TimerTask() {
                         @Override public void run() {
                             Common.logger.info("Discarding packets for steamID64: $steamID64")
