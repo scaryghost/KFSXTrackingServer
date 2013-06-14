@@ -21,7 +21,8 @@ public class Common {
     public static final Logger logger= Logger.getLogger("KFSXTrackingServer");
     /** Streams to the default standard out and standard error */
     public static PrintStream oldStdOut, oldStdErr;
-    
+    public static Class<DataWriter> dataWriterClass;
+    public static Class<DataReader> dataReaderClass;
     /**
      * Retrieves an open connection, executes the desired SQL, and releases the connection
      * @param stmt SQL statement to execute

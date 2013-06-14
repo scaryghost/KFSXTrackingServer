@@ -13,6 +13,10 @@ import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.io.PrintStream;
+import java.lang.reflect.InvocationTargetException;
+import java.net.MalformedURLException;
+import java.net.URL;
+import java.net.URLClassLoader;
 import java.sql.SQLException;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -31,7 +35,7 @@ public class Main {
     /**
      * @param args the command line arguments
      */
-    public static void main(String[] args) throws ClassNotFoundException, SQLException {
+    public static void main(String[] args) throws ClassNotFoundException, SQLException, NoSuchMethodException, InstantiationException, IllegalAccessException, IllegalArgumentException, InvocationTargetException {
         CommandLine clom= new CommandLine(args);
         ServerProperties props;
         
@@ -71,9 +75,10 @@ public class Main {
         } catch (IOException ex) {
             Common.logger.log(Level.SEVERE, null, ex);
         }
+        DataWriter writer= Common.dataWriterClass.getConstructor().newInstance(Common.connPool.getConnection());
         threadPool= Executors.newCachedThreadPool();
         threadPool.submit(new UDPListener(props.getUdpPort(), 
-                new Accumulator(new SQLiteWriter(Common.connPool.getConnection()), props.getPassword(), props.getStatsMsgTTL())));
+                new Accumulator(writer, props.getPassword(), props.getStatsMsgTTL())));
         threadPool.submit(new SteamPoller(Common.connPool.getConnection(), props.getSteamPollingThreads()));
     }
     
@@ -83,7 +88,16 @@ public class Main {
         Class.forName("org.sqlite.JDBC");
         Common.connPool= new ConnectionPool(props.getNumDbConn());
         Common.connPool.setJdbcUrl(String.format("jdbc:sqlite:%s", props.getDbName()));
-        
+        try {
+            URL[] urls= {new URL("file://libs/DataConnection.jar")};
+            URLClassLoader urlCl= new URLClassLoader(urls, Main.class.getClassLoader());
+            
+            Common.dataWriterClass= (Class<DataWriter>)urlCl.loadClass("SQLiteWriter");
+            Common.dataReaderClass= (Class<DataReader>)urlCl.loadClass("SQLiteReader");
+            
+        } catch (MalformedURLException ex) {
+            Logger.getLogger(Main.class.getName()).log(Level.SEVERE, null, ex);
+        }
     }
     public static void initLogging(Level logLevel) {
         try {

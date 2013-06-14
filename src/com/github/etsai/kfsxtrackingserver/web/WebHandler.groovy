@@ -63,8 +63,9 @@ public class WebHandler extends NanoHTTPD {
                 gcl.addClasspath(root.toString());
             
                 def webResource= (Resource)gcl.parseClass(resources[filename].toFile()).newInstance()
+                def reader= Common.dataReaderClass.getConstructor().newInstance(Common.connPool.getConnection());
                 webResource.setQueries(parms)
-                webResource.setDataReader(new SQLiteReader(conn))
+                webResource.setDataReader(reader)
                 msg= webResource.generatePage()
                 
                 if (parms.xml != null) {
