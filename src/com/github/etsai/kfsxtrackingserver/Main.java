@@ -13,8 +13,6 @@ import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.io.PrintStream;
-import java.lang.reflect.InvocationTargetException;
-import java.net.MalformedURLException;
 import java.net.URL;
 import java.net.URLClassLoader;
 import java.sql.Connection;
@@ -30,83 +28,68 @@ import java.util.logging.*;
 public class Main {
     private static ConsoleHandler logConsoleHandler;
     private static FileWriter logWriter;
-    private static NanoHTTPD webHandler;
-    private static ExecutorService threadPool;
     
     /**
      * @param args the command line arguments
      */
-    public static void main(String[] args) throws ClassNotFoundException, SQLException, NoSuchMethodException, InstantiationException, IllegalAccessException, IllegalArgumentException, InvocationTargetException {
-        CommandLine clom= new CommandLine(args);
-        ServerProperties props;
-        
+    public static void main(String[] args) {
         try {
-            props= ServerProperties.load(clom.getPropertiesFilename());
-        } catch (IOException ex) {
-            Common.logger.warning(ex.getMessage());
-            Common.logger.warning("Using default properties...");
-            props= ServerProperties.getDefaults();
-        }
-        
-        initLogging(props.getLogLevel());
-        initModules(props);
-        
-        Runtime.getRuntime().addShutdownHook(new Thread() {
-            @Override
-            public void run() {
-                try {
-                    Common.connPool.close();
-                    if (webHandler != null) {
-                        webHandler.stop();
-                    }
-                } catch (SQLException ex) {
-                    Common.logger.log(Level.SEVERE, "Error shutting down connections", ex);
-                }
-                Common.logger.info("Shutting down server");
+            CommandLine clom= new CommandLine(args);
+            ServerProperties props= ServerProperties.load(clom.getPropertiesFilename());
+
+            initLogging(props.getLogLevel());
+
+            Common.logger.log(Level.CONFIG,"Loading stats from database: {0}", props.getDbURL());
+            final ConnectionPool connPool= new ConnectionPool(props.getNumDbConn());
+            connPool.setJdbcUrl(props.getDbURL());
+            if (props.getDbDriver() != null) {
+                connPool.setDbDriver(props.getDbDriver());
             }
-        });
-        
-        try {
+            if (props.getDbUser() != null) {
+                connPool.setDbUser(props.getDbUser());
+            }
+            if (props.getDbPassword() != null) {
+                connPool.setDbPassword(props.getDbPassword());
+            }
+            Runtime.getRuntime().addShutdownHook(new Thread() {
+                @Override
+                public void run() {
+                    try {
+                        connPool.close();
+                    } catch (SQLException ex) {
+                        Common.logger.log(Level.SEVERE, "Error shutting down connections", ex);
+                    }
+                    Common.logger.info("Closing db connections");
+                }
+            });
+
+            URL[] urls= {new URL(props.getDbLibJar())};
+            URLClassLoader urlCl= new URLClassLoader(urls, Main.class.getClassLoader());
+            Class<DataWriter> dataWriterClass= (Class<DataWriter>)Class.forName(props.getDbWriterClass(), true, urlCl);
+            Class<DataReader> dataReaderClass= (Class<DataReader>)Class.forName(props.getDbReaderClass(), true, urlCl);
+
             if (props.getHttpPort() > 0) {
-                webHandler= new WebHandler(props.getHttpPort(), props.getHttpRootDir());
+                final NanoHTTPD webHandler= new WebHandler(props.getHttpPort(), props.getHttpRootDir(), connPool, dataReaderClass.getConstructor(new Class<?>[] {Connection.class}));
                 webHandler.start();
+                Runtime.getRuntime().addShutdownHook(new Thread() {
+                    @Override
+                    public void run() {
+                        webHandler.stop();
+                        Common.logger.info("Shutting down web server");
+                    }
+                });
             } else {
                 Common.logger.log(Level.CONFIG, "HTTP server disabled");
             }
-        } catch (IOException ex) {
+            DataWriter writer= dataWriterClass.getConstructor(new Class<?>[] {Connection.class}).newInstance(new Object[] {connPool.getConnection()});
+            ExecutorService threadPool= Executors.newCachedThreadPool();
+            threadPool.submit(new UDPListener(props.getUdpPort(), new Accumulator(writer, props.getPassword(), props.getStatsMsgTTL())));
+            threadPool.submit(new SteamPoller(connPool, props.getSteamPollingThreads()));
+        } catch (Exception ex) {
             Common.logger.log(Level.SEVERE, null, ex);
         }
-        DataWriter writer= Common.dataWriterClass.getConstructor(new Class<?>[] {Connection.class}).newInstance(new Object[] {Common.connPool.getConnection()});
-        threadPool= Executors.newCachedThreadPool();
-        threadPool.submit(new UDPListener(props.getUdpPort(), 
-                new Accumulator(writer, props.getPassword(), props.getStatsMsgTTL())));
-        threadPool.submit(new SteamPoller(Common.connPool.getConnection(), props.getSteamPollingThreads()));
     }
-    
-    public static void initModules(ServerProperties props) throws ClassNotFoundException, SQLException {
-        Common.logger.log(Level.CONFIG,"Loading stats from database: {0}", props.getDbURL());
-        
-        Common.connPool= new ConnectionPool(props.getNumDbConn());
-        Common.connPool.setJdbcUrl(props.getDbURL());
-        Common.connPool.setDbDriver(props.getDbDriver());
 
-        if (props.getDbUser() != null) {
-            Common.connPool.setDbUser(props.getDbUser());
-        }
-        if (props.getDbPassword() != null) {
-            Common.connPool.setDbPassword(props.getDbPassword());
-        }
-        try {
-            URL[] urls= {new URL(props.getDbLibJar())};
-            URLClassLoader urlCl= new URLClassLoader(urls, Main.class.getClassLoader());
-            
-            Common.dataWriterClass= (Class<DataWriter>)Class.forName(props.getDbWriterClass(), true, urlCl);
-            Common.dataReaderClass= (Class<DataReader>)Class.forName(props.getDbReaderClass(), true, urlCl);
-            
-        } catch (MalformedURLException ex) {
-            Logger.getLogger(Main.class.getName()).log(Level.SEVERE, null, ex);
-        }
-    }
     public static void initLogging(Level logLevel) {
         try {
             logWriter= TeeLogger.getFileWriter("kfsxtracking", new File("log"));

@@ -3,11 +3,13 @@ package com.github.etsai.kfsxtrackingserver.web;
 import com.github.etsai.kfsxtrackingserver.Common
 import com.github.etsai.kfsxtrackingserver.DataReader
 import com.github.etsai.kfsxtrackingserver.impl.SQLiteReader
+import com.github.etsai.utils.sql.ConnectionPool
 import fi.iki.elonen.NanoHTTPD
 import fi.iki.elonen.NanoHTTPD.Method
 import fi.iki.elonen.NanoHTTPD.Response
 import fi.iki.elonen.NanoHTTPD.Response.Status
 import java.io.FileInputStream
+import java.lang.reflect.Constructor
 import java.nio.file.Path
 import java.nio.file.Paths
 import java.nio.file.NoSuchFileException
@@ -19,11 +21,14 @@ public class WebHandler extends NanoHTTPD {
     private static def mimeTypes= ["html":"text/html", "xml":"application/xml", "xsl":"application/xslt+xml", "css":"text/css", 
         "js":"text/javascript", "json":"application/json", "ico":"image/vdn.microsoft.icon"]
     
-    final Path httpRootDir;
+    final def connPool, httpRootDir, dataReaderCtor
     
-    public WebHandler(int port, Path httpRootDir){
-        super(port);
-        this.httpRootDir= httpRootDir;
+    public WebHandler(int port, Path httpRootDir, ConnectionPool connPool, Constructor<DataReader> dataReaderCtor){
+        super(port)
+        this.httpRootDir= httpRootDir
+        this.connPool= connPool
+        this.dataReaderCtor= dataReaderCtor
+
         Common.logger.log(Level.CONFIG, "Listening for http requests on port: $port")
     }
 
@@ -59,13 +64,13 @@ public class WebHandler extends NanoHTTPD {
                     extension= "html"
                 }
             } else {
-                conn= Common.connPool.getConnection()
+                conn= connPool.getConnection()
                 
                 def gcl= new GroovyClassLoader();
                 gcl.addClasspath(root.toString());
             
                 def webResource= (Resource)gcl.parseClass(resources[filename].toFile()).newInstance()
-                def reader= (DataReader)Common.dataReaderClass.getConstructor([Connection.class] as Class[]).newInstance(conn);
+                def reader= (DataReader)dataReaderCtor.newInstance(conn);
                 webResource.setQueries(parms)
                 webResource.setDataReader(reader)
                 msg= webResource.generatePage()
@@ -84,7 +89,7 @@ public class WebHandler extends NanoHTTPD {
             msg= "<pre>${status.getDescription()}\n\n${sw.toString()}</pre>"
             Common.logger.log(Level.SEVERE, "Error generating webpage", ex)
         } finally {
-            Common.connPool.release(conn)
+            connPool.release(conn)
         }
         
         return new Response(status, mimeTypes[extension], msg)

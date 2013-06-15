@@ -5,6 +5,7 @@
 
 package com.github.etsai.kfsxtrackingserver
 
+import com.github.etsai.utils.sql.ConnectionPool;
 import groovy.sql.Sql
 import java.io.IOException
 import java.nio.charset.Charset
@@ -45,18 +46,17 @@ public class SteamPoller implements Runnable {
         return [name, avatar]
     }
     
-    private final def conn
-    private final def nThreads
+    private final def connPool, nThreads
     
-    public SteamPoller(Connection conn, Integer nThreads) {
-        this.conn= conn
+    public SteamPoller(ConnectionPool connPool, Integer nThreads) {
+        this.connPool= connPool
         this.nThreads= nThreads
     }
     
     @Override public void run() {
         def pollSteam= true
         def start= System.currentTimeMillis()
-        def sql= new Sql(conn)
+        def sql= new Sql(connPool.getConnection())
         def count= new AtomicInteger()
 
         Common.logger.config("Polling steamcommunity.com with $nThreads threads")
@@ -97,7 +97,7 @@ public class SteamPoller implements Runnable {
         }
         def end= System.currentTimeMillis()
         Common.logger.info(String.format("Steam community polling complete, %1\$.2f seconds", (end - start)/(double)1000))
-        Common.connPool.release(conn)
+        connPool.release(conn)
     }
 }
 
