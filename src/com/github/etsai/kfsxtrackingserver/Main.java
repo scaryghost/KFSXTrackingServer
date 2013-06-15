@@ -84,17 +84,24 @@ public class Main {
     }
     
     public static void initModules(ServerProperties props) throws ClassNotFoundException, SQLException {
-        Common.logger.log(Level.CONFIG,"Loading stats from database: {0}", props.getDbName());
+        Common.logger.log(Level.CONFIG,"Loading stats from database: {0}", props.getDbURL());
         
-        Class.forName("org.sqlite.JDBC");
         Common.connPool= new ConnectionPool(props.getNumDbConn());
-        Common.connPool.setJdbcUrl(String.format("jdbc:sqlite:%s", props.getDbName()));
+        Common.connPool.setJdbcUrl(props.getDbURL());
+        Common.connPool.setDbDriver(props.getDbDriver());
+
+        if (props.getDbUser() != null) {
+            Common.connPool.setDbUser(props.getDbUser());
+        }
+        if (props.getDbPassword() != null) {
+            Common.connPool.setDbPassword(props.getDbPassword());
+        }
         try {
-            URL[] urls= {new URL("jar:file:lib/DataConnection.jar!/")};
+            URL[] urls= {new URL(props.getDbLibJar())};
             URLClassLoader urlCl= new URLClassLoader(urls, Main.class.getClassLoader());
             
-            Common.dataWriterClass= (Class<DataWriter>)Class.forName("SQLiteWriter", true, urlCl);
-            Common.dataReaderClass= (Class<DataReader>)Class.forName("SQLiteReader", true, urlCl);
+            Common.dataWriterClass= (Class<DataWriter>)Class.forName(props.getDbWriterClass(), true, urlCl);
+            Common.dataReaderClass= (Class<DataReader>)Class.forName(props.getDbReaderClass(), true, urlCl);
             
         } catch (MalformedURLException ex) {
             Logger.getLogger(Main.class.getName()).log(Level.SEVERE, null, ex);

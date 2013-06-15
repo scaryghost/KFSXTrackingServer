@@ -24,7 +24,13 @@ public class ServerProperties {
     public static final String httpRootDir= "http.root.dir";
     public static final String password= "password";
     public static final String statsMsgTTL= "stats.msg.ttl";
-    public static final String dbName= "db.name";
+    public static final String dbUrl= "db.url";
+    public static final String dbDriver= "db.driver";
+    public static final String dbLibJar= "db.lib.jar";
+    public static final String dbReaderClass= "db.reader.class";
+    public static final String dbWriterClass= "db.writer.class";
+    public static final String dbUser= "db.user";
+    public static final String dbPassword= "db.password";
     public static final String numDbConn= "num.db.conn";
     public static final String logLevel= "log.level";
     public static final String steamPollingThreads= "steam.polling.threads";
@@ -44,7 +50,11 @@ public class ServerProperties {
             props.setProperty(httpRootDir, "http");
             props.setProperty(password, "server");
             props.setProperty(statsMsgTTL, "60000");
-            props.setProperty(dbName, "share/etc/kfsxdb.sqlite3");
+            props.setProperty(dbUrl, "jdbc:sqlite:share/etc/kfsxdb.sqlite3");
+            props.setProperty(dbDriver, "org.sqlite.JDBC");
+            props.setProperty(dbLibJar, "jar:file:lib/SQLiteDataConnection.jar!/");
+            props.setProperty(dbReaderClass, "SQLiteReader");
+            props.setProperty(dbWriterClass, "SQLIteWriter");
             props.setProperty(numDbConn, "10");
             props.setProperty(logLevel, "INFO");
             props.setProperty(steamPollingThreads, "1");
@@ -73,8 +83,27 @@ public class ServerProperties {
     public Long getStatsMsgTTL() {
         return Long.valueOf(properties.getProperty(statsMsgTTL));
     }
-    public String getDbName() {
-        return properties.getProperty(dbName);
+
+    public String getDbURL() {
+        return properties.getProperty(dbUrl);
+    }
+    public String getDbDriver() {
+        return properties.getProperty(dbDriver);
+    }
+    public String getDbUser() {
+        return properties.getProperty(dbUser);
+    }
+    public String getDbPassword() {
+        return properties.getProperty(dbPassword);
+    }
+    public String getDbLibJar() {
+        return properties.getProperty(dbLibJar);
+    }
+    public String getDbReaderClass() {
+        return properties.getProperty(dbReaderClass);
+    }
+    public String getDbWriterClass() {
+        return properties.getProperty(dbWriterClass);
     }
     public Integer getNumDbConn() {
         try {
@@ -89,6 +118,7 @@ public class ServerProperties {
             return 10;
         }
     }
+
     public Level getLogLevel() {
         return Level.parse(properties.getProperty(logLevel));
     }
