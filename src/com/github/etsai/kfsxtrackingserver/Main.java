@@ -42,9 +42,6 @@ public class Main {
             Common.logger.log(Level.CONFIG,"Loading stats from database: {0}", props.getDbURL());
             final ConnectionPool connPool= new ConnectionPool(props.getNumDbConn());
             connPool.setJdbcUrl(props.getDbURL());
-            if (props.getDbDriver() != null) {
-                connPool.setDbDriver(props.getDbDriver());
-            }
             if (props.getDbUser() != null) {
                 connPool.setDbUser(props.getDbUser());
             }
@@ -63,13 +60,17 @@ public class Main {
                 }
             });
 
-            URL[] urls= {new URL(props.getDbLibJar())};
-            URLClassLoader urlCl= new URLClassLoader(urls, Main.class.getClassLoader());
-            Class<DataWriter> dataWriterClass= (Class<DataWriter>)Class.forName(props.getDbWriterClass(), true, urlCl);
-            Class<DataReader> dataReaderClass= (Class<DataReader>)Class.forName(props.getDbReaderClass(), true, urlCl);
+            JarClassLoader loader= new JarClassLoader(Main.class.getClassLoader());
+            loader.addJar(new File(props.getDbLibJar()));
+            if (props.getDbDriver() != null) {
+                connPool.setDbDriver(props.getDbDriver(), loader);
+            }
+            Class<DataWriter> dataWriterClass= (Class<DataWriter>)Class.forName(props.getDbWriterClass(), true, loader);
+            Class<DataReader> dataReaderClass= (Class<DataReader>)Class.forName(props.getDbReaderClass(), true, loader);
 
             if (props.getHttpPort() > 0) {
-                final NanoHTTPD webHandler= new WebHandler(props.getHttpPort(), props.getHttpRootDir(), connPool, dataReaderClass.getConstructor(new Class<?>[] {Connection.class}));
+                final NanoHTTPD webHandler= new WebHandler(props.getHttpPort(), props.getHttpRootDir(), connPool, 
+                        dataReaderClass.getConstructor(new Class<?>[] {Connection.class}));
                 webHandler.start();
                 Runtime.getRuntime().addShutdownHook(new Thread() {
                     @Override
