@@ -35,7 +35,7 @@ public class Main {
     public static void main(String[] args) {
         try {
             CommandLine clom= new CommandLine(args);
-            ServerProperties props= ServerProperties.load(clom.getPropertiesFilename());
+            ServerProperties props= new ServerProperties(clom.getPropertiesFilename());
 
             initLogging(props.getLogLevel());
 
@@ -60,15 +60,21 @@ public class Main {
                 }
             });
 
-            JarClassLoader loader= new JarClassLoader(Main.class.getClassLoader());
-            loader.addJar(new File(props.getDbLibJar()));
-            if (props.getDbDriver() != null) {
-                connPool.setDbDriver(props.getDbDriver(), loader);
+            ClassLoader loader;
+            if (props.getDbLibJar() == null) {
+                loader= ClassLoader.getSystemClassLoader();
+                connPool.setDbDriver(props.getDbDriver());
+            } else {
+                JarClassLoader jarLoader= new JarClassLoader(Main.class.getClassLoader());
+    
+                jarLoader.addJar(new File(props.getDbLibJar()));
+                connPool.setDbDriver(props.getDbDriver(), jarLoader);
+                loader= jarLoader;
             }
             Class<DataWriter> dataWriterClass= (Class<DataWriter>)Class.forName(props.getDbWriterClass(), true, loader);
-            Class<DataReader> dataReaderClass= (Class<DataReader>)Class.forName(props.getDbReaderClass(), true, loader);
 
             if (props.getHttpPort() > 0) {
+                Class<DataReader> dataReaderClass= (Class<DataReader>)Class.forName(props.getDbReaderClass(), true, loader);
                 final NanoHTTPD webHandler= new WebHandler(props.getHttpPort(), props.getHttpRootDir(), connPool, 
                         dataReaderClass.getConstructor(new Class<?>[] {Connection.class}));
                 webHandler.start();
@@ -79,6 +85,7 @@ public class Main {
                         Common.logger.info("Shutting down web server");
                     }
                 });
+
             } else {
                 Common.logger.log(Level.CONFIG, "HTTP server disabled");
             }
