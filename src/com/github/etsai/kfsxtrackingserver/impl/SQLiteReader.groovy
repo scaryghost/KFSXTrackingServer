@@ -38,6 +38,10 @@ public class SQLiteReader implements DataReader {
         }
         return rows
     }
+    public List<String> getMissingSteamInfoIDs() {
+        return queryDB("select steamid64 from record where id in (SELECT id from record except select record_id from steam_info)", [], [])
+    }
+
     public List<Map<Object, Object>> getDifficulties() {
         return queryDB('select *, name as difficulty from difficulty', [], ['id', 'name'])
     }

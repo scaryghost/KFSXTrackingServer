@@ -5,6 +5,7 @@
 
 package com.github.etsai.kfsxtrackingserver
 
+import com.github.etsai.kfsxtrackingserver.DataWriter.SteamInfo
 import com.github.etsai.utils.sql.ConnectionPool;
 import groovy.sql.Sql
 import java.io.IOException
@@ -19,6 +20,7 @@ import java.sql.Connection
 /**
  *
  * @author eric
+ * @TODO Add data reader and writer to steam poller
  */
 public class SteamPoller implements Runnable {
     public static class InvalidSteamIDException extends Exception {
@@ -56,7 +58,8 @@ public class SteamPoller implements Runnable {
     @Override public void run() {
         def pollSteam= true
         def start= System.currentTimeMillis()
-        def sql= new Sql(connPool.getConnection())
+        def conn= connPool.getConnection()
+        def sql= new Sql()
         def count= new AtomicInteger()
 
         Common.logger.config("Polling steamcommunity.com with $nThreads threads")
@@ -71,7 +74,8 @@ public class SteamPoller implements Runnable {
 
                 pool.submit(new Runnable() {
                     @Override public void run() {
-                        steamInfo[steamid64]= poll(steamid64)
+                        def pollInfo= poll(steamid64)
+                        steamInfo[steamid64]= new SteamInfo(steamID64: steamid64, name: info[0], avatar: info[1])
 
                         count.getAndAdd(1)
                         if (count.get() % 50 == 0) {
@@ -86,12 +90,6 @@ public class SteamPoller implements Runnable {
             while(!pool.awaitTermination(30, TimeUnit.SECONDS)) {
             }
             if (pollSteam) {
-                sql.withTransaction {
-                    steamInfo.each {steamID64, info ->
-                        sql.execute("insert or ignore into steam_info (record_id) select r.id from record r where steamid64=?", [steamID64])
-                        sql.execute("update steam_info set name=?, avatar=? where record_id=(select id from record where steamid64=?)", [info[0], info[1], steamID64])
-                    }
-                }
                 Common.logger.info("Attempted to poll ${PollerThread.count.get()} profiles.  Repolling missed steamid64s")
             }
         }

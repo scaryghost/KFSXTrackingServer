@@ -32,12 +32,18 @@ public class SQLiteWriter implements DataWriter {
         this.sql= new Sql(conn)
     }
     
-    public synchronized void writeSteamInfo(String steamID64, String name, String avatar) {
+    public synchronized void writeSteamInfo(Collection<SteamInfo> steamInfo) {
         sql.withTransaction {
-            sql.execute("insert or ignore into record (steamid64) values (?);", [steamID64])
-            sql.execute("insert or ignore into steam_info (record_id) select r.id from record r where steamid64=?", [steamID64])
-            sql.execute("update steam_info set name=?, avatar=? where record_id=(select id from record where steamid64=?)", [name, avatar, steamID64])
+            steamInfo.each {info ->
+                sql.execute("insert or ignore into record (steamid64) values (?);", [info.steamID64]
+                sql.execute("insert or ignore into steam_info (record_id) select r.id from record r where steamid64=?", [info.steamID64])
+                sql.execute("update steam_info set name=?, avatar=? where record_id=(select id from record where steamid64=?)", 
+                    [info.name, info.avatar, info.steamID64])
+            }
         }
+    }
+    public synchronized void writeSteamInfo(SteamInfo steamInfo) {
+        writeSteamInfo([steamInfo])
     }
     public synchronized void writeMatchData(MatchPacket packet) {
         Common.logger.finer("Match data= $packet")
