@@ -73,7 +73,7 @@ public class Main {
             Constructor<DataWriter> dataWriterCtor= (Constructor<DataWriter>)(Constructor<?>)Class.forName(props.getDbWriterClass(), true, loader)
                     .getConstructor(new Class<?>[] {Connection.class});
 
-            if (props.getHttpPort() > 0) {
+            if (props.getHttpPort() != null) {
                 Class<DataReader> dataReaderClass= (Class<DataReader>)Class.forName(props.getDbReaderClass(), true, loader);
                 final NanoHTTPD webHandler= new WebHandler(props.getHttpPort(), props.getHttpRootDir(), connPool, 
                         dataReaderClass.getConstructor(new Class<?>[] {Connection.class}));
@@ -85,14 +85,13 @@ public class Main {
                         Common.logger.info("Shutting down web server");
                     }
                 });
-
-            } else {
-                Common.logger.log(Level.CONFIG, "HTTP server disabled");
             }
             DataWriter writer= dataWriterCtor.newInstance(new Object[] {connPool.getConnection()});
             ExecutorService threadPool= Executors.newCachedThreadPool();
             threadPool.submit(new UDPListener(props.getUdpPort(), new Accumulator(writer, props.getPassword(), props.getStatsMsgTTL())));
-            threadPool.submit(new SteamPoller(connPool, props.getSteamPollingThreads(), dataWriterCtor));
+            if (props.getSteamPollingThreads() != null) {
+                threadPool.submit(new SteamPoller(connPool, props.getSteamPollingThreads(), dataWriterCtor));
+            }
         } catch (ClassNotFoundException | SQLException | InstantiationException | IllegalAccessException | NoSuchMethodException | 
                 SecurityException | IOException | IllegalArgumentException | InvocationTargetException ex) {
             Common.logger.log(Level.SEVERE, "Error starting the server", ex);

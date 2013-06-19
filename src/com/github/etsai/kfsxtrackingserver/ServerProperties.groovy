@@ -33,7 +33,17 @@ public class ServerProperties {
         return properties.getProperty("udp.port", "6000").toInteger()
     }
     public Integer getHttpPort() {
-        return properties.getProperty("http.port", "8080").toInteger()
+        def httpPort, defaultValues= 8080
+
+        try {
+            httpPort= properties["http.port"].toInteger()
+        } catch (NullPointerException ex) {
+            Common.logger.log(Level.WARNING, "HTTP server disabled");
+        } catch (NumberFormatException ex) {
+            Common.logger.log(Level.WARNING, "Invalid port given for http port.  Using default port: $defaultValue", ex)
+            httpPort= defaultValue
+        }
+        return httpPort
     }
     public Path getHttpRootDir() {
         return Paths.get(properties.getProperty("http.root.dir", "http"))
@@ -98,17 +108,15 @@ public class ServerProperties {
         return Level.parse(properties.getProperty("log.level", "INFO"))
     }
     public Integer getSteamPollingThreads() {
-        def nThreads, steamPollingThreads= "steam.polling.threads", defaultValue= "1"
+        def nThreads, steamPollingThreads= "steam.polling.threads", defaultValue= 1
 
         try {
-            nThreads= properties.getProperty(steamPollingThreads, defaultValue).toInteger()
-            if (nThreads <= 0) {
-                Common.logger.log(Level.WARNING, "Property $steamPollingThreads requires a minimum of 1 thread, only $nThreads set.  Using default value of 1")
-                nThreads= 1
-            }
+            nThreads= properties[steamPollingThreads].toInteger()
+        } catch (NullPointerException ex) {
+            Common.logger.log(Level.WARNING, "Disabling steam community polling", ex)
         } catch (NumberFormatException ex) {
             Common.logger.log(Level.WARNING, "Invalid number given for $steamPollingThreads.  Using default value of $defaultValue", ex)
-            nThreads= defaultValue.toInteger()
+            nThreads= defaultValue
         }
         return nThreads
     }
