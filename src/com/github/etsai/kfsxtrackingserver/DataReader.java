@@ -24,12 +24,6 @@ public interface DataReader {
         /** Do not sort */
         NONE
     }
-
-    /**
-     * Get the steamID64 of records that do not have any steam community information stored in the database
-     * @return List of steamID64 that do not have steam community info
-     */
-    public List<String> getMissingSteamInfoIDs();
     /**
      * Get the difficulty information for each difficulty setting.  Map keys are:
      * <table>

@@ -4,7 +4,6 @@
  */
 package com.github.etsai.kfsxtrackingserver;
 
-import com.github.etsai.kfsxtrackingserver.impl.SQLiteWriter;
 import com.github.etsai.kfsxtrackingserver.web.WebHandler;
 import com.github.etsai.utils.logging.TeeLogger;
 import com.github.etsai.utils.sql.ConnectionPool;
@@ -13,8 +12,8 @@ import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.io.PrintStream;
-import java.net.URL;
-import java.net.URLClassLoader;
+import java.lang.reflect.Constructor;
+import java.lang.reflect.InvocationTargetException;
 import java.sql.Connection;
 import java.sql.SQLException;
 import java.util.concurrent.ExecutorService;
@@ -71,7 +70,8 @@ public class Main {
                 connPool.setDbDriver(props.getDbDriver(), jarLoader);
                 loader= jarLoader;
             }
-            Class<DataWriter> dataWriterClass= (Class<DataWriter>)Class.forName(props.getDbWriterClass(), true, loader);
+            Constructor<DataWriter> dataWriterCtor= (Constructor<DataWriter>)(Constructor<?>)Class.forName(props.getDbWriterClass(), true, loader)
+                    .getConstructor(new Class<?>[] {Connection.class});
 
             if (props.getHttpPort() > 0) {
                 Class<DataReader> dataReaderClass= (Class<DataReader>)Class.forName(props.getDbReaderClass(), true, loader);
@@ -89,12 +89,13 @@ public class Main {
             } else {
                 Common.logger.log(Level.CONFIG, "HTTP server disabled");
             }
-            DataWriter writer= dataWriterClass.getConstructor(new Class<?>[] {Connection.class}).newInstance(new Object[] {connPool.getConnection()});
+            DataWriter writer= dataWriterCtor.newInstance(new Object[] {connPool.getConnection()});
             ExecutorService threadPool= Executors.newCachedThreadPool();
             threadPool.submit(new UDPListener(props.getUdpPort(), new Accumulator(writer, props.getPassword(), props.getStatsMsgTTL())));
-            threadPool.submit(new SteamPoller(connPool, props.getSteamPollingThreads()));
-        } catch (Exception ex) {
-            Common.logger.log(Level.SEVERE, null, ex);
+            threadPool.submit(new SteamPoller(connPool, props.getSteamPollingThreads(), dataWriterCtor));
+        } catch (ClassNotFoundException | SQLException | InstantiationException | IllegalAccessException | NoSuchMethodException | 
+                SecurityException | IOException | IllegalArgumentException | InvocationTargetException ex) {
+            Common.logger.log(Level.SEVERE, "Error starting the server", ex);
         }
     }
 

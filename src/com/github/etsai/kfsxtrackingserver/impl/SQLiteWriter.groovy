@@ -13,6 +13,7 @@ import com.github.etsai.kfsxtrackingserver.PacketParser.PlayerPacket
 import com.github.etsai.kfsxtrackingserver.PlayerContent
 import groovy.sql.Sql
 import java.sql.Connection
+import com.github.etsai.kfsxtrackingserver.DataWriter.SteamInfo
 
 /**
  *
@@ -32,20 +33,25 @@ public class SQLiteWriter implements DataWriter {
         this.sql= new Sql(conn)
     }
     
-    public synchronized void writeSteamInfo(Collection<SteamInfo> steamInfo) {
+    public List<String> getMissingSteamInfoIDs() {
+        return sql.execute("select steamid64 from record where id in (SELECT id from record except select record_id from steam_info)", [], []).collect {
+            it.steamid64
+        }
+    }
+    public void writeSteamInfo(Collection<SteamInfo> steamInfo) {
         sql.withTransaction {
             steamInfo.each {info ->
-                sql.execute("insert or ignore into record (steamid64) values (?);", [info.steamID64]
+                sql.execute("insert or ignore into record (steamid64) values (?);", [info.steamID64])
                 sql.execute("insert or ignore into steam_info (record_id) select r.id from record r where steamid64=?", [info.steamID64])
                 sql.execute("update steam_info set name=?, avatar=? where record_id=(select id from record where steamid64=?)", 
                     [info.name, info.avatar, info.steamID64])
             }
         }
     }
-    public synchronized void writeSteamInfo(SteamInfo steamInfo) {
+    public void writeSteamInfo(SteamInfo steamInfo) {
         writeSteamInfo([steamInfo])
     }
-    public synchronized void writeMatchData(MatchPacket packet) {
+    public void writeMatchData(MatchPacket packet) {
         Common.logger.finer("Match data= $packet")
         def category= packet.getCategory()
 
@@ -84,7 +90,7 @@ public class SQLiteWriter implements DataWriter {
         }
     }
     
-    public synchronized void writePlayerData(PlayerContent content) {
+    public void writePlayerData(PlayerContent content) {
         sql.withTransaction {
             def steamID64= content.getSteamID64()
             sql.execute("insert or ignore into record (steamid64) values (?);", [steamID64])

@@ -6,6 +6,7 @@ package com.github.etsai.kfsxtrackingserver;
 
 import com.github.etsai.kfsxtrackingserver.PacketParser.MatchPacket;
 import java.util.Collection;
+import java.util.List;
 
 /**
  *
@@ -17,7 +18,11 @@ public interface DataWriter {
         public String name;
         public String avatar;
     }
-
+    /**
+     * Get the steamID64 of records that do not have any steam community information stored in the database
+     * @return List of steamID64 that do not have steam community info
+     */
+    public List<String> getMissingSteamInfoIDs();
     public void writeSteamInfo(Collection<SteamInfo> steamInfo);
     public void writeSteamInfo(SteamInfo steamInfo);
     public void writeMatchData(MatchPacket packet);

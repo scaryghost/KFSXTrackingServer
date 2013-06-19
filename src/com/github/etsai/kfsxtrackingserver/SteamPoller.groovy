@@ -16,6 +16,7 @@ import java.util.concurrent.atomic.AtomicInteger
 import java.util.concurrent.ConcurrentHashMap
 import java.util.concurrent.TimeUnit
 import java.sql.Connection
+import java.lang.reflect.Constructor
 
 /**
  *
@@ -48,11 +49,12 @@ public class SteamPoller implements Runnable {
         return [name, avatar]
     }
     
-    private final def connPool, nThreads
+    private final def connPool, nThreads, writerCtor
     
-    public SteamPoller(ConnectionPool connPool, Integer nThreads) {
+    public SteamPoller(ConnectionPool connPool, Integer nThreads, Constructor<DataWriter> writerCtor) {
         this.connPool= connPool
         this.nThreads= nThreads
+        this.writerCtor= writerCtor
     }
     
     @Override public void run() {
@@ -61,6 +63,8 @@ public class SteamPoller implements Runnable {
         def conn= connPool.getConnection()
         def sql= new Sql()
         def count= new AtomicInteger()
+        
+        def dataWriter= writerCtor.newInstance([conn] as List)
 
         Common.logger.config("Polling steamcommunity.com with $nThreads threads")
         while(pollSteam) {
@@ -69,7 +73,7 @@ public class SteamPoller implements Runnable {
             
             pollSteam= false
             count.set(0)
-            sql.eachRow("select steamid64 from record where id in (SELECT id from record except select record_id from steam_info)") {row ->
+            dataWriter.getMissingSteamInfoIDs().each {row ->
                 def steamid64= row.steamid64
 
                 pool.submit(new Runnable() {
@@ -90,12 +94,13 @@ public class SteamPoller implements Runnable {
             while(!pool.awaitTermination(30, TimeUnit.SECONDS)) {
             }
             if (pollSteam) {
+                dataWriter.writeSteamInfo(steamInfo.values())
                 Common.logger.info("Attempted to poll ${PollerThread.count.get()} profiles.  Repolling missed steamid64s")
             }
         }
         def end= System.currentTimeMillis()
-        Common.logger.info(String.format("Steam community polling complete, %1\$.2f seconds", (end - start)/(double)1000))
         connPool.release(conn)
+        Common.logger.info(String.format("Steam community polling complete, %1\$.2f seconds", (end - start)/(double)1000))
     }
 }
 
