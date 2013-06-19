@@ -34,9 +34,11 @@ public class SQLiteWriter implements DataWriter {
     }
     
     public List<String> getMissingSteamInfoIDs() {
-        return sql.execute("select steamid64 from record where id in (SELECT id from record except select record_id from steam_info)", [], []).collect {
-            it.steamid64
+        def steamID64s= []
+        sql.eachRow("select steamid64 from record where id in (SELECT id from record except select record_id from steam_info)") {
+            steamID64s << it.steamid64
         }
+        return steamID64s
     }
     public void writeSteamInfo(Collection<SteamInfo> steamInfo) {
         sql.withTransaction {

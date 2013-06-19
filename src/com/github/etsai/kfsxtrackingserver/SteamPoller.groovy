@@ -9,6 +9,7 @@ import com.github.etsai.kfsxtrackingserver.DataWriter.SteamInfo
 import com.github.etsai.utils.sql.ConnectionPool;
 import groovy.sql.Sql
 import java.io.IOException
+import java.lang.reflect.Constructor
 import java.nio.charset.Charset
 import java.util.concurrent.ExecutorService
 import java.util.concurrent.Executors
@@ -16,7 +17,6 @@ import java.util.concurrent.atomic.AtomicInteger
 import java.util.concurrent.ConcurrentHashMap
 import java.util.concurrent.TimeUnit
 import java.sql.Connection
-import java.lang.reflect.Constructor
 
 /**
  *
@@ -64,7 +64,7 @@ public class SteamPoller implements Runnable {
         def sql= new Sql()
         def count= new AtomicInteger()
         
-        def dataWriter= writerCtor.newInstance([conn] as List)
+        def dataWriter= writerCtor.newInstance(conn)
 
         Common.logger.config("Polling steamcommunity.com with $nThreads threads")
         while(pollSteam) {
@@ -73,13 +73,12 @@ public class SteamPoller implements Runnable {
             
             pollSteam= false
             count.set(0)
-            dataWriter.getMissingSteamInfoIDs().each {row ->
-                def steamid64= row.steamid64
-
+            dataWriter.getMissingSteamInfoIDs().each {steamID64 ->
+                def pollId= steamID64
                 pool.submit(new Runnable() {
                     @Override public void run() {
-                        def pollInfo= poll(steamid64)
-                        steamInfo[steamid64]= new SteamInfo(steamID64: steamid64, name: info[0], avatar: info[1])
+                        def pollInfo= poll(pollId)
+                        steamInfo[pollId]= new SteamInfo(steamID64: pollId, name: pollInfo[0], avatar: pollInfo[1])
 
                         count.getAndAdd(1)
                         if (count.get() % 50 == 0) {
@@ -95,7 +94,7 @@ public class SteamPoller implements Runnable {
             }
             if (pollSteam) {
                 dataWriter.writeSteamInfo(steamInfo.values())
-                Common.logger.info("Attempted to poll ${PollerThread.count.get()} profiles.  Repolling missed steamid64s")
+                Common.logger.info("Attempted to poll ${count.get()} profiles.  Repolling missed steamid64s")
             }
         }
         def end= System.currentTimeMillis()
