@@ -82,11 +82,11 @@ public class ServerProperties {
     public String getDbLibJar() {
         return properties["db.lib.jar"]
     }
-    public String getDbReaderClass() {
-        return properties.getProperty("db.reader.class", "com.github.etsai.kfsxtrackingserver.impl.SQLiteReader")
+    public String getDbReaderScript() {
+        return properties["db.reader.script"]
     }
-    public String getDbWriterClass() {
-        return properties.getProperty("db.writer.class", "com.github.etsai.kfsxtrackingserver.impl.SQLiteWriter")
+    public String getDbWriterScript() {
+        return properties["db.writer.script"]
     }
     public Integer getNumDbConn() {
         def nDbConn, numDbConn= "num.db.conn", defaultValue= "10"

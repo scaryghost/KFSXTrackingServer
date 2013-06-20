@@ -8,6 +8,7 @@ import com.github.etsai.kfsxtrackingserver.web.WebHandler;
 import com.github.etsai.utils.logging.TeeLogger;
 import com.github.etsai.utils.sql.ConnectionPool;
 import fi.iki.elonen.NanoHTTPD;
+import groovy.lang.GroovyClassLoader;
 import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
@@ -40,6 +41,7 @@ public class Main {
 
             Common.logger.log(Level.CONFIG,"Loading stats from database: {0}", props.getDbURL());
             final ConnectionPool connPool= new ConnectionPool(props.getNumDbConn());
+            connPool.setDbDriver(props.getDbDriver());
             connPool.setJdbcUrl(props.getDbURL());
             if (props.getDbUser() != null) {
                 connPool.setDbUser(props.getDbUser());
@@ -59,22 +61,15 @@ public class Main {
                 }
             });
 
-            ClassLoader loader;
-            if (props.getDbLibJar() == null) {
-                loader= ClassLoader.getSystemClassLoader();
-                connPool.setDbDriver(props.getDbDriver());
-            } else {
-                JarClassLoader jarLoader= new JarClassLoader(Main.class.getClassLoader());
-    
-                jarLoader.addJar(new File(props.getDbLibJar()));
-                connPool.setDbDriver(props.getDbDriver(), jarLoader);
-                loader= jarLoader;
-            }
-            Constructor<DataWriter> dataWriterCtor= (Constructor<DataWriter>)(Constructor<?>)Class.forName(props.getDbWriterClass(), true, loader)
-                    .getConstructor(new Class<?>[] {Connection.class});
+            GroovyClassLoader loader= new GroovyClassLoader();
 
             if (props.getHttpPort() != null) {
-                Class<DataReader> dataReaderClass= (Class<DataReader>)Class.forName(props.getDbReaderClass(), true, loader);
+                Class<DataReader> dataReaderClass;
+                if (props.getDbReaderScript() == null) {
+                    dataReaderClass= (Class<DataReader>)Class.forName("com.github.etsai.kfsxtrackingserver.impl.SQLiteReader");
+                } else {
+                    dataReaderClass= loader.parseClass(props.getDbReaderScript());
+                }
                 final NanoHTTPD webHandler= new WebHandler(props.getHttpPort(), props.getHttpRootDir(), connPool, 
                         dataReaderClass.getConstructor(new Class<?>[] {Connection.class}));
                 webHandler.start();
@@ -86,6 +81,15 @@ public class Main {
                     }
                 });
             }
+            
+            Class<DataWriter> dataWriterClass;
+            if (props.getDbWriterScript() == null) {
+                dataWriterClass= (Class<DataWriter>)Class.forName("com.github.etsai.kfsxtrackingserver.impl.SQLiteWriter");
+            } else {
+                dataWriterClass= loader.parseClass(props.getDbWriterScript());
+            }
+            Constructor<DataWriter> dataWriterCtor= dataWriterClass.getConstructor(new Class<?>[] {Connection.class});
+            
             DataWriter writer= dataWriterCtor.newInstance(new Object[] {connPool.getConnection()});
             ExecutorService threadPool= Executors.newCachedThreadPool();
             threadPool.submit(new UDPListener(props.getUdpPort(), new Accumulator(writer, props.getPassword(), props.getStatsMsgTTL())));
