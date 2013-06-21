@@ -68,7 +68,7 @@ public class Main {
                 if (props.getDbReaderScript() == null) {
                     dataReaderClass= (Class<DataReader>)Class.forName("com.github.etsai.kfsxtrackingserver.impl.SQLiteReader");
                 } else {
-                    dataReaderClass= loader.parseClass(props.getDbReaderScript());
+                    dataReaderClass= (Class<DataReader>)loader.parseClass(new File(props.getDbReaderScript()));
                 }
                 final NanoHTTPD webHandler= new WebHandler(props.getHttpPort(), props.getHttpRootDir(), connPool, 
                         dataReaderClass.getConstructor(new Class<?>[] {Connection.class}));
@@ -86,7 +86,7 @@ public class Main {
             if (props.getDbWriterScript() == null) {
                 dataWriterClass= (Class<DataWriter>)Class.forName("com.github.etsai.kfsxtrackingserver.impl.SQLiteWriter");
             } else {
-                dataWriterClass= loader.parseClass(props.getDbWriterScript());
+                dataWriterClass= loader.parseClass(new File(props.getDbWriterScript()));
             }
             Constructor<DataWriter> dataWriterCtor= dataWriterClass.getConstructor(new Class<?>[] {Connection.class});
             
