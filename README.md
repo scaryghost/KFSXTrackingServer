@@ -20,17 +20,28 @@ created using sqlite3.
 If you had modified the css file to customize the web content, you will need to copy that file to the new directory.
 
 ### Server Properties
-For v3.0, the following properties have been added:
+For v3.0, the following properties have been added:  
 * http.root.dir  
-    *  Root directory for the web content
 * num.db.conn
-    *  Max number of connections to make to the database
+* db.url
+* db.driver
+* db.reader.script
+* db.writer.script
+* db.user
+* db.password
  
-Meanwhile, the following properties have been modified:
+Meanwhile, the following properties have been removed:  
 * num.threads 
-    *  Allow negative numbers to signify use of a cached thread pool
+* db.name
 
-Remember to update your current server.properties file with the new properties.  
+The new db.url property functions almost exactly like the previous db.name property with the minor difference being a 
+full JDBC url must be given for the database instead of a simple path.  By default, the application uses SQLite so the 
+url will now be:
+
+    jdbc:sqlite:share/etc/kfsxdb.sqlite3
+
+The change was made to allow users to create their own database for storing the statistics, rather than depend solely 
+on SQLite.
 
 ## Starting The Server
 Before starting the server, make sure you look at the properties file: share/etc/server.properties.  
