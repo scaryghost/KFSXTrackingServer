@@ -41,8 +41,10 @@ public class Main {
 
             Common.logger.log(Level.CONFIG,"Loading stats from database: {0}", props.getDbURL());
             final ConnectionPool connPool= new ConnectionPool(props.getNumDbConn());
-            connPool.setDbDriver(props.getDbDriver());
             connPool.setJdbcUrl(props.getDbURL());
+            if (props.getDbDriver() != null) {
+                connPool.setDbDriver(props.getDbDriver());
+            }
             if (props.getDbUser() != null) {
                 connPool.setDbUser(props.getDbUser());
             }

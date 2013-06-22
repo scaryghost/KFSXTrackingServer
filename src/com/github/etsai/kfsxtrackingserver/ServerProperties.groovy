@@ -29,6 +29,12 @@ public class ServerProperties {
         this.properties= new Properties()
         this.properties.load(new FileReader(filename))
     }
+    private String getManualProperty(def key) {
+        if (properties[key] == null) {
+            throw new RequiredPropertyError("Property '$key' must be explicitly set in the properties file")
+        }
+        return properties[key]
+    }
     public Integer getUdpPort() {
         return properties.getProperty("udp.port", "6000").toInteger()
     }
@@ -49,11 +55,7 @@ public class ServerProperties {
         return Paths.get(properties.getProperty("http.root.dir", "http"))
     }
     public String getPassword() {
-        def password= "password"
-        if (properties[password] == null) {
-            throw new RequiredPropertyError("Missing required property: $password")
-        }
-        return properties[password]
+        return getManualProperty("password")
     }
     public Long getStatsMsgTTL() {
         def ttl, statsMsgTTL= "stats.msg.ttl", defaultValue= "60000"
@@ -68,19 +70,16 @@ public class ServerProperties {
     }
 
     public String getDbURL() {
-        return properties.getProperty("db.url", "jdbc:sqlite:share/etc/kfsxdb.sqlite3")
+        return getManualProperty("db.url")
     }
     public String getDbDriver() {
-        return properties.getProperty("db.driver", "org.sqlite.JDBC")
+        return properties["db.driver"]
     }
     public String getDbUser() {
         return properties["db.user"]
     }
     public String getDbPassword() {
         return properties["db.password"]
-    }
-    public String getDbLibJar() {
-        return properties["db.lib.jar"]
     }
     public String getDbReaderScript() {
         return properties["db.reader.script"]
