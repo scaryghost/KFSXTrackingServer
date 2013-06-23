@@ -16,6 +16,7 @@ import java.util.concurrent.ConcurrentHashMap
 import java.util.logging.Level
 import java.util.TimerTask
 import java.util.Timer
+import com.github.etsai.kfsxtrackingserver.DataWriter.SteamInfo
 
 /**
  * Accumulates and holds packets for processing
@@ -65,7 +66,7 @@ public class Accumulator {
                     Common.logger.info("Saving packets for steamID64: $steamID64")
                     try {
                         def info= SteamPoller.poll(steamID64)
-                        writer.writeSteamInfo(steamID64, info[0], info[1])
+                        writer.writeSteamInfo(new SteamInfo(steamID64: steamID64, name: info[0], avatar: info[1]))
                         writer.writePlayerData(content)
                     } catch (IOException ex) {
                         Common.logger.log(Level.WARNING, "Error contacting steam community.  Saving player statistics", ex)

@@ -8,16 +8,17 @@ package com.github.etsai.kfsxtrackingserver.impl
 import com.github.etsai.kfsxtrackingserver.PlayerContent
 import com.github.etsai.kfsxtrackingserver.PacketParser.PlayerPacket
 import com.github.etsai.kfsxtrackingserver.PlayerContent.InvalidPacketIDException
+import com.github.etsai.kfsxtrackingserver.PlayerContent.Match
 
 /**
  *
  * @author etsai
  */
 public class PlayerContentImpl implements PlayerContent {
-    private def packets, steamID64
+    private def packets, steamID64, matchInfo
     
     @Override
-    public List<PlayerPacket> getPackets() {
+    public Collection<PlayerPacket> getPackets() {
         return Collections.unmodifiableList(packets)
     }
     @Override
@@ -29,7 +30,11 @@ public class PlayerContentImpl implements PlayerContent {
         if (packets == null || packets.isEmpty()) {
             return false
         }
-        return packets.last().isClose() && packets.inject(true) {acc, val -> acc && (val != null) }
+        return (matchInfo != null) && packets.inject(true) {acc, val -> acc && (val != null) }
+    }
+    @Override
+    public Match getMatchInfo() {
+        return matchInfo
     }
     
     @Override
@@ -42,7 +47,11 @@ public class PlayerContentImpl implements PlayerContent {
                 throw new InvalidPacketIDException("Player content for $steamID64.  Received packet for ${packet.getSteamID64()}")
             }
         }
-        packets[packet.getSeqNo()]= packet
+        if (packet.getCategory() == PlayerPacketImpl.matchCategory){
+            matchInfo= new Match(packet.getAttributes())
+        } else {
+            packets[packet.getSeqNo()]= packet
+        }
     }
 }
 

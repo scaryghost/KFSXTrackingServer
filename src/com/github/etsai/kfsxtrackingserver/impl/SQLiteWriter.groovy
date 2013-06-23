@@ -95,34 +95,31 @@ public class SQLiteWriter implements DataWriter {
     public void writePlayerData(PlayerContent content) {
         sql.withTransaction {
             def steamID64= content.getSteamID64()
+            
+            def matchInfo= content.getMatchInfo()
             sql.execute("insert or ignore into record (steamid64) values (?);", [steamID64])
+            sql.execute("""update record set wins= wins + ?, losses= losses + ?, disconnects= disconnects + ?, 
+                finales_survived= finales_survived + ?, finales_played= finales_played + ?, time_connected= time_connected + ? where steamid64=?""", 
+                [matchInfo.result == Result.WIN ? 1 : 0, matchInfo.result == Result.LOSS ? 1 : 0, 
+                matchInfo.result == Result.DISCONNECT ? 1 : 0, matchInfo.finalWaveSurvived, matchInfo.finalWave, matchInfo.duration, steamID64])
+            sql.execute("""insert into match_history (record_id, level_id, difficulty_id, result, wave, duration) select r.id,l.id,d.id,?,?,? from record r, 
+                    difficulty d, level l where l.name=? and r.steamid64=? and d.name=? and d.length=?""",
+                [matchInfo.result.toString().toLowerCase(), matchInfo.wave, matchInfo.duration, matchInfo.level, steamID64, matchInfo.difficulty, matchInfo.length])
             
             content.getPackets().each {packet ->
                 Common.logger.finer("Player data= $packet")
                 def category= packet.getCategory()
-                if (category != "match") {
-                    packet.getStats().each {stat, value ->
-                        if (stat != "") {
-                            sql.execute("insert or ignore into aggregate (stat, category) values (?,?);", [stat, category])
-                            sql.execute("update aggregate set value= value + ? where stat=? and category=?", [value, stat, category])
-                            if (steamID64 != "") {
-                                sql.execute("insert or ignore into player (record_id, stat, category) select r.id, ?, ? from record r where r.steamid64=?", 
-                                    [stat, category, steamID64])
-                                sql.execute("update player set value=value + ? where stat=? and category=? and record_id=(select id from record where steamid64=?)", 
-                                    [value, stat, category, steamID64])
-                            }
+                packet.getStats().each {stat, value ->
+                    if (stat != "") {
+                        sql.execute("insert or ignore into aggregate (stat, category) values (?,?);", [stat, category])
+                        sql.execute("update aggregate set value= value + ? where stat=? and category=?", [value, stat, category])
+                        if (steamID64 != "") {
+                            sql.execute("insert or ignore into player (record_id, stat, category) select r.id, ?, ? from record r where r.steamid64=?", 
+                                [stat, category, steamID64])
+                            sql.execute("update player set value=value + ? where stat=? and category=? and record_id=(select id from record where steamid64=?)", 
+                                [value, stat, category, steamID64])
                         }
                     }
-                } else {
-                    def attrs= packet.getAttributes()
-
-                    sql.execute("""update record set wins= wins + ?, losses= losses + ?, disconnects= disconnects + ?, 
-                        finales_survived= finales_survived + ?, finales_played= finales_played + ?, time_connected= time_connected + ? where steamid64=?""", 
-                        [attrs.result == Result.WIN ? 1 : 0, attrs.result == Result.LOSS ? 1 : 0, 
-                        attrs.result == Result.DISCONNECT ? 1 : 0, attrs.finalWaveSurvived, attrs.finalWave, attrs.duration, steamID64])
-                    sql.execute("""insert into match_history (record_id, level_id, difficulty_id, result, wave, duration) select r.id,l.id,d.id,?,?,? from record r, 
-                            difficulty d, level l where l.name=? and r.steamid64=? and d.name=? and d.length=?""",
-                        [attrs.result.toString().toLowerCase(), attrs.wave, attrs.duration, attrs.level, steamID64, attrs.difficulty, attrs.length])
                 }
             }
         }

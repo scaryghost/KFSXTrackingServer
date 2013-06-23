@@ -32,7 +32,7 @@ public class PacketParser {
      * Exception signaling that the received packet did not match the expected format
      * @author etsai
      */
-    public class InvalidPacketFormatException extends Exception {
+    public static class InvalidPacketFormatException extends Exception {
         /**
          * Constructs an exception with the given message
          * @param msg Message to display

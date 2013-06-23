@@ -15,21 +15,16 @@ import com.github.etsai.kfsxtrackingserver.PacketParser.Result
  */
 public class PlayerPacketImpl implements PlayerPacket {
     /** Offset for converting between linux and windows steamID64 */
-    public static Long linuxOffset= 76561197960265728
+    public static final Long linuxOffset= 76561197960265728
+    /** Name of the category containing match information */
+    public static final String matchCategory= "match"
     
-    private final def steamID64
-    private final def category
-    private final def seqNo
-    private final def close
-    private final def stats
-    private final def attrs
+    private final def steamID64, category, seqNo, close, stats, attrs
     
     /**
      * Constructs object given the pipe separated string of stat information
      */
     public PlayerPacketImpl(String[] parts) throws InvalidPacketFormatException {
-        //super((parts[3] == "match") ? "" : (parts.size() < 5 ? "" : parts[4]))
-        
         steamID64= parts[1]
         if (steamID64 == "") {
             steamID64= null
@@ -41,7 +36,7 @@ public class PlayerPacketImpl implements PlayerPacket {
         close= parts.last() == "_close"
         
 
-        if (category == "match") {
+        if (category == matchCategory) {
             attrs= [level: parts[4].toLowerCase(), difficulty: parts[5], length: parts[6], 
                 wave: parts[8].toInteger(), finalWave: parts[9].toInteger(), duration: parts[11].toInteger()]
 
