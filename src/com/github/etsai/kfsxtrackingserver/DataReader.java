@@ -8,7 +8,8 @@ import java.util.List;
 import java.util.Map;
 
 /**
- * Interfaces with the statistical data, providing the user with read access to the underlying storage scheme
+ * Defines functions for reading statistics from the database.  The interface allows the user to access the data 
+ * without having to know the underlying database structure
  * @author etsai
  */
 public interface DataReader {

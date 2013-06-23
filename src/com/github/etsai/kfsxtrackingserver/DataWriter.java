@@ -9,13 +9,21 @@ import java.util.Collection;
 import java.util.List;
 
 /**
- *
+ * Defines the functions for writing the statistics to the database.  The interface allows the user to access the data 
+ * without having to know the underlying database structure
  * @author etsai
  */
 public interface DataWriter {
+    /**
+     * Tuple storing steam community information
+     * @author etsai
+     */
     public static class SteamInfo {
+        /** Player's unique steamID64 */
         public String steamID64;
+        /** Steam community name */
         public String name;
+        /** Steam community avatar */
         public String avatar;
     }
     /**
@@ -23,8 +31,26 @@ public interface DataWriter {
      * @return List of steamID64 that do not have steam community info
      */
     public List<String> getMissingSteamInfoIDs();
+    /**
+     * Write the collection of steam community information to the database.  This version 
+     * of the function writes a collection of SteamInfo tuples
+     * @param steamInfo Collection of steam community information to write
+     */
     public void writeSteamInfo(Collection<SteamInfo> steamInfo);
+    /**
+     * Write the steam community information to the database.  This version writes only one 
+     * SteamInfo tuple
+     * @param steamInfo Tuple storing steam community information
+     */
     public void writeSteamInfo(SteamInfo steamInfo);
+    /**
+     * Write the match information in the packet to the database
+     * @param packet Packet containing the match information
+     */
     public void writeMatchData(MatchPacket packet);
+    /**
+     * Write the player statistics to the database
+     * @param content Completed player statistics content
+     */
     public void writePlayerData(PlayerContent content);
 }
