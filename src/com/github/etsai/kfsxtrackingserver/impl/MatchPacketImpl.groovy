@@ -22,21 +22,22 @@ public class MatchPacketImpl implements MatchPacket {
         wave= parts[4].toInteger()
         category= parts[1]
         level= parts[5]
+        attrs= [:]
+        stats= [:]
         
         if (parts[1] == "result") {
-            attrs= [duration: parts[6].toInteger()]
+            attrs.duration= parts[6].toInteger()
             switch (parts[7]) {
                 case "1":
-                    attrs["result"]= Result.LOSS
+                    attrs.result= Result.LOSS
                     break
                 case "2":
-                    attrs["result"]= Result.WIN
+                    attrs.result= Result.WIN
                     break
                 default:
                     throw new InvalidPacketFormatException("Unrecognized result value: ${parts[7]}")
             }
         } else {
-            stats= [:]
             parts[6].tokenize(",").each {
                 def statParts= it.tokenize("=")
                 stats[statParts[0]]= statParts[1].toInteger()

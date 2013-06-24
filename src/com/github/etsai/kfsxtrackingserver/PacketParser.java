@@ -54,7 +54,7 @@ public class PacketParser {
         public String getCategory();
         /**
          * Get the statistics in (key, value) format.  The name of the statistic is 
-         * the key its numerical value is the entry value
+         * the key its numerical value is the entry value.
          * @return Map of the statistics
          */
         public Map<String, Integer> getStats();
