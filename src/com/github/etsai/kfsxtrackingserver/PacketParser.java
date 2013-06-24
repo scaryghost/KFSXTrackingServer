@@ -153,30 +153,35 @@ public class PacketParser {
      * @throws InvalidPacketFormatException If the msg does not match any known packet formats
      */
     public StatPacket parse(String msg) throws InvalidPacketFormatException {
-        String[] parts= msg.split("\\|");
-        String[] header= parts[0].split(",");
-        StatPacket packet;
+        StatPacket packet= null;
         
-        if (header[2] == null ? password != null : !header[2].equals(password)) {
-            throw new InvalidPacketFormatException(String.format("Invalid password given, ignoring packet: %s", msg));
-        }
-        switch (header[0]) {
-            case PlayerPacket.PROTOCOL:
-                if (Integer.valueOf(header[1])!= PlayerPacket.VERSION) {
-                    throw new InvalidPacketFormatException(String.format("Wrong protocol version for player packet.  Read %s, expecting %d", 
-                            header[1], PlayerPacket.VERSION));
-                }
-                packet= new PlayerPacketImpl(parts);
-                break;
-            case MatchPacket.PROTOCOL:
-                if (Integer.valueOf(header[1])!= MatchPacket.VERSION) {
-                    throw new InvalidPacketFormatException(String.format("Wrong protocol version for player packet.  Read %s, expecting %d", 
-                            header[1], MatchPacket.VERSION));
-                }
-                packet= new MatchPacketImpl(parts);
-                break;
-            default:
-                throw new InvalidPacketFormatException(String.format("Unrecognized packet protocol: %s", header[0]));
+        try {
+            String[] parts= msg.split("\\|");
+            String[] header= parts[0].split(",");
+
+            if (header[2] == null ? password != null : !header[2].equals(password)) {
+                throw new InvalidPacketFormatException(String.format("Invalid password given, ignoring packet: %s", msg));
+            }
+            switch (header[0]) {
+                case PlayerPacket.PROTOCOL:
+                    if (Integer.valueOf(header[1])!= PlayerPacket.VERSION) {
+                        throw new InvalidPacketFormatException(String.format("Wrong protocol version for player packet.  Read %s, expecting %d", 
+                                header[1], PlayerPacket.VERSION));
+                    }
+                    packet= new PlayerPacketImpl(parts);
+                    break;
+                case MatchPacket.PROTOCOL:
+                    if (Integer.valueOf(header[1])!= MatchPacket.VERSION) {
+                        throw new InvalidPacketFormatException(String.format("Wrong protocol version for player packet.  Read %s, expecting %d", 
+                                header[1], MatchPacket.VERSION));
+                    }
+                    packet= new MatchPacketImpl(parts);
+                    break;
+                default:
+                    throw new InvalidPacketFormatException(String.format("Unrecognized packet protocol: %s", header[0]));
+            }
+        } catch (ArrayIndexOutOfBoundsException ex) {
+            throw new InvalidPacketFormatException(ex.getMessage());
         }
         return packet;
     }

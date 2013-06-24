@@ -68,7 +68,7 @@ public class PacketParserUnitTest {
         parser.parse(msg)
     }
     
-    @Test(expected= ArrayIndexOutOfBoundsException.class)
+    @Test(expected= InvalidPacketFormatException.class)
     public void invalidHeader() {
         String msg= "kfstatsx-player|1364787|0|summary|Time Alive=417"
         parser.parse(msg)

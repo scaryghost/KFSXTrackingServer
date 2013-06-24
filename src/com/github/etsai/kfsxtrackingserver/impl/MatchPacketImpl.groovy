@@ -45,7 +45,7 @@ public class MatchPacketImpl implements MatchPacket {
                 }
             }
         } catch (NumberFormatException | ArrayIndexOutOfBoundsException ex) {
-            throw new InvalidPacketFormatException(ex.toString())
+            throw new InvalidPacketFormatException(ex.getMessage())
         }
     }
     public String getCategory() {
