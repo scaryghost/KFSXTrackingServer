@@ -25,44 +25,48 @@ public class PlayerPacketImpl implements PlayerPacket {
      * Constructs object given the pipe separated string of stat information
      */
     public PlayerPacketImpl(String[] parts) throws InvalidPacketFormatException {
-        steamID64= parts[1]
-        if (steamID64 == "") {
-            steamID64= null
-        } else if (steamID64.length() < 17) {
-            steamID64= (steamID64.toLong() + linuxOffset).toString()
-        }
-        category= parts[3]
-        seqNo= parts[2].toInteger()
-        close= parts.last() == "_close"
-        
-
-        if (category == matchCategory) {
-            attrs= [level: parts[4].toLowerCase(), difficulty: parts[5], length: parts[6], 
-                wave: parts[8].toInteger(), finalWave: parts[9].toInteger(), duration: parts[11].toInteger()]
-
-            attrs["finalWaveSurvived"]= attrs.finalWave != 0 ? parts[10].toInteger() : 0
-            switch(parts[7].toInteger()) {
-                case 0:
-                    attrs["result"]= Result.DISCONNECT
-                    break
-                case 1:
-                    attrs["result"]= Result.LOSS
-                    break
-                case 2:
-                    attrs["result"]= Result.WIN
-                    break
-                default:
-                    throw new InvalidPacketFormatException("Unrecognized result: ${parts[7]}")
+        try {
+            def idLong= parts[1].toLong()
+            if (parts[1].length() < 17) {
+                steamID64= (idLong + linuxOffset).toString()
+            } else {
+                steamID64= parts[1]
             }
-            
-        } else {
+            category= parts[3]
+            seqNo= parts[2].toInteger()
+            close= parts.last() == "_close"
             stats= [:]
-            if (parts.size() >= 5) {
-                parts[4].tokenize(",").each {
-                    def statParts= it.tokenize("=")
-                    stats[statParts[0]]= statParts[1].toInteger()
+            attrs= [:]
+
+            if (category == matchCategory) {
+                attrs= [level: parts[4].toLowerCase(), difficulty: parts[5], length: parts[6], 
+                    wave: parts[8].toInteger(), finalWave: parts[9].toInteger(), duration: parts[11].toInteger()]
+
+                attrs["finalWaveSurvived"]= attrs.finalWave != 0 ? parts[10].toInteger() : 0
+                switch(parts[7]) {
+                    case "0":
+                        attrs["result"]= Result.DISCONNECT
+                        break
+                    case "1":
+                        attrs["result"]= Result.LOSS
+                        break
+                    case "2":
+                        attrs["result"]= Result.WIN
+                        break
+                    default:
+                        throw new InvalidPacketFormatException("Unrecognized result: ${parts[7]}")
+                }
+
+            } else {
+                if (parts.size() >= 5) {
+                    parts[4].tokenize(",").each {
+                        def statParts= it.tokenize("=")
+                        stats[statParts[0]]= statParts[1].toInteger()
+                    }
                 }
             }
+        } catch (NumberFormatException | ArrayIndexOutOfBoundsException ex) {
+            throw new InvalidPacketFormatException(ex.getMessage())
         }
     }
     
