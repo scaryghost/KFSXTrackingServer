@@ -20,11 +20,23 @@ public interface DataWriter {
      */
     public static class SteamInfo {
         /** Player's unique steamID64 */
-        public String steamID64;
+        public final String steamID64;
         /** Steam community name */
-        public String name;
+        public final String name;
         /** Steam community avatar */
-        public String avatar;
+        public final String avatar;
+        
+        /**
+         * Constructs a SteamInfo tuple
+         * @param steamID64 Player's unique steamID64
+         * @param name Steam community name
+         * @param avatar Steam community avatar
+         */
+        public SteamInfo(String steamID64, String name, String avatar) {
+            this.steamID64= steamID64;
+            this.name= name;
+            this.avatar= avatar;
+        }
     }
     /**
      * Get the steamID64 of records that do not have any steam community information stored in the database

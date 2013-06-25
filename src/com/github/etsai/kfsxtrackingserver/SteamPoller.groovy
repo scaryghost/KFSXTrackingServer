@@ -30,7 +30,7 @@ public class SteamPoller implements Runnable {
         }
     }
     
-    public static def poll(def steamID64) throws InvalidSteamIDException, IOException {
+    public static String[] poll(def steamID64) throws InvalidSteamIDException, IOException {
         def url= new URL("http://steamcommunity.com/profiles/${steamID64}?xml=1")
         def content= url.getContent().readLines().join("\n")
         def steamXmlRoot= new XmlSlurper().parseText(content)
@@ -78,7 +78,7 @@ public class SteamPoller implements Runnable {
                 pool.submit(new Runnable() {
                     @Override public void run() {
                         def pollInfo= poll(pollId)
-                        steamInfo[pollId]= new SteamInfo(steamID64: pollId, name: pollInfo[0], avatar: pollInfo[1])
+                        steamInfo[pollId]= new SteamInfo(pollId, pollInfo[0], pollInfo[1])
 
                         count.getAndAdd(1)
                         if (count.get() % 50 == 0) {
