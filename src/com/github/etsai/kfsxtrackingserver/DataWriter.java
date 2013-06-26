@@ -37,6 +37,10 @@ public interface DataWriter {
             this.name= name;
             this.avatar= avatar;
         }
+        @Override
+        public String toString() {
+            return String.format("[%s, %s, %s]", steamID64, name, avatar);
+        }
     }
     /**
      * Get the steamID64 of records that do not have any steam community information stored in the database

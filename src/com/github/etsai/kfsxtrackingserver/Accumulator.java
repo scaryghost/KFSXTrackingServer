@@ -76,7 +76,7 @@ public class Accumulator {
                 if (content.isCompleted()) {
                     incompletePlayerContent.remove(steamID64);
                     tasks.remove(steamID64).cancel();
-                    Common.logger.info("Saving packets for steamID64: $steamID64");
+                    Common.logger.log(Level.INFO, "Saving packets for steamID64: {0}", steamID64);
                     try {
                         String[] info= SteamPoller.poll(steamID64);
                         writer.writeSteamInfo(new SteamInfo(steamID64, info[0], info[1]));

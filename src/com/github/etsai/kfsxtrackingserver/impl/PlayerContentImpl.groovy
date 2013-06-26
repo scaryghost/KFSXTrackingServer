@@ -15,7 +15,7 @@ import com.github.etsai.kfsxtrackingserver.PlayerContent.Match
  * @author etsai
  */
 public class PlayerContentImpl implements PlayerContent {
-    private def packets, steamID64, matchInfo
+    private def packets, steamID64, matchInfo, maxSeqNo
     
     @Override
     public Collection<PlayerPacket> getPackets() {
@@ -30,7 +30,7 @@ public class PlayerContentImpl implements PlayerContent {
         if (packets == null || packets.isEmpty()) {
             return false
         }
-        return (matchInfo != null) && packets.inject(true) {acc, val -> acc && (val != null) }
+        return (matchInfo != null) && (packets.size() == maxSeqNo) && packets.inject(true) {acc, val -> acc && (val != null) }
     }
     @Override
     public Match getMatchInfo() {
@@ -42,10 +42,12 @@ public class PlayerContentImpl implements PlayerContent {
         if (packets == null) {
             packets= []
             steamID64= packet.getSteamID64()
+            maxSeqNo= packet.getSeqNo()
         } else {
             if (steamID64 != packet.getSteamID64()) {
                 throw new InvalidPacketIDException("Player content for $steamID64.  Received packet for ${packet.getSteamID64()}")
             }
+            maxSeqNo= packet.getSeqNo() > maxSeqNo ? packet.getSeqNo() : maxSeqNo
         }
         if (packet.getCategory() == PlayerPacketImpl.matchCategory){
             matchInfo= new Match(packet.getAttributes())
