@@ -60,7 +60,8 @@ public interface PlayerContent {
     /**
      * Add a packet to the contained content
      * @param packet Player packet to add
-     * @throws InvalidPacketIDException If the steamID64 of the packet doesn't match the stored id of the content
+     * @throws InvalidPacketIDException If the steamID64 of the packet doesn't match the stored id of the content 
+     * or packet's seqNo has already been filled
      */
     public void addPacket(PlayerPacket packet) throws InvalidPacketIDException;
     

@@ -46,6 +46,8 @@ public class PlayerContentImpl implements PlayerContent {
         } else {
             if (steamID64 != packet.getSteamID64()) {
                 throw new InvalidPacketIDException("Player content for $steamID64.  Received packet for ${packet.getSteamID64()}")
+            } else if (packets[packet.getSeqNo()] != null || (packet.isClose() && matchInfo != null)) {
+                throw new InvalidPacketIDException("Player content already received packet for seqNo: ${packet.getSeqNo()}")
             }
             maxSeqNo= packet.getSeqNo() > maxSeqNo ? packet.getSeqNo() : maxSeqNo
         }
