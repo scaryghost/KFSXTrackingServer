@@ -25,6 +25,9 @@ public class ServerProperties {
 
     private final Properties properties
     
+    public ServerProperties(Properties properties) {
+        this.properties= properties
+    }
     public ServerProperties(String filename) throws IOException {
         this.properties= new Properties()
         this.properties.load(new FileReader(filename))
@@ -36,17 +39,25 @@ public class ServerProperties {
         return properties[key]
     }
     public Integer getUdpPort() {
-        return properties.getProperty("udp.port", "6000").toInteger()
+        def udpPort, defaultValue= "6000"
+        
+        try {
+            udpPort= properties.getProperty("udp.port", defaultValue).toInteger()
+        } catch (NumberFormatException ex) {
+            Common.logger.log(Level.WARNING, "Invalid number given for udp port.  Using default port: $defaultValue", ex)
+            udpPort= defaultValue.toInteger()
+        }
+        return udpPort
     }
     public Integer getHttpPort() {
-        def httpPort, defaultValues= 8080
+        def httpPort, defaultValue= 8080
 
         try {
             httpPort= properties["http.port"].toInteger()
         } catch (NullPointerException ex) {
             Common.logger.log(Level.WARNING, "HTTP server disabled");
         } catch (NumberFormatException ex) {
-            Common.logger.log(Level.WARNING, "Invalid port given for http port.  Using default port: $defaultValue", ex)
+            Common.logger.log(Level.WARNING, "Invalid number given for http port.  Using default port: $defaultValue", ex)
             httpPort= defaultValue
         }
         return httpPort
