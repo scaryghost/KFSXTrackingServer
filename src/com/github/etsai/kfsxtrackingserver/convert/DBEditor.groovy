@@ -33,7 +33,7 @@ public class DBEditor {
                 }
             }
 
-            dest.withBatch("insert into difficulty (name, length, wins, losses, waveaccum, time) values (?, ?, ?, ?, ?, ?)") {ps ->
+            dest.withBatch("insert into difficulty (name, length, wins, losses, wave_sum, time) values (?, ?, ?, ?, ?, ?)") {ps ->
                 src.eachRow("select * from difficulties") {row ->
                     ps.addBatch([row.name, row.length, row.wins, row.losses, row.wave, row.time])
                 }
@@ -45,7 +45,7 @@ public class DBEditor {
                 }
             }
 
-            dest.withBatch("insert into record (steamid64, wins, losses, disconnects, finales_played, finales_survived, time_connected) values (?, ?, ?, ?, ?, ?, ?)") {ps ->
+            dest.withBatch("insert into record (steamid64, wins, losses, disconnects, finales_played, finales_survived, time) values (?, ?, ?, ?, ?, ?, ?)") {ps ->
                 src.eachRow("select * from records") {row ->
                     ps.addBatch([row.steamid64, row.wins, row.losses, row.disconnects, 0, 0, 0])
                 }

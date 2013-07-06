@@ -65,14 +65,14 @@ public class SQLiteWriter implements DataWriter {
             sql.withTransaction {
                 sql.execute("insert or ignore into difficulty (name, length) values(?, ?)", 
                     [packet.getDifficulty(), packet.getLength()])
-                sql.execute("update difficulty set wins= wins + ?, losses= losses + ?, waveaccum= waveaccum + ?, time= time + ? where name= ? and length= ?", 
+                sql.execute("update difficulty set wins= wins + ?, losses= losses + ?, wave_sum= wave_sum + ?, time= time + ? where name= ? and length= ?", 
                     [wins, losses, packet.getWave(), attrs.duration, packet.getDifficulty(), packet.getLength()])
                 sql.execute("insert or ignore into level (name) values(?)", [packet.getLevel()])
                 sql.execute("update level set wins= wins + ?, losses= losses + ?, time= time + ? where name=?", 
                     [wins, losses, attrs.duration, packet.getLevel()])
                 sql.execute("insert or ignore into level_difficulty_join (difficulty_id, level_id) select d.id, l.id from difficulty d, level l where d.name=? and d.length=? and l.name=?",
                     [packet.getDifficulty(), packet.getLength(), packet.getLevel()])
-                sql.execute("""update level_difficulty_join set wins= wins + ?, losses= losses + ?, waveaccum= waveaccum + ?, time= time + ? where 
+                sql.execute("""update level_difficulty_join set wins= wins + ?, losses= losses + ?, wave_sum= wave_sum + ?, time= time + ? where 
                     difficulty_id=(select id from  difficulty where name=? and length=?) and level_id=(select id from level where name=?)""",
                     [wins, losses, packet.getWave(), attrs.duration, packet.getDifficulty(), packet.getLength(), packet.getLevel()])
                 (1 .. packet.getWave()).each {waveNum ->
