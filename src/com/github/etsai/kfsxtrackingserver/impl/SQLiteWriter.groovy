@@ -99,7 +99,7 @@ public class SQLiteWriter implements DataWriter {
             def matchInfo= content.getMatchInfo()
             sql.execute("insert or ignore into record (steamid64) values (?);", [steamID64])
             sql.execute("""update record set wins= wins + ?, losses= losses + ?, disconnects= disconnects + ?, 
-                finales_survived= finales_survived + ?, finales_played= finales_played + ?, time_connected= time_connected + ? where steamid64=?""", 
+                finales_survived= finales_survived + ?, finales_played= finales_played + ?, time= time + ? where steamid64=?""", 
                 [matchInfo.result == Result.WIN ? 1 : 0, matchInfo.result == Result.LOSS ? 1 : 0, 
                 matchInfo.result == Result.DISCONNECT ? 1 : 0, matchInfo.finalWaveSurvived, matchInfo.finalWave, matchInfo.duration, steamID64])
             sql.execute("""insert into match_history (record_id, level_id, difficulty_id, result, wave, duration) select r.id,l.id,d.id,?,?,? from record r, 

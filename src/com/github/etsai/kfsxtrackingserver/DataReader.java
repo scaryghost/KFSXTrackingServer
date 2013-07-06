@@ -37,8 +37,7 @@ public interface DataReader {
         public int time;
     }
     /**
-     * Stores information about a difficulty setting.  The data can be an aggregate amount 
-     * or values for a specific level
+     * Stores information about a difficulty setting
      * @author etsai
      */
     public class Difficulty extends Record {
@@ -50,17 +49,21 @@ public interface DataReader {
         public int wave_sum;
     }
     /**
-     * Stores information about a level.  The data can be an aggregate amount or 
-     * values for a specific difficulty setting
+     * Stores information about a level
      * @author etsai
      */
     public class Level extends Record {
         /** Name of the level */
         public String name;
-        /**
-         * Accumulate sum of waves each game ended on.  This value will be null if 
-         * the data is an aggregate amount 
-         */
+    }
+    public class LevelDifficulty extends Record {
+        /** Level name */
+        public String level;
+        /** Difficulty setting */
+        public String difficulty;
+        /** Game length */
+        public String length;
+        /** Accumulated sum of waves */
         public int wave_sum;
     }
     /**
@@ -81,7 +84,7 @@ public interface DataReader {
         /** Unique steam id of the player */
         public String steamid64;
         /** Number of premature exits from a game */
-        public int disonnects;
+        public int disconnects;
         /** Number of boss waves the player participated in */
         public int finales_played;
         /** Number of boss waves the player survived */
@@ -137,7 +140,7 @@ public interface DataReader {
      * @param   length      Game length
      * @return  Collection of statistics for each map played on the given difficulty setting
      */
-    public Collection<Level> getDifficultyData(String difficulty, String length);
+    public Collection<LevelDifficulty> getDifficultyData(String difficulty, String length);
     /**
      * Get the totals for each played level, across all difficulty settings
      * @return  Collection of totals for all levels
@@ -148,7 +151,7 @@ public interface DataReader {
      * @param   level      Name of the level to lookup
      * @return  Collection of difficulty breakdowns for all levels played
      */
-    public Collection<Difficulty> getLevelData(String level);
+    public Collection<LevelDifficulty> getLevelData(String level);
     /**
      * Get the number of player records in the database
      * @return  Number of players in the database
@@ -157,7 +160,7 @@ public interface DataReader {
     /**
      * Get the record for the given player.  If the steamID64 is invalid, null is returned.
      * @param   steamID64   SteamID64 of the desired player.
-     * @return  Record for the given player, null if invalid steamID64 is given
+     * @return  Record for the given player, null if invalid steamID64 is given or id not in db
      * @see DataReader#getRecords()
      */
     public PlayerRecord getRecord(String steamID64);
@@ -177,7 +180,7 @@ public interface DataReader {
      */
     public Collection<PlayerRecord> getRecords();
     /**
-     * Get a subset of the match history for the specific player.  The list can be ordered based on a grouping.  See getMatchHistory(String) for the map keys.  
+     * Get a subset of the match history for the specific player.  The list can be ordered based on a grouping.  
      * @param   steamID64   SteamID64 of the player to lookup
      * @param   group   The group to sort on.  If order is NONE, this parameter is ignored
      * @param   order   Order to sort the group if desired
@@ -212,9 +215,10 @@ public interface DataReader {
      */
     public Collection<Stat> getAggregateData(String category, String steamID64);
     /**
-     * Get the steam community info for a player
+     * Get the saved steam community info for a player from the database.  Null will be returned if the steamID64 
+     * is not present in the db
      * @param   steamID64   SteamID64 of the player to lookup
-     * @return  Steam community info for a player
+     * @return  Steam community info for a player, or null if id not found in db
      */
     public SteamIDInfo getSteamIDInfo(String steamID64);
     /**

@@ -63,7 +63,7 @@ public class DBEditor {
                 }
             }
 
-            dest.withBatch("update record set time_connected=? where steamid64=?") {ps ->
+            dest.withBatch("update record set time=? where steamid64=?") {ps ->
                 durations.each {steamid64, time ->
                     ps.addBatch([time, steamid64])
                 }
