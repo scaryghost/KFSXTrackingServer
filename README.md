@@ -17,8 +17,6 @@ Example:
 Please note that the extension to the db has been changed to sqlite3.  This was done to signify that the database was 
 created using sqlite3.
 
-If you had modified the css file to customize the web content, you will need to copy that file to the new directory.
-
 ### Server Properties
 For v3.0, the following properties have been added:  
 * http.root.dir  
@@ -72,8 +70,10 @@ This roundabout method is required since the jar's manifest file only knows abou
 
 ## Web Server
 Starting from v3.0 and on, the web portion of the application has been separated from the jar file.  This gives end 
-users greater flexibility in customizing the web pages.  The project wiki has more information:
+users greater flexibility in customizing the web pages.  All web files reside in the http directory.  The project wiki 
+has more information on creating your own web content:
 
 https://github.com/scaryghost/KFSXTrackingServer/wiki/Creating-Web-Content
+
 ## Release Notes:
 https://github.com/scaryghost/KFSXTrackingServer/wiki/Release-KFSXTrackingServer-3.0
