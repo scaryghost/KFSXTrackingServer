@@ -24,8 +24,7 @@ public class SQLiteWriter implements DataWriter {
             from difficulty d, level l where d.name=? and d.length=? and l.name=?"""
     private static def wavedataSqlUpdate= """update wave_data set value= value + ? where stat=? and category=? and wave=? and difficulty_id=(select id from 
             difficulty where name=? and length=?) and level_id=(select id from level where name=?)"""
-    public static def waveCountCategory= "frequency"
-    public static def waveReached= "Played"
+    public static def waveCompletedCategory= "completed"
     
     private final def sql
     
@@ -75,9 +74,10 @@ public class SQLiteWriter implements DataWriter {
                 sql.execute("""update level_difficulty_join set wins= wins + ?, losses= losses + ?, wave_sum= wave_sum + ?, time= time + ? where 
                     difficulty_id=(select id from  difficulty where name=? and length=?) and level_id=(select id from level where name=?)""",
                     [wins, losses, packet.getWave(), attrs.duration, packet.getDifficulty(), packet.getLength(), packet.getLevel()])
-                (1 .. packet.getWave()).each {waveNum ->
-                    sql.execute(wavedataSqlInsert, [waveNum, waveCountCategory, waveReached, packet.getDifficulty(), packet.getLength(), packet.getLevel()])
-                    sql.execute(wavedataSqlUpdate, [1, waveReached, waveCountCategory, waveNum, packet.getDifficulty(), packet.getLength(), packet.getLevel()])
+                (1 ..< packet.getWave()).each {waveNum ->
+                    def stat= "${packet.getDifficulty()}, ${packet.getLength()}"
+                    sql.execute(wavedataSqlInsert, [waveNum, waveCompletedCategory, stat, packet.getDifficulty(), packet.getLength(), packet.getLevel()])
+                    sql.execute(wavedataSqlUpdate, [1, stat, waveCompletedCategory, waveNum, packet.getDifficulty(), packet.getLength(), packet.getLevel()])
                 }
             }
         } else {
