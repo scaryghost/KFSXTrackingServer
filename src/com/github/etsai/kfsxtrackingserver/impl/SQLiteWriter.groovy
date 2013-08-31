@@ -97,6 +97,8 @@ public class SQLiteWriter implements DataWriter {
             def steamID64= content.getSteamID64()
             
             def matchInfo= content.getMatchInfo()
+            Common.logger.finer("Match data= $matchInfo")
+            sql.execute("insert or ignore into level (name) values(?)", [matchInfo.level])
             sql.execute("insert or ignore into record (steamid64) values (?);", [steamID64])
             sql.execute("""update record set wins= wins + ?, losses= losses + ?, disconnects= disconnects + ?, 
                 finales_survived= finales_survived + ?, finales_played= finales_played + ?, time= time + ? where steamid64=?""", 
