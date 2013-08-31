@@ -1,5 +1,8 @@
 KFSXTrackingServer
 ==================
+## Updating From 3.x
+All you need to do is stop the server, and replace the KFSXTrackingServer.jar file and http folder.  
+
 ## Updating From 2.x
 If you have just started running a tracking server, this section is irrelevant and you can skip ahead to 
 "Starting The Server".  Otherwise, keep reading.
@@ -76,4 +79,4 @@ has more information on creating your own web content:
 https://github.com/scaryghost/KFSXTrackingServer/wiki/Creating-Web-Content
 
 ## Release Notes:
-https://github.com/scaryghost/KFSXTrackingServer/wiki/Release-KFSXTrackingServer-3.0
+https://github.com/scaryghost/KFSXTrackingServer/wiki/Release-KFSXTrackingServer-3.0.4
