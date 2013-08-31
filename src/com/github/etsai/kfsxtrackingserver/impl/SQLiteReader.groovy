@@ -69,13 +69,13 @@ public class SQLiteReader implements DataReader {
         return null
     }
     public Collection<PlayerRecord> getRecords(String group, Order order, int start, int end) {
-        def query= "SELECT * FROM record "
+        def query= "SELECT r.*,name FROM record r inner join steam_info s on r.id=s.record_id "
         
         if (group != null && order != Order.NONE) {
             query+= "ORDER BY $group $order "
         }
         query+= "LIMIT ?, ?"
-        return queryDB(query, [start, end - start], ['id', 'record_id']).collect {attr ->
+        return queryDB(query, [start, end - start], ['id', 'record_id', 'name']).collect {attr ->
             new PlayerRecord(attr)
         }
     }
