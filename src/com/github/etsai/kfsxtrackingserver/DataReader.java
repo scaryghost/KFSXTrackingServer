@@ -197,6 +197,12 @@ public interface DataReader {
      */
     public Collection<Match> getMatchHistory(String steamID64);
     /**
+     * Get the number of matches for a player
+     * @param   steamID64   SteamID4 of the player to lookup
+     * @return  Number of matches the player has participated in
+     */
+    public Integer getNumMatches(String steamID64);
+    /**
      * Get all stat categories that have an aggregate sum over all players
      * @return  Stat categories for aggregate stats
      */

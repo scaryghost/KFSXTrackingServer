@@ -103,6 +103,9 @@ public class SQLiteReader implements DataReader {
             new Match(attr)
         }
     }
+    public Integer getNumMatches(String steamID64) {
+        return sql.firstRow('SELECT count(*) from match_history h where h.record_id=(select id from record r where r.steamid64=?)', [steamID64])[0]
+    }
     public Collection<String> getStatCategories() {
         return queryDB('SELECT category FROM aggregate GROUP BY category', [], []).collect { it.category }
     }
