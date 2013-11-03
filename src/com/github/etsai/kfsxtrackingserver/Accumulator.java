@@ -5,20 +5,17 @@
 
 package com.github.etsai.kfsxtrackingserver;
 
-import com.github.etsai.kfsxtrackingserver.PacketParser.InvalidPacketFormatException;
-import com.github.etsai.kfsxtrackingserver.PacketParser.MatchPacket;
-import com.github.etsai.kfsxtrackingserver.PacketParser.PlayerPacket;
+import com.github.etsai.kfsxtrackingserver.DataWriter.SteamInfo;
+import com.github.etsai.kfsxtrackingserver.PacketParser.*;
 import com.github.etsai.kfsxtrackingserver.SteamPoller.InvalidSteamIDException;
 import com.github.etsai.kfsxtrackingserver.impl.PlayerContentImpl;
 import java.io.IOException;
+import java.net.DatagramPacket;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.logging.Level;
+import java.util.HashMap;
 import java.util.TimerTask;
 import java.util.Timer;
-import com.github.etsai.kfsxtrackingserver.DataWriter.SteamInfo;
-import com.github.etsai.kfsxtrackingserver.PacketParser.StatPacket;
-import java.util.HashMap;
-import java.util.Map;
 
 /**
  * Accumulates and holds packets for processing
@@ -29,7 +26,7 @@ public class Accumulator {
     private final DataWriter writer;
     private final long statMsgTTL;
     private final PacketParser packetParser;
-    private final Map<String, TimerTask> tasks;
+    private final HashMap<String, TimerTask> tasks;
     private Timer timer;
     
     public Accumulator(DataWriter writer, String password, long statMsgTTL) {
@@ -44,9 +41,8 @@ public class Accumulator {
     public PlayerContent getPlayerContent(String steamID64) {
         return incompletePlayerContent.get(steamID64);
     }
-    public void accumulate(String data) {
+    private void accumulateHelper(StatPacket packet) {
         try {
-            StatPacket packet= packetParser.parse(data);
             if (packet instanceof MatchPacket) {
                 writer.writeMatchData((MatchPacket)packet);
             } else if (packet instanceof PlayerPacket) {
@@ -72,7 +68,7 @@ public class Accumulator {
                 }
                 content= incompletePlayerContent.get(steamID64);
                 content.addPacket(playerPacket);
-                
+
                 if (content.isCompleted()) {
                     incompletePlayerContent.remove(steamID64);
                     tasks.remove(steamID64).cancel();
@@ -91,10 +87,23 @@ public class Accumulator {
                     }
                 }
             }
-        } catch (InvalidPacketFormatException ex) {
-            Common.logger.log(Level.SEVERE, "Error parsing the packet", ex);
         } catch (Exception ex) {
             Common.logger.log(Level.SEVERE, null, ex);
+        }
+        
+    }
+    public void accumulate(DatagramPacket udpPacket) {
+        try {
+            accumulateHelper(packetParser.parse(udpPacket));
+        } catch (InvalidPacketFormatException ex) {
+            Common.logger.log(Level.SEVERE, "Error parsing the packet", ex);
+        }
+    }
+    public void accumulate(String data) {
+        try {
+            accumulateHelper(packetParser.parse(data));
+        } catch (InvalidPacketFormatException ex) {
+            Common.logger.log(Level.SEVERE, "Error parsing the packet", ex);
         }
     }
 }    

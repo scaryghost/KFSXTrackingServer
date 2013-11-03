@@ -7,6 +7,7 @@ package com.github.etsai.kfsxtrackingserver;
 
 import com.github.etsai.kfsxtrackingserver.impl.PlayerPacketImpl;
 import com.github.etsai.kfsxtrackingserver.impl.MatchPacketImpl;
+import java.net.DatagramPacket;
 import java.util.Map;
 
 /**
@@ -46,34 +47,58 @@ public class PacketParser {
      * Object wrapper for the received data packet
      * @author etsai
      */
-    public interface StatPacket {
+    public abstract class StatPacket {
+        private final int senderPortNo;
+        private final String senderAddress;
+        
+        public StatPacket(String address, int port) {
+            this.senderAddress= address;
+            this.senderPortNo= port;
+        }
         /**
          * Get the category name of the packet
          * @return Category name
          */
-        public String getCategory();
+        public abstract String getCategory();
         /**
          * Get the statistics in (key, value) format.  The name of the statistic is 
          * the key its numerical value is the entry value.
          * @return Map of the statistics
          */
-        public Map<String, Integer> getStats();
+        public abstract Map<String, Integer> getStats();
         /**
          * Get non-statistics attributes of the packet.  The values may be string or numbers
          * @return Packet attributes
          */
-        public Map<String, Object> getAttributes();
+        public abstract Map<String, Object> getAttributes();
+        /**
+         * Get the port number of machine that sent the packet
+         * @return Sender's port number
+         */
+        public int getSenderPort() {
+            return senderPortNo;
+        }
+        /**
+         * Get the address of machine that sent the packet
+         * @return Sender's address
+         */
+        public String getSenderAddress() {
+            return senderAddress;
+        }
     }
     /**
      * Packet specifically containing match information
      * @author etsai
      */
-    public interface MatchPacket extends StatPacket {
+    public abstract class MatchPacket extends StatPacket {
         /** Protocol name for match statistics */ 
-        public static String PROTOCOL= "kfstatsx-match";
+        public final static String PROTOCOL= "kfstatsx-match";
         /** Current protocol version */
-        public static Integer VERSION= 2;
+        public final static int VERSION= 2;
         
+        public MatchPacket(String hostname, int port) {
+            super(hostname, port);
+        }
         /**
          * Get the difficulty the information relates to.  Difficulty should be one of :
          * <ul>
@@ -85,7 +110,7 @@ public class PacketParser {
          * </ul>
          * @return The difficulty the packet is holding statistics for
          */
-        public String getDifficulty();
+        public abstract String getDifficulty();
         /**
          * Get the game length the information relates to.  Length should be one of :
          * <ul>
@@ -96,46 +121,88 @@ public class PacketParser {
          * </ul>
          * @return The game length the packet is holding statistics for
          */
-        public String getLength();
+        public abstract String getLength();
         /**
          * Get the name of the level the information relates to.
          * @return The level name the packet is holding statistics for
          */
-        public String getLevel();
+        public abstract String getLevel();
         /**
          * Get the wave number the match information relates to
          * @return Wave number of the match
          */
-        public int getWave();
+        public abstract int getWave();
     }
     /**
      * Packet specifically containing player information
      * @author etsai
      */
-    public interface PlayerPacket extends StatPacket {
+    public abstract class PlayerPacket extends StatPacket {
         /** Protocol name for player statistics */ 
-        public static String PROTOCOL= "kfstatsx-player";
+        public final static String PROTOCOL= "kfstatsx-player";
         /** Current protocol version */
-        public static Integer VERSION= 2;
+        public final static int VERSION= 2;
         
+        public PlayerPacket(String hostname, int port) {
+            super(hostname, port);
+        }
         /**
          * Get the sequence number of the packet.  Player packets are stored grouped together 
          * and stored as one rather than individually
          * @return Sequence number
          */
-        public int getSeqNo();
+        public abstract int getSeqNo();
         /**
          * Get the close state of the packet.  If the packet is the last in the sequence, returns true
          * @return True if packet is last in sequence
          */
-        public boolean isClose();
+        public abstract boolean isClose();
         /**
          * Get the steamID64 this packet stores information for
          * @return SteamID64
          */
-        public String getSteamID64();
+        public abstract String getSteamID64();
     }
     
+    private abstract class PacketBuilder {
+        protected String[] parts;
+        
+        public void setParts(String[] parts) {
+            this.parts= parts;
+        }
+        public abstract PlayerPacket buildPlayerPacket();
+        public abstract MatchPacket buildMatchPacket();
+    }
+    
+    private class SenderPacketBuilder extends PacketBuilder {
+        private final String hostAddress;
+        private final int port;
+
+        private SenderPacketBuilder(String hostAddress, int port) {
+            this.hostAddress= hostAddress;
+            this.port= port;
+        }
+        
+        @Override
+        public PlayerPacket buildPlayerPacket() {
+            return new PlayerPacketImpl(parts, hostAddress, port);
+        }
+        @Override
+        public MatchPacket buildMatchPacket() {
+            return new MatchPacketImpl(parts, hostAddress, port);
+        }
+    }
+    
+    private class NoSenderPacketBuilder extends PacketBuilder {
+        @Override
+        public PlayerPacket buildPlayerPacket() {
+            return new PlayerPacketImpl(parts);
+        }
+        @Override
+        public MatchPacket buildMatchPacket() {
+            return new MatchPacketImpl(parts);
+        }
+    }
     /** Password packets need to have to be considered valid */
     private final String password;
     
@@ -146,6 +213,12 @@ public class PacketParser {
     public PacketParser(String password) {
         this.password= password;
     }
+    
+    public StatPacket parse(DatagramPacket udpPacket) throws InvalidPacketFormatException {
+        String msg= new String(udpPacket.getData(), 0, udpPacket.getLength());
+        return parseHelper(msg, new SenderPacketBuilder(udpPacket.getAddress().getHostAddress(), 
+                udpPacket.getPort()));
+    }
     /**
      * Parses the message and constructs the appropriate StatPacket object
      * @param msg UDP packet received from the KFStatsX mutator
@@ -153,12 +226,15 @@ public class PacketParser {
      * @throws InvalidPacketFormatException If the msg does not match any known packet formats
      */
     public StatPacket parse(String msg) throws InvalidPacketFormatException {
+        return parseHelper(msg, new NoSenderPacketBuilder());
+    }
+    private StatPacket parseHelper(String msg, PacketBuilder pBuilder) throws InvalidPacketFormatException {
         StatPacket packet= null;
-        
         try {
             String[] parts= msg.split("\\|");
             String[] header= parts[0].split(",");
 
+            pBuilder.setParts(parts);
             if (header[2] == null ? password != null : !header[2].equals(password)) {
                 throw new InvalidPacketFormatException(String.format("Invalid password given, ignoring packet: %s", msg));
             }
@@ -168,14 +244,14 @@ public class PacketParser {
                         throw new InvalidPacketFormatException(String.format("Wrong protocol version for player packet.  Read %s, expecting %d", 
                                 header[1], PlayerPacket.VERSION));
                     }
-                    packet= new PlayerPacketImpl(parts);
+                    packet= pBuilder.buildPlayerPacket();
                     break;
                 case MatchPacket.PROTOCOL:
                     if (Integer.valueOf(header[1])!= MatchPacket.VERSION) {
-                        throw new InvalidPacketFormatException(String.format("Wrong protocol version for player packet.  Read %s, expecting %d", 
+                        throw new InvalidPacketFormatException(String.format("Wrong protocol version for match packet.  Read %s, expecting %d", 
                                 header[1], MatchPacket.VERSION));
                     }
-                    packet= new MatchPacketImpl(parts);
+                    packet= pBuilder.buildMatchPacket();
                     break;
                 default:
                     throw new InvalidPacketFormatException(String.format("Unrecognized packet protocol: %s", header[0]));
@@ -184,6 +260,7 @@ public class PacketParser {
             throw new InvalidPacketFormatException(ex.getMessage());
         }
         return packet;
+        
     }
 }
 
