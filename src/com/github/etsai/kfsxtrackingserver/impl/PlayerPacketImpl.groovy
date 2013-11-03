@@ -71,7 +71,7 @@ public class PlayerPacketImpl extends PlayerPacket {
      * Constructs object given the pipe separated string of stat information
      */
     public PlayerPacketImpl(String[] parts) throws InvalidPacketFormatException {
-        PlayerPacketImpl(parts, null, -1)
+        this(parts, null, -1)
     }
     
     /**

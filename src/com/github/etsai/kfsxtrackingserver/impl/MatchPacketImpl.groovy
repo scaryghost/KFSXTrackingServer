@@ -50,7 +50,7 @@ public class MatchPacketImpl extends MatchPacket {
         }
     }
     public MatchPacketImpl(String[] parts) throws InvalidPacketFormatException {
-        MatchPacketImpl(parts, null, -1)
+        this(parts, null, -1)
     }
     public String getCategory() {
         return category

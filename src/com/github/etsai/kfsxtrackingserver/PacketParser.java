@@ -73,14 +73,14 @@ public class PacketParser {
         public abstract Map<String, Object> getAttributes();
         /**
          * Get the port number of machine that sent the packet
-         * @return Sender's port number
+         * @return Sender's port number, null if sender information not available
          */
         public int getSenderPort() {
             return senderPort;
         }
         /**
          * Get the address of machine that sent the packet
-         * @return Sender's address
+         * @return Sender's address, -1 if sender information not available
          */
         public String getSenderAddress() {
             return senderAddress;
