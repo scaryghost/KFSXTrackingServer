@@ -21,8 +21,8 @@ public class PlayerPacketImpl extends PlayerPacket {
     
     private final def steamID64, category, seqNo, close, stats, attrs
     
-    public PlayerPacketImpl(String[] parts, String hostname, int port) throws InvalidPacketFormatException {
-        super(hostname, port)
+    public PlayerPacketImpl(String[] parts, String senderAddress, int senderPort) throws InvalidPacketFormatException {
+        super(senderAddress, senderPort)
         try {
             def idLong= parts[1].toLong()
             if (parts[1].length() < 17) {

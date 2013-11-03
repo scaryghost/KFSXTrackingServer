@@ -48,12 +48,12 @@ public class PacketParser {
      * @author etsai
      */
     public abstract class StatPacket {
-        private final int senderPortNo;
+        private final int senderPort;
         private final String senderAddress;
         
-        public StatPacket(String address, int port) {
-            this.senderAddress= address;
-            this.senderPortNo= port;
+        public StatPacket(String senderAddress, int senderPort) {
+            this.senderAddress= senderAddress;
+            this.senderPort= senderPort;
         }
         /**
          * Get the category name of the packet
@@ -76,7 +76,7 @@ public class PacketParser {
          * @return Sender's port number
          */
         public int getSenderPort() {
-            return senderPortNo;
+            return senderPort;
         }
         /**
          * Get the address of machine that sent the packet
@@ -96,8 +96,8 @@ public class PacketParser {
         /** Current protocol version */
         public final static int VERSION= 2;
         
-        public MatchPacket(String hostname, int port) {
-            super(hostname, port);
+        public MatchPacket(String senderAddress, int port) {
+            super(senderAddress, port);
         }
         /**
          * Get the difficulty the information relates to.  Difficulty should be one of :
@@ -143,8 +143,8 @@ public class PacketParser {
         /** Current protocol version */
         public final static int VERSION= 2;
         
-        public PlayerPacket(String hostname, int port) {
-            super(hostname, port);
+        public PlayerPacket(String senderAddress, int senderPort) {
+            super(senderAddress, senderPort);
         }
         /**
          * Get the sequence number of the packet.  Player packets are stored grouped together 
@@ -175,21 +175,21 @@ public class PacketParser {
     }
     
     private class SenderPacketBuilder extends PacketBuilder {
-        private final String hostAddress;
-        private final int port;
+        private final String senderAddress;
+        private final int senderPort;
 
         private SenderPacketBuilder(String hostAddress, int port) {
-            this.hostAddress= hostAddress;
-            this.port= port;
+            this.senderAddress= hostAddress;
+            this.senderPort= port;
         }
         
         @Override
         public PlayerPacket buildPlayerPacket() {
-            return new PlayerPacketImpl(parts, hostAddress, port);
+            return new PlayerPacketImpl(parts, senderAddress, senderPort);
         }
         @Override
         public MatchPacket buildMatchPacket() {
-            return new MatchPacketImpl(parts, hostAddress, port);
+            return new MatchPacketImpl(parts, senderAddress, senderPort);
         }
     }
     
@@ -214,6 +214,14 @@ public class PacketParser {
         this.password= password;
     }
     
+    /**
+     * Parses the message and constructs the appropriate StatPacket object while 
+     * accounting for the sender's address and port number
+     * @param udpPacket UDP packet received from the KFStatsX mutator
+     * @return Appropriate StatPacket object
+     * @throws InvalidPacketFormatException If the msg does not match any known 
+     * packet formats or contains an invalid password
+     */
     public StatPacket parse(DatagramPacket udpPacket) throws InvalidPacketFormatException {
         String msg= new String(udpPacket.getData(), 0, udpPacket.getLength());
         return parseHelper(msg, new SenderPacketBuilder(udpPacket.getAddress().getHostAddress(), 
@@ -223,7 +231,8 @@ public class PacketParser {
      * Parses the message and constructs the appropriate StatPacket object
      * @param msg UDP packet received from the KFStatsX mutator
      * @return Appropriate StatPacket object
-     * @throws InvalidPacketFormatException If the msg does not match any known packet formats
+     * @throws InvalidPacketFormatException If the msg does not match any known 
+     * packet formats or contains an invalid password
      */
     public StatPacket parse(String msg) throws InvalidPacketFormatException {
         return parseHelper(msg, new NoSenderPacketBuilder());
