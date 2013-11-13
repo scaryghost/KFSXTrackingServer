@@ -69,4 +69,10 @@ public interface DataWriter {
      * @param content Completed player statistics content
      */
     public void writePlayerData(PlayerContent content);
+    /**
+     * Refactor the stats between the event specimens and their respective stock specimen names 
+     * by combining their values into one row
+     * @param prefixes Collection of name prefixes to merge on with the base stat
+     */
+    public void refactorSpecimens(Collection<String> prefixes);
 }

@@ -126,6 +126,71 @@ public class SQLiteWriter implements DataWriter {
             }
         }
     }
+
+    public void refactorSpecimens(Collection<String> prefixes) {
+        def statTypes= [base: new TreeSet(), event: new TreeSet()]
+        sql.eachRow("select stat from aggregate where category='kills' or category='deaths' group by stat") {row ->
+            if (prefixes.ps.findAll {row.stat.regionMatches(true, 0, it, 0, it.size())}.size() != 0) {
+                statTypes.event << row.stat
+            } else {
+                statTypes.base << row.stat
+            }
+        }
+
+        def groupedStats= [:]
+        statTypes.base.each {base ->
+            groupedStats[base]= statTypes.event.findAll{ it.contains(base) }
+        }
+
+        
+        [["aggregate", []], ["player", ["record_id"]], ["wave_data", ["difficulty_id", "level_id", "wave"]]].each {table, ids ->
+            def seenIdsInfo= new HashSet()
+            def savedStats= [:]
+            sql.eachRow("select * from " + table + " where category='kills' or category='deaths'") {row ->
+                if (savedStats[row.stat] == null) {
+                    savedStats[row.stat]= []
+                }
+                savedStats[row.stat] << row.toRowResult()
+                def info= [row.category]
+                info.addAll(ids.collect { row[it] })
+                seenIdsInfo << info
+            }
+            sql.withTransaction {
+                sql.withBatch("insert or ignore into " + table + " (stat, category" + ids.collect { ", $it"  }.join("") + 
+                        ") values (?, ?" + ids.collect { ", ?"}.join("") + ")") {ps ->
+                    statTypes.base.each {base ->
+                        seenIdsInfo.each {
+                            def psValues= [base]
+                            psValues.addAll(it)
+                            ps.addBatch(psValues)
+                        }
+                    }
+                }
+
+                sql.withBatch("update " + table + " set value= value + ? where stat=? and category=?" + 
+                        ids.collect { " and ${it}=?" }.join("")) {ps ->
+                    groupedStats.each{key, eventStats ->
+                        eventStats.each {eventStat ->
+                            savedStats[eventStat].each {result ->
+                                def psValues= [result.value, key, result.category]
+                                psValues.addAll(ids.collect { result[it] })
+                                ps.addBatch(psValues)
+                            }
+                        }
+                    }
+                }
+
+                sql.withBatch("delete from " + table + " where stat=? or value=0") {ps ->
+                    groupedStats.each{key, eventStats ->
+                        eventStats.each {eventStat ->
+                            ps.addBatch([eventStat])
+                        }
+                    }
+                }
+            }
+        }
+    }
+
 }
 
 
