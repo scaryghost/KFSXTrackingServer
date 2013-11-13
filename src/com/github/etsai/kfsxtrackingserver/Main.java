@@ -65,6 +65,29 @@ public class Main {
 
             GroovyClassLoader loader= new GroovyClassLoader();
 
+            Class<DataWriter> dataWriterClass;
+            if (props.getDbWriterScript() == null) {
+                dataWriterClass= (Class<DataWriter>)Class.forName("com.github.etsai.kfsxtrackingserver.impl.SQLiteWriter");
+            } else {
+                dataWriterClass= loader.parseClass(new File(props.getDbWriterScript()));
+            }
+            Constructor<DataWriter> dataWriterCtor= dataWriterClass.getConstructor(new Class<?>[] {Connection.class});
+            DataWriter writer= dataWriterCtor.newInstance(new Object[] {connPool.getConnection()});
+            String refactorGroup= clom.getRefactorGroup();
+
+            if (refactorGroup != null) {
+                Common.logger.log(Level.INFO, "Refactoring data group: " + refactorGroup);
+                writer.refactor(refactorGroup, clom.getRefactorInfo());
+                System.exit(0);
+            }            
+
+            ExecutorService threadPool= Executors.newCachedThreadPool();
+            threadPool.submit(new UDPListener(props.getUdpPort(), new Accumulator(writer, props.getPassword(), 
+                    props.getStatsMsgTTL())));
+            if (props.getSteamPollingThreads() != null) {
+                threadPool.submit(new SteamPoller(connPool, props.getSteamPollingThreads(), dataWriterCtor));
+            }
+
             if (props.getHttpPort() != null) {
                 Class<DataReader> dataReaderClass;
                 if (props.getDbReaderScript() == null) {
@@ -83,21 +106,7 @@ public class Main {
                     }
                 });
             }
-            
-            Class<DataWriter> dataWriterClass;
-            if (props.getDbWriterScript() == null) {
-                dataWriterClass= (Class<DataWriter>)Class.forName("com.github.etsai.kfsxtrackingserver.impl.SQLiteWriter");
-            } else {
-                dataWriterClass= loader.parseClass(new File(props.getDbWriterScript()));
-            }
-            Constructor<DataWriter> dataWriterCtor= dataWriterClass.getConstructor(new Class<?>[] {Connection.class});
-            
-            DataWriter writer= dataWriterCtor.newInstance(new Object[] {connPool.getConnection()});
-            ExecutorService threadPool= Executors.newCachedThreadPool();
-            threadPool.submit(new UDPListener(props.getUdpPort(), new Accumulator(writer, props.getPassword(), props.getStatsMsgTTL())));
-            if (props.getSteamPollingThreads() != null) {
-                threadPool.submit(new SteamPoller(connPool, props.getSteamPollingThreads(), dataWriterCtor));
-            }
+
         } catch (ClassNotFoundException | SQLException | InstantiationException | IllegalAccessException | NoSuchMethodException | 
                 SecurityException | IOException | IllegalArgumentException | InvocationTargetException ex) {
             Common.logger.log(Level.SEVERE, "Error starting the server", ex);

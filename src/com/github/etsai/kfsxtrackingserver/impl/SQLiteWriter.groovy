@@ -127,10 +127,15 @@ public class SQLiteWriter implements DataWriter {
         }
     }
 
-    public void refactorSpecimens(Collection<String> prefixes) {
+    public void refactor(String group, String info) {
+        if (group != "zeds") {
+            throw new UnsupportedOperationException("Data group: '$group' not supported for refactoring")
+        }
+
+        def prefixes= info.tokenize(',')
         def statTypes= [base: new TreeSet(), event: new TreeSet()]
         sql.eachRow("select stat from aggregate where category='kills' or category='deaths' group by stat") {row ->
-            if (prefixes.ps.findAll {row.stat.regionMatches(true, 0, it, 0, it.size())}.size() != 0) {
+            if (prefixes.findAll {row.stat.regionMatches(true, 0, it, 0, it.size())}.size() != 0) {
                 statTypes.event << row.stat
             } else {
                 statTypes.base << row.stat
@@ -151,9 +156,9 @@ public class SQLiteWriter implements DataWriter {
                     savedStats[row.stat]= []
                 }
                 savedStats[row.stat] << row.toRowResult()
-                def info= [row.category]
-                info.addAll(ids.collect { row[it] })
-                seenIdsInfo << info
+                def idInfo= [row.category]
+                idInfo.addAll(ids.collect { row[it] })
+                seenIdsInfo << idInfo
             }
             sql.withTransaction {
                 sql.withBatch("insert or ignore into " + table + " (stat, category" + ids.collect { ", $it"  }.join("") + 
