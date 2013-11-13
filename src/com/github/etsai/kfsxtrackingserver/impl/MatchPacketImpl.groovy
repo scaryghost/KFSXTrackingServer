@@ -13,11 +13,14 @@ import com.github.etsai.kfsxtrackingserver.PacketParser.Result
  * Represents a match message
  * @author etsai
  */
-public class MatchPacketImpl extends MatchPacket {
-    private final def difficulty, length, level, wave, attrs, stats, category
+public class MatchPacketImpl implements MatchPacket {
+    private final def difficulty, length, level, wave, attrs, stats, 
+            category, senderAddress, senderPort
     
     public MatchPacketImpl(String[] parts, String senderAddress, int senderPort) throws InvalidPacketFormatException {
-        super(senderAddress, senderPort)
+        this.senderAddress= senderAddress
+        this.senderPort= senderPort
+
         try {
             difficulty= parts[2]
             length= parts[3]
@@ -81,5 +84,12 @@ public class MatchPacketImpl extends MatchPacket {
     @Override
     public String toString() {
         return [difficulty, length, level, wave, attrs, stats]
+    }
+
+    public int getSenderPort() {
+        return senderPort
+    }
+    public String getSenderAddress() {
+        return senderAddress
     }
 }

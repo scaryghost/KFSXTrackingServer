@@ -13,16 +13,18 @@ import com.github.etsai.kfsxtrackingserver.PacketParser.Result
  * Represents a player message
  * @author etsai
  */
-public class PlayerPacketImpl extends PlayerPacket {
+public class PlayerPacketImpl implements PlayerPacket {
     /** Offset for converting between linux and windows steamID64 */
     public static final Long linuxOffset= 76561197960265728
     /** Name of the category containing match information */
     public static final String matchCategory= "match"
     
-    private final def steamID64, category, seqNo, close, stats, attrs
+    private final def steamID64, category, seqNo, close, stats, attrs,
+            senderAddress, senderPort
     
     public PlayerPacketImpl(String[] parts, String senderAddress, int senderPort) throws InvalidPacketFormatException {
-        super(senderAddress, senderPort)
+        this.senderAddress= senderAddress
+        this.senderPort= senderPort
         try {
             def idLong= parts[1].toLong()
             if (parts[1].length() < 17) {
@@ -113,5 +115,12 @@ public class PlayerPacketImpl extends PlayerPacket {
     @Override
     public String toString() {
         return [steamID64, category, seqNo, close, stats, attrs]
+    }
+
+    public int getSenderPort() {
+        return senderPort
+    }
+    public String getSenderAddress() {
+        return senderAddress
     }
 }

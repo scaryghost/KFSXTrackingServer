@@ -47,58 +47,44 @@ public class PacketParser {
      * Object wrapper for the received data packet
      * @author etsai
      */
-    public abstract class StatPacket {
-        private final int senderPort;
-        private final String senderAddress;
-        
-        public StatPacket(String senderAddress, int senderPort) {
-            this.senderAddress= senderAddress;
-            this.senderPort= senderPort;
-        }
+    public interface StatPacket {
         /**
          * Get the category name of the packet
          * @return Category name
          */
-        public abstract String getCategory();
+        public String getCategory();
         /**
          * Get the statistics in (key, value) format.  The name of the statistic is 
          * the key its numerical value is the entry value.
          * @return Map of the statistics
          */
-        public abstract Map<String, Integer> getStats();
+        public Map<String, Integer> getStats();
         /**
          * Get non-statistics attributes of the packet.  The values may be string or numbers
          * @return Packet attributes
          */
-        public abstract Map<String, Object> getAttributes();
+        public Map<String, Object> getAttributes();
         /**
          * Get the port number of machine that sent the packet
          * @return Sender's port number, null if sender information not available
          */
-        public int getSenderPort() {
-            return senderPort;
-        }
+        public int getSenderPort();
         /**
          * Get the address of machine that sent the packet
          * @return Sender's address, -1 if sender information not available
          */
-        public String getSenderAddress() {
-            return senderAddress;
-        }
+        public String getSenderAddress();
     }
     /**
      * Packet specifically containing match information
      * @author etsai
      */
-    public abstract class MatchPacket extends StatPacket {
+    public interface MatchPacket extends StatPacket {
         /** Protocol name for match statistics */ 
         public final static String PROTOCOL= "kfstatsx-match";
         /** Current protocol version */
         public final static int VERSION= 2;
         
-        public MatchPacket(String senderAddress, int port) {
-            super(senderAddress, port);
-        }
         /**
          * Get the difficulty the information relates to.  Difficulty should be one of :
          * <ul>
@@ -110,7 +96,7 @@ public class PacketParser {
          * </ul>
          * @return The difficulty the packet is holding statistics for
          */
-        public abstract String getDifficulty();
+        public String getDifficulty();
         /**
          * Get the game length the information relates to.  Length should be one of :
          * <ul>
@@ -121,47 +107,44 @@ public class PacketParser {
          * </ul>
          * @return The game length the packet is holding statistics for
          */
-        public abstract String getLength();
+        public String getLength();
         /**
          * Get the name of the level the information relates to.
          * @return The level name the packet is holding statistics for
          */
-        public abstract String getLevel();
+        public String getLevel();
         /**
          * Get the wave number the match information relates to
          * @return Wave number of the match
          */
-        public abstract int getWave();
+        public int getWave();
     }
     /**
      * Packet specifically containing player information
      * @author etsai
      */
-    public abstract class PlayerPacket extends StatPacket {
+    public interface PlayerPacket extends StatPacket {
         /** Protocol name for player statistics */ 
         public final static String PROTOCOL= "kfstatsx-player";
         /** Current protocol version */
         public final static int VERSION= 2;
         
-        public PlayerPacket(String senderAddress, int senderPort) {
-            super(senderAddress, senderPort);
-        }
         /**
          * Get the sequence number of the packet.  Player packets are stored grouped together 
          * and stored as one rather than individually
          * @return Sequence number
          */
-        public abstract int getSeqNo();
+        public int getSeqNo();
         /**
          * Get the close state of the packet.  If the packet is the last in the sequence, returns true
          * @return True if packet is last in sequence
          */
-        public abstract boolean isClose();
+        public boolean isClose();
         /**
          * Get the steamID64 this packet stores information for
          * @return SteamID64
          */
-        public abstract String getSteamID64();
+        public String getSteamID64();
     }
     
     private abstract class PacketBuilder {
