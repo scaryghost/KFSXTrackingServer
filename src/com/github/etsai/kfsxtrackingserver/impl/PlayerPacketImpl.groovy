@@ -20,11 +20,11 @@ public class PlayerPacketImpl implements PlayerPacket {
     public static final String matchCategory= "match"
     
     private final def steamID64, category, seqNo, close, stats, attrs,
-            senderAddress, senderPort
+            serverAddress, serverPort
     
-    public PlayerPacketImpl(String[] parts, String senderAddress, int senderPort) throws InvalidPacketFormatException {
-        this.senderAddress= senderAddress
-        this.senderPort= senderPort
+    public PlayerPacketImpl(String[] parts, String serverAddress, int serverPort) throws InvalidPacketFormatException {
+        this.serverAddress= serverAddress
+        this.serverPort= serverPort
         try {
             def idLong= parts[1].toLong()
             if (parts[1].length() < 17) {
@@ -73,7 +73,7 @@ public class PlayerPacketImpl implements PlayerPacket {
      * Constructs object given the pipe separated string of stat information
      */
     public PlayerPacketImpl(String[] parts) throws InvalidPacketFormatException {
-        this(parts, null, -1)
+        this(parts, null, null)
     }
     
     /**
@@ -117,10 +117,16 @@ public class PlayerPacketImpl implements PlayerPacket {
         return [steamID64, category, seqNo, close, stats, attrs]
     }
 
-    public int getSenderPort() {
-        return senderPort
+    @Override
+    public int getServerPort() {
+        return serverPort
     }
-    public String getSenderAddress() {
-        return senderAddress
+    @Override
+    public String getServerAddress() {
+        return serverAddress
+    }
+    @Override
+    public String getServerAddressPort() {
+        return "$serverAddress:$serverPort"
     }
 }

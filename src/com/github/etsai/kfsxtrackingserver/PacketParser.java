@@ -1,4 +1,4 @@
-/*
+ /*
  * To change this template, choose Tools | Templates
  * and open the template in the editor.
  */
@@ -65,15 +65,20 @@ public class PacketParser {
          */
         public Map<String, Object> getAttributes();
         /**
-         * Get the port number of machine that sent the packet
-         * @return Sender's port number, null if sender information not available
+         * Get the port number of server the packet corresponds to
+         * @return Server's port number, null if server information not available
          */
-        public int getSenderPort();
+        public int getServerPort();
         /**
-         * Get the address of machine that sent the packet
-         * @return Sender's address, -1 if sender information not available
+         * Get the address of server the packet corresponds to
+         * @return Server's address, null if server information not available
          */
-        public String getSenderAddress();
+        public String getServerAddress();
+        /**
+         * Get the address and port of the server concatenated in the form $address:$port
+         * @return Address and port in the form $address:$port
+         */
+        public String getServerAddressPort();
     }
     /**
      * Packet specifically containing match information
@@ -147,42 +152,37 @@ public class PacketParser {
         public String getSteamID64();
     }
     
-    private abstract class PacketBuilder {
-        protected String[] parts;
-        
-        public void setParts(String[] parts) {
-            this.parts= parts;
-        }
-        public abstract PlayerPacket buildPlayerPacket();
-        public abstract MatchPacket buildMatchPacket();
+    private interface PacketBuilder {
+        public PlayerPacket buildPlayerPacket(String[] header, String[] parts);
+        public MatchPacket buildMatchPacket(String[] header, String[] parts);
     }
     
-    private class SenderPacketBuilder extends PacketBuilder {
+    private class SenderPacketBuilder implements PacketBuilder {
         private final String senderAddress;
-        private final int senderPort;
 
-        private SenderPacketBuilder(String hostAddress, int port) {
+        private SenderPacketBuilder(String hostAddress) {
             this.senderAddress= hostAddress;
-            this.senderPort= port;
         }
         
         @Override
-        public PlayerPacket buildPlayerPacket() {
-            return new PlayerPacketImpl(parts, senderAddress, senderPort);
+        public PlayerPacket buildPlayerPacket(String[] header, String[] parts) {
+            Integer serverPort= header.length >= 4 ? Integer.valueOf(header[3]) : null;
+            return new PlayerPacketImpl(parts, senderAddress, serverPort);
         }
         @Override
-        public MatchPacket buildMatchPacket() {
-            return new MatchPacketImpl(parts, senderAddress, senderPort);
+        public MatchPacket buildMatchPacket(String[] header, String[] parts) {
+            Integer serverPort= header.length >= 4 ? Integer.valueOf(header[3]) : null;
+            return new MatchPacketImpl(parts, senderAddress, serverPort);
         }
     }
     
-    private class NoSenderPacketBuilder extends PacketBuilder {
+    private class NoSenderPacketBuilder implements PacketBuilder {
         @Override
-        public PlayerPacket buildPlayerPacket() {
+        public PlayerPacket buildPlayerPacket(String[] header, String[] parts) {
             return new PlayerPacketImpl(parts);
         }
         @Override
-        public MatchPacket buildMatchPacket() {
+        public MatchPacket buildMatchPacket(String[] header, String[] parts) {
             return new MatchPacketImpl(parts);
         }
     }
@@ -199,16 +199,15 @@ public class PacketParser {
     
     /**
      * Parses the message and constructs the appropriate StatPacket object while 
-     * accounting for the sender's address and port number
+     * accounting for the kf server's address and port number
      * @param udpPacket UDP packet received from the KFStatsX mutator
      * @return Appropriate StatPacket object
-     * @throws InvalidPacketFormatException If the msg does not match any known 
+     * @throws InvalidPacketFormatException If the message does not match any known 
      * packet formats or contains an invalid password
      */
     public StatPacket parse(DatagramPacket udpPacket) throws InvalidPacketFormatException {
         String msg= new String(udpPacket.getData(), 0, udpPacket.getLength());
-        return parseHelper(msg, new SenderPacketBuilder(udpPacket.getAddress().getHostAddress(), 
-                udpPacket.getPort()));
+        return parseHelper(msg, new SenderPacketBuilder(udpPacket.getAddress().getHostAddress()));
     }
     /**
      * Parses the message and constructs the appropriate StatPacket object
@@ -226,7 +225,6 @@ public class PacketParser {
             String[] parts= msg.split("\\|");
             String[] header= parts[0].split(",");
 
-            pBuilder.setParts(parts);
             if (header[2] == null ? password != null : !header[2].equals(password)) {
                 throw new InvalidPacketFormatException(String.format("Invalid password given, ignoring packet: %s", msg));
             }
@@ -236,19 +234,19 @@ public class PacketParser {
                         throw new InvalidPacketFormatException(String.format("Wrong protocol version for player packet.  Read %s, expecting %d", 
                                 header[1], PlayerPacket.VERSION));
                     }
-                    packet= pBuilder.buildPlayerPacket();
+                    packet= pBuilder.buildPlayerPacket(header, parts);
                     break;
                 case MatchPacket.PROTOCOL:
                     if (Integer.valueOf(header[1])!= MatchPacket.VERSION) {
                         throw new InvalidPacketFormatException(String.format("Wrong protocol version for match packet.  Read %s, expecting %d", 
                                 header[1], MatchPacket.VERSION));
                     }
-                    packet= pBuilder.buildMatchPacket();
+                    packet= pBuilder.buildMatchPacket(header, parts);
                     break;
                 default:
                     throw new InvalidPacketFormatException(String.format("Unrecognized packet protocol: %s", header[0]));
             }
-        } catch (ArrayIndexOutOfBoundsException ex) {
+        } catch (NumberFormatException | ArrayIndexOutOfBoundsException ex) {
             throw new InvalidPacketFormatException(ex.getMessage());
         }
         return packet;
