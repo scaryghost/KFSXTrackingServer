@@ -27,6 +27,10 @@ public class PlayerContentImpl implements PlayerContent {
         return serverPort
     }
     @Override
+    public String getServerAddressPort() {
+        return "$serverAddress:$serverPort"
+    }
+    @Override
     public Collection<PlayerPacket> getPackets() {
         return Collections.unmodifiableList(packets)
     }

@@ -17,7 +17,7 @@ public class MatchPacketImpl implements MatchPacket {
     private final def difficulty, length, level, wave, attrs, stats, 
             category, serverAddress, serverPort
     
-    public MatchPacketImpl(String[] parts, String serverAddress, int serverPort) throws InvalidPacketFormatException {
+    public MatchPacketImpl(String[] parts, String serverAddress, Integer serverPort) throws InvalidPacketFormatException {
         this.serverAddress= serverAddress
         this.serverPort= serverPort
 

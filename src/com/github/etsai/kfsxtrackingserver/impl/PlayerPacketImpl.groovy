@@ -22,7 +22,7 @@ public class PlayerPacketImpl implements PlayerPacket {
     private final def steamID64, category, seqNo, close, stats, attrs,
             serverAddress, serverPort
     
-    public PlayerPacketImpl(String[] parts, String serverAddress, int serverPort) throws InvalidPacketFormatException {
+    public PlayerPacketImpl(String[] parts, String serverAddress, Integer serverPort) throws InvalidPacketFormatException {
         this.serverAddress= serverAddress
         this.serverPort= serverPort
         try {

@@ -37,15 +37,20 @@ public interface PlayerContent {
         }
     }
     /**
-     * Get the sender address of the player content
-     * @return Content's sender address
+     * Get the server address that the player content is from
+     * @return Content's server address
      */
     public String getServerAddress();
     /**
-     * Get the sender port of the player content
-     * @return Content's sender port
+     * Get the server port that the player content is from
+     * @return Content's server port
      */
     public int getServerPort();
+    /**
+     *  Get the content's server information in $address:$port format
+     * @return Content's server information in $address:$port format
+     */
+    public String getServerAddressPort();
     /**
      * Get the stat packets.  This does not include the match information
      * @return Collection of player packets
