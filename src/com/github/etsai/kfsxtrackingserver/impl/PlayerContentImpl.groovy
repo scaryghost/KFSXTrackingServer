@@ -16,15 +16,15 @@ import com.github.etsai.kfsxtrackingserver.PlayerContent.Match
  */
 public class PlayerContentImpl implements PlayerContent {
     private def packets, steamID64, matchInfo, maxSeqNo,
-            senderAddress, senderPort
+            serverAddress, serverPort
     
     @Override
-    public String getSenderAddress() {
-        return senderAddress
+    public String getServerAddress() {
+        return serverAddress
     }
     @Override
-    public int getSenderPort() {
-        return senderPort
+    public int getServerPort() {
+        return serverPort
     }
     @Override
     public Collection<PlayerPacket> getPackets() {
@@ -52,12 +52,12 @@ public class PlayerContentImpl implements PlayerContent {
             packets= []
             steamID64= packet.getSteamID64()
             maxSeqNo= packet.getSeqNo()
-            senderAddress= packet.getSenderAddress()
-            senderPort= packet.getSenderPort()
+            serverAddress= packet.getSenderAddress()
+            serverPort= packet.getSenderPort()
         } else {
             def senderAttrs= [packet.getSteamID64(), packet.getSenderAddress(), packet.getSenderPort()]
-            if (steamID64 != senderAttrs[0] || senderAddress != senderAttrs[1] || senderPort != senderAttrs[2]) {
-                throw new InvalidPacketIDException("Player content mismatch.  Expecting: ${[steamID64, senderAddress, senderPort]}, recieved: ${senderAttrs}")
+            if (steamID64 != senderAttrs[0] || serverAddress != senderAttrs[1] || serverPort != senderAttrs[2]) {
+                throw new InvalidPacketIDException("Player content mismatch.  Expecting: ${[steamID64, serverAddress, serverPort]}, recieved: ${senderAttrs}")
             } else if (packets[packet.getSeqNo()] != null || (packet.isClose() && matchInfo != null)) {
                 throw new InvalidPacketIDException("Player content already received packet for seqNo: ${packet.getSeqNo()}")
             }

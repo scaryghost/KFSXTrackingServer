@@ -40,12 +40,12 @@ public interface PlayerContent {
      * Get the sender address of the player content
      * @return Content's sender address
      */
-    public String getSenderAddress();
+    public String getServerAddress();
     /**
      * Get the sender port of the player content
      * @return Content's sender port
      */
-    public int getSenderPort();
+    public int getServerPort();
     /**
      * Get the stat packets.  This does not include the match information
      * @return Collection of player packets
