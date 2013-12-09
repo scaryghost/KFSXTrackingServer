@@ -28,7 +28,12 @@ class MatchStatUnitTest {
     // @Test
     // public void hello() {}
     private def buildPacket(def statStr) {
-        new PacketParser(password).parse("$header|$category|Hell on Earth|Medium|2|kf-icebreaker|$statStr|_close")
+        new PacketParser(password).parse("$header|7707|$category|2|$statStr|_close")
+    }
+    @Test
+    public void checkPort() {
+        def matchPacket= buildPacket("")
+        assertEquals(matchPacket.getServerPort(), 7707)
     }
     @Test
     public void checkBlankAttributes() {
@@ -38,8 +43,7 @@ class MatchStatUnitTest {
     @Test
     public void checkStats() {
         def matchPacket= buildPacket("Clot=33,Gorefast=9,Crawler=9,Stalker=5,Bloat=1")
-        def stats= [Clot:33, Gorefast:9, Crawler:9, Stalker:5, Bloat:1]
-        assertEquals(matchPacket.getStats(), stats)
+        assertEquals(matchPacket.getStats(), [Clot:33, Gorefast:9, Crawler:9, Stalker:5, Bloat:1])
     }
     @Test
     public void checkBlankStats() {

@@ -28,39 +28,29 @@ class MatchPacketUnitTest {
     // @Test
     // public void hello() {}
     private def buildPacket() {
-        new PacketParser(password).parse("$header|result|Hell on Earth|Medium|2|kf-icebreaker|305|1|_close")
+        new PacketParser(password).parse("$header|7707|kills|1|Bloat=1,Clot=10")
     }
     @Test
-    public void checkDifficulty() {
+    public void checkPort() {
         def matchPacket= buildPacket()
-        assertEquals(matchPacket.getDifficulty(), "Hell on Earth")
-    }
-    @Test
-    public void checkLength() {
-        def matchPacket= buildPacket()
-        assertEquals(matchPacket.getLength(), "Medium")
-    }
-    @Test
-    public void checkLevel() {
-        def matchPacket= buildPacket()
-        assertEquals(matchPacket.getLevel(), "kf-icebreaker")
+        assertEquals(matchPacket.getServerPort(), 7707)
     }
     @Test
     public void checkWave() {
         def matchPacket= buildPacket()
-        assertEquals(matchPacket.getWave(), 2)
+        assertEquals(matchPacket.getWave(), 1)
     }
     @Test
     public void checkCategory() {
         def matchPacket= buildPacket()
-        assertEquals(matchPacket.getCategory(), "result")
+        assertEquals(matchPacket.getCategory(), "kills")
     }
     @Test(expected= InvalidPacketFormatException.class)
     public void invalidWave() {
-        def matchPacket= new PacketParser(password).parse("$header|result|Hell on Earth|Medium|abcd|kf-icebreaker|305|1|_close")
+        def matchPacket= new PacketParser(password).parse("$header|7707|kills|abcd|Bloat=1,Clot=10")
     }
     @Test(expected= InvalidPacketFormatException.class)
     public void invalidNumParts() {
-        def matchPacket= new PacketParser(password).parse("$header|result|kf-icebreaker|_close")
+        def matchPacket= new PacketParser(password).parse("$header|7707|killsBloat=1,Clot=10")
     }
 }

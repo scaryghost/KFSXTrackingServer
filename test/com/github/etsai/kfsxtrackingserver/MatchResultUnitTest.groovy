@@ -28,7 +28,12 @@ public class MatchResultUnitTest {
     // @Test
     // public void hello() {}
     private def buildPacket(def result) {
-        new PacketParser(password).parse("$header|result|Hell on Earth|Medium|2|kf-icebreaker|305|$result|_close")
+        new PacketParser(password).parse("$header|7707|result|2|305|$result|_close")
+    }
+    @Test
+    public void checkPort() {
+        def matchPacket= buildPacket("2")
+        assertEquals(matchPacket.getServerPort(), 7707)
     }
     @Test
     public void checkWin() {

@@ -20,7 +20,7 @@ public class PlayerStatUnitTest {
 
     private final def header
     public PlayerStatUnitTest() {
-        header= "$PROTOCOL,$VERSION,$password"
+        header= "$PROTOCOL,$VERSION,$password|7707"
     }
 
     private def buildPacket() {

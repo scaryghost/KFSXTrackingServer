@@ -4,11 +4,9 @@
  */
 package com.github.etsai.kfsxtrackingserver;
 
+import com.github.etsai.kfsxtrackingserver.PacketParser.MatchPacket
+import com.github.etsai.kfsxtrackingserver.PacketParser.PlayerPacket
 import com.github.etsai.kfsxtrackingserver.PacketParser.InvalidPacketFormatException
-import org.junit.After
-import org.junit.AfterClass
-import org.junit.Before
-import org.junit.BeforeClass
 import org.junit.Test
 
 /**
@@ -23,21 +21,6 @@ public class PacketParserUnitTest {
         parser= new PacketParser(password);
     }
     
-    @BeforeClass
-    public static void setUpClass() {
-    }
-    
-    @AfterClass
-    public static void tearDownClass() {
-    }
-    
-    @Before
-    public void setUp() {
-    }
-    
-    @After
-    public void tearDown() {
-    }
     // TODO add test methods here.
     // The methods must be annotated with annotation @Test. For example:
     //
@@ -45,32 +28,36 @@ public class PacketParserUnitTest {
     // public void hello() {}
     
     @Test(expected= InvalidPacketFormatException.class)
-    public void invalidPassword() {
-        String msg= "kfstatsx-match,2,invalidpwd|result|Hell on Earth|Long|3|kf-offices|501|1|_close"
+    public void invalidPort() {
+        String msg= "${MatchPacket.PROTOCOL},${MatchPacket.VERSION},$password|707ab|result|Hell on Earth|Long|3|kf-offices|501|1|_close"
         parser.parse(msg)
     }
-    
+    @Test(expected= InvalidPacketFormatException.class)
+    public void invalidPassword() {
+        String msg= "${MatchPacket.PROTOCOL},${MatchPacket.VERSION},invalidpwd|7707|result|Hell on Earth|Long|3|kf-offices|501|1|_close"
+        parser.parse(msg)
+    }
     @Test(expected= InvalidPacketFormatException.class)
     public void invalidProtocol() {
-        String msg= "kfstatsx-invalidprotocol,2,invalidpwd|result|Hell on Earth|Long|3|kf-offices|501|1|_close"
+        String msg= "kfstatsx-invalidprotocol,${MatchPacket.VERSION},invalidpwd|7707|result|Hell on Earth|Long|3|kf-offices|501|1|_close"
         parser.parse(msg)
     }
     
     @Test(expected= InvalidPacketFormatException.class)
     public void invalidMatchVersion() {
-        String msg= "kfstatsx-match,1,invalidpwd|result|Hell on Earth|Long|3|kf-offices|501|1|_close"
+        String msg= "${MatchPacket.PROTOCOL},${MatchPacket.VERSION - 1},invalidpwd|7707|result|Hell on Earth|Long|3|kf-offices|501|1|_close"
         parser.parse(msg)
     }
     
     @Test(expected= InvalidPacketFormatException.class)
     public void invalidPlayerVersion() {
-        String msg= "kfstatsx-player,1,server|1364787|0|summary|Time Alive=417"
+        String msg= "${PlayerPacket.PROTOCOL},${PlayerPacket.VERSION - 1},server|7707|1364787|0|summary|Time Alive=417"
         parser.parse(msg)
     }
     
     @Test(expected= InvalidPacketFormatException.class)
     public void invalidHeader() {
-        String msg= "kfstatsx-player|1364787|0|summary|Time Alive=417"
+        String msg= "${PlayerPacket.PROTOCOL}|7707|1364787|0|summary|Time Alive=417"
         parser.parse(msg)
     }
 }

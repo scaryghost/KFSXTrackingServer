@@ -19,14 +19,14 @@ public class PlayerPacketUnitTest {
 
     private final def header
     public PlayerPacketUnitTest() {
-        header= "$PROTOCOL,$VERSION,$password"
+        header= "$PROTOCOL,$VERSION,$password|7707"
     }
     
     private def getPlayerStatPacket(steamID64) {
         new PacketParser(password).parse("$header|$steamID64|1|weapons|FlameThrower=206,Katana=21,MKb42=110")
     }
     private def getPlayerMatchPacket() {
-        new PacketParser(password).parse("$header|1364787|6|match|kf-icebreaker|Hell on Earth|Medium|1|2|0|0|305|_close")
+        new PacketParser(password).parse("$header|1364787|6|match|1|2|0|0|305|_close")
     }
     
     @Test
@@ -45,14 +45,9 @@ public class PlayerPacketUnitTest {
         assertEquals(playerPacket.isClose(), true)
     }
     @Test
-    public void checkLinuxSteamID64() {
+    public void checkSteamID64() {
         def playerPacket= getPlayerStatPacket(1364787)
-        assertEquals(playerPacket.getSteamID64(), "76561197961630515")
-    }
-    @Test
-    public void checkWindowsSteamID64() {
-        def playerPacket= getPlayerStatPacket("76561197961630515")
-        assertEquals(playerPacket.getSteamID64(), "76561197961630515")
+        assertEquals(playerPacket.getSteamID64(), "1364787")
     }
     @Test
     public void checkCategory() {

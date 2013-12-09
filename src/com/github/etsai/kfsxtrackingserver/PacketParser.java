@@ -40,6 +40,13 @@ public class PacketParser {
         public InvalidPacketFormatException(String msg) {
             super(msg);
         }
+        /**
+         * Typecast another throwable into an InvalidPacketFormatException
+         * @param cause Another throwable that triggered an exception
+         */
+        public InvalidPacketFormatException(Throwable cause) {
+            super(cause);
+        }
     }
     
     /**
@@ -219,7 +226,7 @@ public class PacketParser {
                     throw new InvalidPacketFormatException(String.format("Unrecognized packet protocol: %s", header[0]));
             }
         } catch (NumberFormatException | ArrayIndexOutOfBoundsException ex) {
-            throw new InvalidPacketFormatException(ex.getMessage());
+            throw new InvalidPacketFormatException(ex);
         }
         return packet;
         
