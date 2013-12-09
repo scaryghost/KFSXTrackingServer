@@ -28,7 +28,6 @@ public class PacketParser {
         DISCONNECT
     }
     
-    
     /**
      * Exception signaling that the received packet did not match the expected format
      * @author etsai
@@ -88,36 +87,11 @@ public class PacketParser {
         /** Protocol name for match statistics */ 
         public final static String PROTOCOL= "kfstatsx-match";
         /** Current protocol version */
-        public final static int VERSION= 2;
-        
-        /**
-         * Get the difficulty the information relates to.  Difficulty should be one of :
-         * <ul>
-         * <li>Hell on Earth</li>
-         * <li>Suicidal</li>
-         * <li>Hard</li>
-         * <li>Normal</li>
-         * <li>Beginner</li>
-         * </ul>
-         * @return The difficulty the packet is holding statistics for
-         */
-        public String getDifficulty();
-        /**
-         * Get the game length the information relates to.  Length should be one of :
-         * <ul>
-         * <li>Long</li>
-         * <li>Medium</li>
-         * <li>Short</li>
-         * <li>Custom</li>
-         * </ul>
-         * @return The game length the packet is holding statistics for
-         */
-        public String getLength();
-        /**
-         * Get the name of the level the information relates to.
-         * @return The level name the packet is holding statistics for
-         */
-        public String getLevel();
+        public final static int VERSION= 3;
+
+        public final static String ATTR_DIFFICULTY= "difficulty";
+        public final static String ATTR_LENGTH= "length";
+        public final static String ATTR_MAP= "map";
         /**
          * Get the wave number the match information relates to
          * @return Wave number of the match
@@ -132,7 +106,7 @@ public class PacketParser {
         /** Protocol name for player statistics */ 
         public final static String PROTOCOL= "kfstatsx-player";
         /** Current protocol version */
-        public final static int VERSION= 2;
+        public final static int VERSION= 3;
         
         /**
          * Get the sequence number of the packet.  Player packets are stored grouped together 
@@ -153,8 +127,8 @@ public class PacketParser {
     }
     
     private interface PacketBuilder {
-        public PlayerPacket buildPlayerPacket(String[] header, String[] parts);
-        public MatchPacket buildMatchPacket(String[] header, String[] parts);
+        public PlayerPacket buildPlayerPacket(String[] parts);
+        public MatchPacket buildMatchPacket(String[] parts);
     }
     
     private class SenderPacketBuilder implements PacketBuilder {
@@ -165,24 +139,22 @@ public class PacketParser {
         }
         
         @Override
-        public PlayerPacket buildPlayerPacket(String[] header, String[] parts) {
-            Integer serverPort= header.length >= 4 ? Integer.valueOf(header[3]) : null;
-            return new PlayerPacketImpl(parts, senderAddress, serverPort);
+        public PlayerPacket buildPlayerPacket(String[] parts) {
+            return new PlayerPacketImpl(parts, senderAddress);
         }
         @Override
-        public MatchPacket buildMatchPacket(String[] header, String[] parts) {
-            Integer serverPort= header.length >= 4 ? Integer.valueOf(header[3]) : null;
-            return new MatchPacketImpl(parts, senderAddress, serverPort);
+        public MatchPacket buildMatchPacket(String[] parts) {
+            return new MatchPacketImpl(parts, senderAddress);
         }
     }
     
     private class NoSenderPacketBuilder implements PacketBuilder {
         @Override
-        public PlayerPacket buildPlayerPacket(String[] header, String[] parts) {
+        public PlayerPacket buildPlayerPacket(String[] parts) {
             return new PlayerPacketImpl(parts);
         }
         @Override
-        public MatchPacket buildMatchPacket(String[] header, String[] parts) {
+        public MatchPacket buildMatchPacket(String[] parts) {
             return new MatchPacketImpl(parts);
         }
     }
@@ -234,14 +206,14 @@ public class PacketParser {
                         throw new InvalidPacketFormatException(String.format("Wrong protocol version for player packet.  Read %s, expecting %d", 
                                 header[1], PlayerPacket.VERSION));
                     }
-                    packet= pBuilder.buildPlayerPacket(header, parts);
+                    packet= pBuilder.buildPlayerPacket(parts);
                     break;
                 case MatchPacket.PROTOCOL:
                     if (Integer.valueOf(header[1])!= MatchPacket.VERSION) {
                         throw new InvalidPacketFormatException(String.format("Wrong protocol version for match packet.  Read %s, expecting %d", 
                                 header[1], MatchPacket.VERSION));
                     }
-                    packet= pBuilder.buildMatchPacket(header, parts);
+                    packet= pBuilder.buildMatchPacket(parts);
                     break;
                 default:
                     throw new InvalidPacketFormatException(String.format("Unrecognized packet protocol: %s", header[0]));

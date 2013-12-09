@@ -22,44 +22,38 @@ public class PlayerPacketImpl implements PlayerPacket {
     private final def steamID64, category, seqNo, close, stats, attrs,
             serverAddress, serverPort
     
-    public PlayerPacketImpl(String[] parts, String serverAddress, Integer serverPort) throws InvalidPacketFormatException {
-        this.serverAddress= serverAddress
-        this.serverPort= serverPort
+    public PlayerPacketImpl(String[] parts, String serverAddress) throws InvalidPacketFormatException {
         try {
-            def idLong= parts[1].toLong()
-            if (parts[1].length() < 17) {
-                steamID64= (idLong + linuxOffset).toString()
-            } else {
-                steamID64= parts[1]
-            }
-            category= parts[3]
-            seqNo= parts[2].toInteger()
+            serverAddress= serverAddress
+            serverPort= parts[1].toInteger()
+            steamID64= parts[2]
+            seqNo= parts[3].toInteger()
+            category= parts[4]
             close= parts.last() == "_close"
             stats= [:]
             attrs= [:]
 
             if (category == matchCategory) {
-                attrs= [level: parts[4].toLowerCase(), difficulty: parts[5], length: parts[6], 
-                    wave: parts[8].toInteger(), finalWave: parts[9].toInteger(), duration: parts[11].toInteger()]
+                attrs= [wave: parts[6].toInteger(), finalWave: parts[7].toInteger(), duration: parts[9].toInteger()]
 
-                attrs["finalWaveSurvived"]= attrs.finalWave != 0 ? parts[10].toInteger() : 0
-                switch(parts[7]) {
+                attrs["finalWaveSurvived"]= attrs.finalWave != 0 ? parts[8].toInteger() : 0
+                switch(parts[5]) {
                     case "0":
-                        attrs["result"]= Result.DISCONNECT
+                        attrs.result= Result.DISCONNECT
                         break
                     case "1":
-                        attrs["result"]= Result.LOSS
+                        attrs.result= Result.LOSS
                         break
                     case "2":
-                        attrs["result"]= Result.WIN
+                        attrs.result= Result.WIN
                         break
                     default:
-                        throw new InvalidPacketFormatException("Unrecognized result: ${parts[7]}")
+                        throw new InvalidPacketFormatException("Unrecognized result: ${parts[5]}")
                 }
 
             } else {
-                if (parts.size() >= 5) {
-                    parts[4].tokenize(",").each {
+                if (parts.size() >= 6) {
+                    parts[5].tokenize(",").each {
                         def statParts= it.tokenize("=")
                         stats[statParts[0]]= statParts[1].toInteger()
                     }
@@ -73,7 +67,7 @@ public class PlayerPacketImpl implements PlayerPacket {
      * Constructs object given the pipe separated string of stat information
      */
     public PlayerPacketImpl(String[] parts) throws InvalidPacketFormatException {
-        this(parts, null, null)
+        this(parts, null)
     }
     
     /**
@@ -114,7 +108,7 @@ public class PlayerPacketImpl implements PlayerPacket {
      */
     @Override
     public String toString() {
-        return [steamID64, category, seqNo, close, stats, attrs]
+        return [steamID64, category, seqNo, close, stats, attrs, serverAddress, serverPort]
     }
 
     @Override
