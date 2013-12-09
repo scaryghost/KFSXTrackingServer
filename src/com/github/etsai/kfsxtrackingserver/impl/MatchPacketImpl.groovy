@@ -46,9 +46,11 @@ public class MatchPacketImpl implements MatchPacket {
                 break
             default:
                 wave= parts[3].toInteger()
-                parts[4].tokenize(",").each {
-                    def statParts= it.tokenize("=")
-                    stats[statParts[0]]= statParts[1].toInteger()
+                if (parts.size() >= 5) {
+                    parts[4].tokenize(",").each {
+                        def statParts= it.tokenize("=")
+                        stats[statParts[0]]= statParts[1].toInteger()
+                    }
                 }
                 break
         }

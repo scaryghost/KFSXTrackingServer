@@ -28,7 +28,7 @@ class MatchStatUnitTest {
     // @Test
     // public void hello() {}
     private def buildPacket(def statStr) {
-        new PacketParser(password).parse("$header|7707|$category|2|$statStr|_close")
+        new PacketParser(password).parse("$header|7707|$category|2|$statStr")
     }
     @Test
     public void checkPort() {
