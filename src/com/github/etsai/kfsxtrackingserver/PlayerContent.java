@@ -18,7 +18,6 @@ public interface PlayerContent {
      * @author etsai
      */
     public class Match {
-        public String level, difficulty, length;
         public int wave, duration;
         public byte finalWave, finalWaveSurvived;
         public Result result;
