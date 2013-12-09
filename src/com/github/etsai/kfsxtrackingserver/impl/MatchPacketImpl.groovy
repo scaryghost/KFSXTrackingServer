@@ -17,46 +17,43 @@ public class MatchPacketImpl implements MatchPacket {
     private final def difficulty, length, level, wave, attrs, stats, 
             category, serverAddress, serverPort
     
-    public MatchPacketImpl(String[] parts, String serverAddress) throws InvalidPacketFormatException {
-        try {
-            serverAddress= serverAddress
-            serverPort= parts[1].toInteger()
-            wave= parts[3].toInteger()
-            category= parts[2]
-            attrs= [:]
-            stats= [:]
+    public MatchPacketImpl(String[] parts, String serverAddress) {
+        serverAddress= serverAddress
+        serverPort= parts[1].toInteger()
+        category= parts[2]
+        attrs= [:]
+        stats= [:]
 
-            switch(category) {
-                case "info":
-                    attrs[MatchPacket.ATTR_DIFFICULTY]= parts[3]
-                    attrs[MatchPacket.ATTR_LENGTH]= parts[4]
-                    attrs[MatchPacket.ATTR_MAP]= parts[5]
-                    break
-                case "result":
-                    attrs.duration= parts[4].toInteger()
-                    switch (parts[5]) {
-                        case "1":
-                            attrs.result= Result.LOSS
-                            break
-                        case "2":
-                            attrs.result= Result.WIN
-                            break
-                        default:
-                            throw new InvalidPacketFormatException("Unrecognized result value: ${parts[5]}")
-                    }
-                    break
-                default:
-                    parts[4].tokenize(",").each {
-                        def statParts= it.tokenize("=")
-                        stats[statParts[0]]= statParts[1].toInteger()
-                    }
-                    break
-            }
-        } catch (NumberFormatException | ArrayIndexOutOfBoundsException ex) {
-            throw new InvalidPacketFormatException(ex.getMessage())
+        switch(category) {
+            case "info":
+                attrs[MatchPacket.ATTR_DIFFICULTY]= parts[3]
+                attrs[MatchPacket.ATTR_LENGTH]= parts[4]
+                attrs[MatchPacket.ATTR_MAP]= parts[5]
+                break
+            case "result":
+                wave= parts[3].toInteger()
+                attrs.duration= parts[4].toInteger()
+                switch (parts[5]) {
+                    case "1":
+                        attrs.result= Result.LOSS
+                        break
+                    case "2":
+                        attrs.result= Result.WIN
+                        break
+                    default:
+                        throw new InvalidPacketFormatException("Unrecognized result value: ${parts[5]}")
+                }
+                break
+            default:
+                wave= parts[3].toInteger()
+                parts[4].tokenize(",").each {
+                    def statParts= it.tokenize("=")
+                    stats[statParts[0]]= statParts[1].toInteger()
+                }
+                break
         }
     }
-    public MatchPacketImpl(String[] parts) throws InvalidPacketFormatException {
+    public MatchPacketImpl(String[] parts) {
         this(parts, null)
     }
     public String getCategory() {

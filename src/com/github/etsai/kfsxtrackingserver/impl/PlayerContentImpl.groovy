@@ -56,12 +56,12 @@ public class PlayerContentImpl implements PlayerContent {
             packets= []
             steamID64= packet.getSteamID64()
             maxSeqNo= packet.getSeqNo()
-            serverAddress= packet.getSenderAddress()
-            serverPort= packet.getSenderPort()
+            serverAddress= packet.getServerAddress()
+            serverPort= packet.getServerPort()
         } else {
-            def senderAttrs= [packet.getSteamID64(), packet.getSenderAddress(), packet.getSenderPort()]
-            if (steamID64 != senderAttrs[0] || serverAddress != senderAttrs[1] || serverPort != senderAttrs[2]) {
-                throw new InvalidPacketIDException("Player content mismatch.  Expecting: ${[steamID64, serverAddress, serverPort]}, recieved: ${senderAttrs}")
+            def serverInfo= [packet.getSteamID64(), packet.getServerAddress(), packet.getServerPort()]
+            if (steamID64 != serverInfo[0] || serverAddress != serverInfo[1] || serverPort != serverInfo[2]) {
+                throw new InvalidPacketIDException("Player content mismatch.  Expecting: ${[steamID64, serverAddress, serverPort]}, recieved: ${serverInfo}")
             } else if (packets[packet.getSeqNo()] != null || (packet.isClose() && matchInfo != null)) {
                 throw new InvalidPacketIDException("Player content already received packet for seqNo: ${packet.getSeqNo()}")
             }

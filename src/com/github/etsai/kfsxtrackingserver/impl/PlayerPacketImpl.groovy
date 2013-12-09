@@ -22,51 +22,47 @@ public class PlayerPacketImpl implements PlayerPacket {
     private final def steamID64, category, seqNo, close, stats, attrs,
             serverAddress, serverPort
     
-    public PlayerPacketImpl(String[] parts, String serverAddress) throws InvalidPacketFormatException {
-        try {
-            serverAddress= serverAddress
-            serverPort= parts[1].toInteger()
-            steamID64= parts[2]
-            seqNo= parts[3].toInteger()
-            category= parts[4]
-            close= parts.last() == "_close"
-            stats= [:]
-            attrs= [:]
+    public PlayerPacketImpl(String[] parts, String serverAddress) {
+        serverAddress= serverAddress
+        serverPort= parts[1].toInteger()
+        steamID64= parts[2]
+        seqNo= parts[3].toInteger()
+        category= parts[4]
+        close= parts.last() == "_close"
+        stats= [:]
+        attrs= [:]
 
-            if (category == matchCategory) {
-                attrs= [wave: parts[6].toInteger(), finalWave: parts[7].toInteger(), duration: parts[9].toInteger()]
+        if (category == matchCategory) {
+            attrs= [wave: parts[6].toInteger(), finalWave: parts[7].toInteger(), duration: parts[9].toInteger()]
 
-                attrs.finalWaveSurvived= attrs.finalWave != 0 ? parts[8].toInteger() : 0
-                switch(parts[5]) {
-                    case "0":
-                        attrs.result= Result.DISCONNECT
-                        break
-                    case "1":
-                        attrs.result= Result.LOSS
-                        break
-                    case "2":
-                        attrs.result= Result.WIN
-                        break
-                    default:
-                        throw new InvalidPacketFormatException("Unrecognized result: ${parts[5]}")
-                }
+            attrs.finalWaveSurvived= attrs.finalWave != 0 ? parts[8].toInteger() : 0
+            switch(parts[5]) {
+                case "0":
+                    attrs.result= Result.DISCONNECT
+                    break
+                case "1":
+                    attrs.result= Result.LOSS
+                    break
+                case "2":
+                    attrs.result= Result.WIN
+                    break
+                default:
+                    throw new InvalidPacketFormatException("Unrecognized result: ${parts[5]}")
+            }
 
-            } else {
-                if (parts.size() >= 6) {
-                    parts[5].tokenize(",").each {
-                        def statParts= it.tokenize("=")
-                        stats[statParts[0]]= statParts[1].toInteger()
-                    }
+        } else {
+            if (parts.size() >= 6) {
+                parts[5].tokenize(",").each {
+                    def statParts= it.tokenize("=")
+                    stats[statParts[0]]= statParts[1].toInteger()
                 }
             }
-        } catch (NumberFormatException | ArrayIndexOutOfBoundsException ex) {
-            throw new InvalidPacketFormatException(ex.getMessage())
         }
     }
     /**
      * Constructs object given the pipe separated string of stat information
      */
-    public PlayerPacketImpl(String[] parts) throws InvalidPacketFormatException {
+    public PlayerPacketImpl(String[] parts) {
         this(parts, null)
     }
     
