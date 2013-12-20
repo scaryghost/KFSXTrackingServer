@@ -9,6 +9,7 @@ import com.github.etsai.kfsxtrackingserver.Common
 import com.github.etsai.kfsxtrackingserver.DataWriter
 import com.github.etsai.kfsxtrackingserver.PacketParser.Result
 import com.github.etsai.kfsxtrackingserver.PacketParser.MatchPacket
+import static com.github.etsai.kfsxtrackingserver.PacketParser.*
 import com.github.etsai.kfsxtrackingserver.PacketParser.PlayerPacket
 import com.github.etsai.kfsxtrackingserver.PlayerContent
 import groovy.sql.Sql
@@ -25,7 +26,7 @@ public class SQLiteWriter implements DataWriter {
             from difficulty d, level l where d.name=? and d.length=? and l.name=?"""
     private static def wavedataSqlUpdate= """update wave_data set value= value + ? where stat=? and category=? and wave=? and difficulty_id=(select id from 
             difficulty where name=? and length=?) and level_id=(select id from level where name=?)"""
-    public static def waveCompletedCategory= "completed"
+    public static def waveCompletedCategory= "completed", perksCategory= "perks"
     
     private final def sql
     
@@ -59,41 +60,58 @@ public class SQLiteWriter implements DataWriter {
         def key= packet.getServerAddressPort()
         def state= matchState[key]
         
-        if (category == "info") {
-            matchState[key]= packet.getAttributes()
-        } else if (category == "result") {
-            def attrs= packet.getAttributes()
-            def wins= (attrs.result == Result.WIN) ? 1 : 0
-            def losses= (attrs.result == Result.LOSS) ? 1 : 0
+        switch (category) {
+            case "info":
+                matchState[key]= packet.getAttributes()
+                break
+            case "result":
+                def attrs= packet.getAttributes()
+                def wins= (attrs.result == Result.WIN) ? 1 : 0
+                def losses= (attrs.result == Result.LOSS || attrs.result == Result.MID_GAME_VOTE) ? 1 : 0
 
-            sql.withTransaction {
-                sql.execute("insert or ignore into difficulty (name, length) values(?, ?)", 
-                    [state[MatchPacket.ATTR_DIFFICULTY], state[MatchPacket.ATTR_LENGTH]])
-                sql.execute("update difficulty set wins= wins + ?, losses= losses + ?, wave_sum= wave_sum + ?, time= time + ? where name= ? and length= ?", 
-                    [wins, losses, packet.getWave(), attrs.duration, state[MatchPacket.ATTR_DIFFICULTY], state[MatchPacket.ATTR_LENGTH]])
-                sql.execute("insert or ignore into level (name) values(?)", [state[MatchPacket.ATTR_MAP]])
-                sql.execute("update level set wins= wins + ?, losses= losses + ?, time= time + ? where name=?", 
-                    [wins, losses, attrs.duration, state[MatchPacket.ATTR_MAP]])
-                sql.execute("insert or ignore into level_difficulty_join (difficulty_id, level_id) select d.id, l.id from difficulty d, level l where d.name=? and d.length=? and l.name=?",
-                    [state[MatchPacket.ATTR_DIFFICULTY], state[MatchPacket.ATTR_LENGTH], state[MatchPacket.ATTR_MAP]])
-                sql.execute("""update level_difficulty_join set wins= wins + ?, losses= losses + ?, wave_sum= wave_sum + ?, time= time + ? where 
-                    difficulty_id=(select id from  difficulty where name=? and length=?) and level_id=(select id from level where name=?)""",
-                    [wins, losses, packet.getWave(), attrs.duration, state[MatchPacket.ATTR_DIFFICULTY], state[MatchPacket.ATTR_LENGTH], state[MatchPacket.ATTR_MAP]])
-                (1 ..< packet.getWave()).each {waveNum ->
-                    def stat= "${state[MatchPacket.ATTR_DIFFICULTY]}, ${state[MatchPacket.ATTR_LENGTH]}"
-                    sql.execute(wavedataSqlInsert, [waveNum, waveCompletedCategory, stat, state[MatchPacket.ATTR_DIFFICULTY], state[MatchPacket.ATTR_LENGTH], state[MatchPacket.ATTR_MAP]])
-                    sql.execute(wavedataSqlUpdate, [1, stat, waveCompletedCategory, waveNum, state[MatchPacket.ATTR_DIFFICULTY], state[MatchPacket.ATTR_LENGTH], state[MatchPacket.ATTR_MAP]])
+                sql.withTransaction {
+                    sql.execute("insert or ignore into difficulty (name, length) values(?, ?)", 
+                        [state[ATTR_DIFFICULTY], state[ATTR_LENGTH]])
+                    sql.execute("update difficulty set wins= wins + ?, losses= losses + ?, wave_sum= wave_sum + ?, time= time + ? where name= ? and length= ?", 
+                        [wins, losses, packet.getWave(), attrs.duration, state[ATTR_DIFFICULTY], state[ATTR_LENGTH]])
+                    sql.execute("insert or ignore into level (name) values(?)", [state[ATTR_MAP]])
+                    sql.execute("update level set wins= wins + ?, losses= losses + ?, time= time + ? where name=?", 
+                        [wins, losses, attrs.duration, state[ATTR_MAP]])
+                    sql.execute("insert or ignore into level_difficulty_join (difficulty_id, level_id) select d.id, l.id from difficulty d, level l where d.name=? and d.length=? and l.name=?",
+                        [state[ATTR_DIFFICULTY], state[ATTR_LENGTH], state[ATTR_MAP]])
+                    sql.execute("""update level_difficulty_join set wins= wins + ?, losses= losses + ?, wave_sum= wave_sum + ?, time= time + ? where 
+                        difficulty_id=(select id from  difficulty where name=? and length=?) and level_id=(select id from level where name=?)""",
+                        [wins, losses, packet.getWave(), attrs.duration, state[ATTR_DIFFICULTY], state[ATTR_LENGTH], state[ATTR_MAP]])
                 }
-            }
-        } else {
-            sql.withTransaction {
-                sql.execute("insert or ignore into difficulty (name, length) values(?, ?)", [state[MatchPacket.ATTR_DIFFICULTY], state[MatchPacket.ATTR_LENGTH]])
-                sql.execute("insert or ignore into level (name) values(?)", [state[MatchPacket.ATTR_MAP]])
-                packet.getStats().each {stat, value ->
-                    sql.execute(wavedataSqlInsert, [packet.getWave(), category, stat, state[MatchPacket.ATTR_DIFFICULTY], state[MatchPacket.ATTR_LENGTH], state[MatchPacket.ATTR_MAP]])
-                    sql.execute(wavedataSqlUpdate, [value, stat, category, packet.getWave(), state[MatchPacket.ATTR_DIFFICULTY], state[MatchPacket.ATTR_LENGTH], state[MatchPacket.ATTR_MAP]])
+                break
+            case "wave":
+                def attrs= packet.getAttributes()
+                switch (attrs.type) {
+                    case "summary":
+                        sql.withTransaction {
+                            if (attrs.completed) {
+                                def stat= "${state[ATTR_DIFFICULTY]}, ${state[ATTR_LENGTH]}"
+                                sql.execute(wavedataSqlInsert, [packet.getWave(), waveCompletedCategory, stat, state[ATTR_DIFFICULTY], state[ATTR_LENGTH], state[ATTR_MAP]])
+                                sql.execute(wavedataSqlUpdate, [1, stat, waveCompletedCategory, packet.getWave(), state[ATTR_DIFFICULTY], state[ATTR_LENGTH], state[ATTR_MAP]])
+                            }
+                            packet.getStats().each {stat, value ->
+                                sql.execute(wavedataSqlInsert, [packet.getWave(), perksCategory, stat, state[ATTR_DIFFICULTY], state[ATTR_LENGTH], state[ATTR_MAP]])
+                                sql.execute(wavedataSqlUpdate, [value, stat, perksCategory.type, packet.getWave(), state[ATTR_DIFFICULTY], state[ATTR_LENGTH], state[ATTR_MAP]])
+                            }
+                        }
+                        break
+                    default:
+                        sql.withTransaction {
+                            sql.execute("insert or ignore into difficulty (name, length) values(?, ?)", [state[ATTR_DIFFICULTY], state[ATTR_LENGTH]])
+                            sql.execute("insert or ignore into level (name) values(?)", [state[ATTR_MAP]])
+                            packet.getStats().each {stat, value ->
+                                sql.execute(wavedataSqlInsert, [packet.getWave(), attrs.type, stat, state[ATTR_DIFFICULTY], state[ATTR_LENGTH], state[ATTR_MAP]])
+                                sql.execute(wavedataSqlUpdate, [value, stat, attrs.type, packet.getWave(), state[ATTR_DIFFICULTY], state[ATTR_LENGTH], state[ATTR_MAP]])
+                            }
+                        }
+                        break
                 }
-            }
+                break
         }
     }
     
@@ -106,7 +124,7 @@ public class SQLiteWriter implements DataWriter {
             
             def matchInfo= content.getMatchInfo()
             Common.logger.finer("Match data= $matchInfo")
-            sql.execute("insert or ignore into level (name) values(?)", [state[MatchPacket.ATTR_MAP]])
+            sql.execute("insert or ignore into level (name) values(?)", [state[ATTR_MAP]])
             sql.execute("insert or ignore into record (steamid64) values (?);", [steamID64])
             sql.execute("""update record set wins= wins + ?, losses= losses + ?, disconnects= disconnects + ?, 
                 finales_survived= finales_survived + ?, finales_played= finales_played + ?, time= time + ? where steamid64=?""", 
@@ -114,7 +132,7 @@ public class SQLiteWriter implements DataWriter {
                 matchInfo.result == Result.DISCONNECT ? 1 : 0, matchInfo.finalWaveSurvived, matchInfo.finalWave, matchInfo.duration, steamID64])
             sql.execute("""insert into match_history (record_id, level_id, difficulty_id, result, wave, duration) select r.id,l.id,d.id,?,?,? from record r, 
                     difficulty d, level l where l.name=? and r.steamid64=? and d.name=? and d.length=?""",
-                [matchInfo.result.toString().toLowerCase(), matchInfo.wave, matchInfo.duration, state[MatchPacket.ATTR_MAP], steamID64, state[MatchPacket.ATTR_DIFFICULTY], state[MatchPacket.ATTR_LENGTH]])
+                [matchInfo.result.toString().toLowerCase(), matchInfo.wave, matchInfo.duration, state[ATTR_MAP], steamID64, state[ATTR_DIFFICULTY], state[ATTR_LENGTH]])
             
             content.getPackets().each {packet ->
                 Common.logger.finer("Player data= $packet")

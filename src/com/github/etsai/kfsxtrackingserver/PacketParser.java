@@ -20,6 +20,8 @@ public class PacketParser {
      * @author etsai
      */
     public enum Result {
+        /** Match ended with a mid game vote */
+        MID_GAME_VOTE,
         /** Match was won */
         WIN,
         /** Match was lost */
