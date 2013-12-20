@@ -34,22 +34,8 @@ public class PlayerPacketImpl implements PlayerPacket {
 
         if (category == matchCategory) {
             attrs= [wave: parts[6].toInteger(), finalWave: parts[7].toInteger(), duration: parts[9].toInteger()]
-
             attrs.finalWaveSurvived= attrs.finalWave != 0 ? parts[8].toInteger() : 0
-            switch(parts[5]) {
-                case "0":
-                    attrs.result= Result.DISCONNECT
-                    break
-                case "1":
-                    attrs.result= Result.LOSS
-                    break
-                case "2":
-                    attrs.result= Result.WIN
-                    break
-                default:
-                    throw new InvalidPacketFormatException("Unrecognized result: ${parts[5]}")
-            }
-
+            attrs.disconnected= parts[5] == "0"
         } else {
             if (parts.size() >= 6) {
                 parts[5].tokenize(",").each {

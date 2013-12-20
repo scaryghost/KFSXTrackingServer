@@ -65,23 +65,23 @@ public class SQLiteWriter implements DataWriter {
                 matchState[key]= packet.getAttributes()
                 break
             case "result":
-                def attrs= packet.getAttributes()
-                def wins= (attrs.result == Result.WIN) ? 1 : 0
-                def losses= (attrs.result == Result.LOSS || attrs.result == Result.MID_GAME_VOTE) ? 1 : 0
+                state.putAll(packet.getAttributes())
+                def wins= (state.result == Result.WIN) ? 1 : 0
+                def losses= (state.result == Result.LOSS || state.result == Result.MID_GAME_VOTE) ? 1 : 0
 
                 sql.withTransaction {
                     sql.execute("insert or ignore into difficulty (name, length) values(?, ?)", 
                         [state[ATTR_DIFFICULTY], state[ATTR_LENGTH]])
                     sql.execute("update difficulty set wins= wins + ?, losses= losses + ?, wave_sum= wave_sum + ?, time= time + ? where name= ? and length= ?", 
-                        [wins, losses, packet.getWave(), attrs.duration, state[ATTR_DIFFICULTY], state[ATTR_LENGTH]])
+                        [wins, losses, packet.getWave(), state.duration, state[ATTR_DIFFICULTY], state[ATTR_LENGTH]])
                     sql.execute("insert or ignore into level (name) values(?)", [state[ATTR_MAP]])
                     sql.execute("update level set wins= wins + ?, losses= losses + ?, time= time + ? where name=?", 
-                        [wins, losses, attrs.duration, state[ATTR_MAP]])
+                        [wins, losses, state.duration, state[ATTR_MAP]])
                     sql.execute("insert or ignore into level_difficulty_join (difficulty_id, level_id) select d.id, l.id from difficulty d, level l where d.name=? and d.length=? and l.name=?",
                         [state[ATTR_DIFFICULTY], state[ATTR_LENGTH], state[ATTR_MAP]])
                     sql.execute("""update level_difficulty_join set wins= wins + ?, losses= losses + ?, wave_sum= wave_sum + ?, time= time + ? where 
                         difficulty_id=(select id from  difficulty where name=? and length=?) and level_id=(select id from level where name=?)""",
-                        [wins, losses, packet.getWave(), attrs.duration, state[ATTR_DIFFICULTY], state[ATTR_LENGTH], state[ATTR_MAP]])
+                        [wins, losses, packet.getWave(), state.duration, state[ATTR_DIFFICULTY], state[ATTR_LENGTH], state[ATTR_MAP]])
                 }
                 break
             case "wave":
@@ -128,8 +128,8 @@ public class SQLiteWriter implements DataWriter {
             sql.execute("insert or ignore into record (steamid64) values (?);", [steamID64])
             sql.execute("""update record set wins= wins + ?, losses= losses + ?, disconnects= disconnects + ?, 
                 finales_survived= finales_survived + ?, finales_played= finales_played + ?, time= time + ? where steamid64=?""", 
-                [matchInfo.result == Result.WIN ? 1 : 0, matchInfo.result == Result.LOSS ? 1 : 0, 
-                matchInfo.result == Result.DISCONNECT ? 1 : 0, matchInfo.finalWaveSurvived, matchInfo.finalWave, matchInfo.duration, steamID64])
+                [!matchInfo.disconnected && state.result == Result.WIN ? 1 : 0, !matchInfo.disconnected && matchInfo.result == Result.LOSS ? 1 : 0, 
+                matchInfo.disconnected ? 1 : 0, matchInfo.finalWaveSurvived, matchInfo.finalWave, matchInfo.duration, steamID64])
             sql.execute("""insert into match_history (record_id, level_id, difficulty_id, result, wave, duration) select r.id,l.id,d.id,?,?,? from record r, 
                     difficulty d, level l where l.name=? and r.steamid64=? and d.name=? and d.length=?""",
                 [matchInfo.result.toString().toLowerCase(), matchInfo.wave, matchInfo.duration, state[ATTR_MAP], steamID64, state[ATTR_DIFFICULTY], state[ATTR_LENGTH]])

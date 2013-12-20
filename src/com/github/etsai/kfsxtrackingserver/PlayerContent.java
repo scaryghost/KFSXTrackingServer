@@ -20,7 +20,7 @@ public interface PlayerContent {
     public class Match {
         public int wave, duration;
         public byte finalWave, finalWaveSurvived;
-        public Result result;
+        public boolean disconnected;
     }
     /**
      * Exception representing a mismatch is steamID64
