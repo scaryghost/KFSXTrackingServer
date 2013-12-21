@@ -61,9 +61,11 @@ public class MatchPacketImpl implements MatchPacket {
                         break
                     default:
                         attrs.perk= parts[5]
-                        parts[6].tokenize(",").each {
-                            def statInfo= it.tokenize("=")
-                            stats[statInfo[0]]= statInfo[1].toInteger()
+                        if (parts.size() > 6) {
+                            parts[6].tokenize(",").each {
+                                def statInfo= it.tokenize("=")
+                                stats[statInfo[0]]= statInfo[1].toInteger()
+                            }
                         }
                         break
                 }

@@ -9,7 +9,7 @@ import com.github.etsai.kfsxtrackingserver.Common
 import com.github.etsai.kfsxtrackingserver.DataWriter
 import com.github.etsai.kfsxtrackingserver.PacketParser.Result
 import com.github.etsai.kfsxtrackingserver.PacketParser.MatchPacket
-import static com.github.etsai.kfsxtrackingserver.PacketParser.*
+import static com.github.etsai.kfsxtrackingserver.PacketParser.MatchPacket.*
 import com.github.etsai.kfsxtrackingserver.PacketParser.PlayerPacket
 import com.github.etsai.kfsxtrackingserver.PlayerContent
 import groovy.sql.Sql
@@ -96,7 +96,7 @@ public class SQLiteWriter implements DataWriter {
                             }
                             packet.getStats().each {stat, value ->
                                 sql.execute(wavedataSqlInsert, [packet.getWave(), perksCategory, stat, state[ATTR_DIFFICULTY], state[ATTR_LENGTH], state[ATTR_MAP]])
-                                sql.execute(wavedataSqlUpdate, [value, stat, perksCategory.type, packet.getWave(), state[ATTR_DIFFICULTY], state[ATTR_LENGTH], state[ATTR_MAP]])
+                                sql.execute(wavedataSqlUpdate, [value, stat, perksCategory, packet.getWave(), state[ATTR_DIFFICULTY], state[ATTR_LENGTH], state[ATTR_MAP]])
                             }
                         }
                         break
@@ -128,11 +128,11 @@ public class SQLiteWriter implements DataWriter {
             sql.execute("insert or ignore into record (steamid64) values (?);", [steamID64])
             sql.execute("""update record set wins= wins + ?, losses= losses + ?, disconnects= disconnects + ?, 
                 finales_survived= finales_survived + ?, finales_played= finales_played + ?, time= time + ? where steamid64=?""", 
-                [!matchInfo.disconnected && state.result == Result.WIN ? 1 : 0, !matchInfo.disconnected && matchInfo.result == Result.LOSS ? 1 : 0, 
+                [!matchInfo.disconnected && state.result == Result.WIN ? 1 : 0, !matchInfo.disconnected && (state.result == Result.LOSS || state.result == Result.MID_GAME_VOTE) ? 1 : 0, 
                 matchInfo.disconnected ? 1 : 0, matchInfo.finalWaveSurvived, matchInfo.finalWave, matchInfo.duration, steamID64])
             sql.execute("""insert into match_history (record_id, level_id, difficulty_id, result, wave, duration) select r.id,l.id,d.id,?,?,? from record r, 
                     difficulty d, level l where l.name=? and r.steamid64=? and d.name=? and d.length=?""",
-                [matchInfo.result.toString().toLowerCase(), matchInfo.wave, matchInfo.duration, state[ATTR_MAP], steamID64, state[ATTR_DIFFICULTY], state[ATTR_LENGTH]])
+                [matchInfo.disconnected ? "disconnected" : state.result.toString().toLowerCase(), matchInfo.wave, matchInfo.duration, state[ATTR_MAP], steamID64, state[ATTR_DIFFICULTY], state[ATTR_LENGTH]])
             
             content.getPackets().each {packet ->
                 Common.logger.finer("Player data= $packet")
