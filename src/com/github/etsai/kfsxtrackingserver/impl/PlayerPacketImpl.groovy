@@ -23,7 +23,7 @@ public class PlayerPacketImpl implements PlayerPacket {
             serverAddress, serverPort
     
     public PlayerPacketImpl(String[] parts, String serverAddress) {
-        serverAddress= serverAddress
+        this.serverAddress= serverAddress
         serverPort= parts[1].toInteger()
         steamID64= parts[2]
         seqNo= parts[3].toInteger()

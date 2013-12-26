@@ -18,7 +18,7 @@ public class MatchPacketImpl implements MatchPacket {
             category, serverAddress, serverPort
     
     public MatchPacketImpl(String[] parts, String serverAddress) {
-        serverAddress= serverAddress
+        this.serverAddress= serverAddress
         serverPort= parts[1].toInteger()
         category= parts[2]
         attrs= [:]
