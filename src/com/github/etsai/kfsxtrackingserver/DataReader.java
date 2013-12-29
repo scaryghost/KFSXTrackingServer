@@ -5,6 +5,7 @@
 package com.github.etsai.kfsxtrackingserver;
 
 import java.util.Collection;
+import java.util.List;
 
 /**
  * Defines functions for reading statistics from the database.  The interface allows the user to access the data 
@@ -250,4 +251,12 @@ public interface DataReader {
      * @see DataReader#getWaveData(String, String, String)
      */
     public Collection<WaveStat> getWaveData(String level, String difficulty, String length, String category);
+
+    /**
+     * Custom query function to retrieve data not present in the standard db
+     * @param   queryName   Name of the query to execute
+     * @param   parameters  List of parameters the query needs
+     * @return  Returns the result of the query
+     */
+    public Object getData(String queryName, List<Object> parameters);
 }

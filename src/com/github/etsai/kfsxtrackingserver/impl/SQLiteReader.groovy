@@ -160,5 +160,8 @@ public class SQLiteReader implements DataReader {
             new LevelDifficulty(attr)
         }
     }
+    public Object getData(String queryName, List<Object> parameters) {
+        throw new UnsupportedOperationException("getData is not supported for SQLiteReader")
+    }
 }
 
