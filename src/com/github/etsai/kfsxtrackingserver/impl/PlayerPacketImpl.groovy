@@ -35,7 +35,7 @@ public class PlayerPacketImpl implements PlayerPacket {
         if (category == matchCategory) {
             attrs= [wave: parts[6].toInteger(), finalWave: parts[7].toInteger(), duration: parts[9].toInteger()]
             attrs.finalWaveSurvived= attrs.finalWave != 0 ? parts[8].toInteger() : 0
-            attrs.disconnected= parts[5] == "0"
+            attrs.disconnected= parts[5] != "0"
         } else {
             if (parts.size() >= 6) {
                 parts[5].tokenize(",").each {
