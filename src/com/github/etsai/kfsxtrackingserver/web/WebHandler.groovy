@@ -3,6 +3,7 @@ package com.github.etsai.kfsxtrackingserver.web;
 import com.github.etsai.kfsxtrackingserver.Common
 import com.github.etsai.kfsxtrackingserver.DataReader
 import com.github.etsai.kfsxtrackingserver.impl.SQLiteReader
+import com.github.etsai.kfsxtrackingserver.Reader
 import com.github.etsai.utils.sql.ConnectionPool
 import fi.iki.elonen.NanoHTTPD
 import fi.iki.elonen.NanoHTTPD.Method
@@ -21,13 +22,13 @@ public class WebHandler extends NanoHTTPD {
     private static def mimeTypes= ["html":"text/html", "xml":"application/xml", "xsl":"application/xslt+xml", "css":"text/css", 
         "js":"text/javascript", "json":"application/json", "ico":"image/vdn.microsoft.icon"]
     
-    final def connPool, httpRootDir, dataReaderCtor
+    final def connPool, httpRootDir, readerClass
     
-    public WebHandler(int port, Path httpRootDir, ConnectionPool connPool, Constructor<DataReader> dataReaderCtor){
+    public WebHandler(int port, Path httpRootDir, ConnectionPool connPool, Class<?> readerClass){
         super(port)
         this.httpRootDir= httpRootDir
         this.connPool= connPool
-        this.dataReaderCtor= dataReaderCtor
+        this.readerClass= readerClass
 
         Common.logger.log(Level.CONFIG, "Listening for http requests on port: $port")
     }
@@ -70,9 +71,8 @@ public class WebHandler extends NanoHTTPD {
                 gcl.addClasspath(root.toString());
             
                 def webResource= (Resource)gcl.parseClass(resources[filename].toFile()).newInstance()
-                def reader= (DataReader)dataReaderCtor.newInstance(conn);
                 webResource.setQueries(parms)
-                webResource.setDataReader(reader)
+                webResource.setDataReader(new Reader(readerClass, conn))
                 msg= webResource.generatePage()
                 
                 if (parms.xml != null) {

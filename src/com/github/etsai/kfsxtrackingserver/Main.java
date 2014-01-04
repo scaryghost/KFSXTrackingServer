@@ -36,7 +36,7 @@ public class Main {
         try {
             CommandLine clom= new CommandLine(args);
             ServerProperties props= new ServerProperties(clom.getPropertiesFilename());
-
+            
             initLogging(props.getLogLevel());
 
             Common.logger.log(Level.CONFIG,"Loading stats from database: {0}", props.getDbURL());
@@ -66,14 +66,13 @@ public class Main {
             GroovyClassLoader loader= new GroovyClassLoader();
 
             if (props.getHttpPort() != null) {
-                Class<DataReader> dataReaderClass;
+                Class<?> dataReaderClass;
                 if (props.getDbReaderScript() == null) {
-                    dataReaderClass= (Class<DataReader>)Class.forName("com.github.etsai.kfsxtrackingserver.impl.SQLiteReader");
+                    dataReaderClass= Class.forName("com.github.etsai.kfsxtrackingserver.impl.SQLiteReader");
                 } else {
-                    dataReaderClass= (Class<DataReader>)loader.parseClass(new File(props.getDbReaderScript()));
+                    dataReaderClass= loader.parseClass(new File(props.getDbReaderScript()));
                 }
-                final NanoHTTPD webHandler= new WebHandler(props.getHttpPort(), props.getHttpRootDir(), connPool, 
-                        dataReaderClass.getConstructor(new Class<?>[] {Connection.class}));
+                final NanoHTTPD webHandler= new WebHandler(props.getHttpPort(), props.getHttpRootDir(), connPool, (Class<Object>) dataReaderClass);
                 webHandler.start();
                 Runtime.getRuntime().addShutdownHook(new Thread() {
                     @Override

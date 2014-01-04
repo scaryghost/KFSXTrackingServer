@@ -19,6 +19,7 @@ import com.github.etsai.kfsxtrackingserver.DataReader.PlayerRecord
 import com.github.etsai.kfsxtrackingserver.DataReader.Match
 import com.github.etsai.kfsxtrackingserver.SteamPoller
 import com.github.etsai.kfsxtrackingserver.SteamPoller.InvalidSteamIDException
+import com.github.etsai.kfsxtrackingserver.annotations.Query
 import groovy.sql.Sql
 import java.util.logging.Level
 import java.sql.Connection
@@ -46,17 +47,21 @@ public class SQLiteReader implements DataReader {
         }
         return rows
     }
+    @Query(name="server_difficulties")
     public Collection<Difficulty> getDifficulties() {
         return queryDB('select * from difficulty', [], ['id']).collect {attr ->
+            println "Attr: $attr"
             new Difficulty(attr)
         }
     }
+    @Query(name="server_levels")
     public Collection<Level> getLevels() {
         return queryDB('select * from level', [], ['id']).collect {attr ->
             // Need to be explicit to avoid confusion with logging level
             new com.github.etsai.kfsxtrackingserver.DataReader.Level(attr)
         }
     }
+    @Query(name="server_record")
     public PlayerRecord getRecord(String steamID64) {
         def row= sql.firstRow('SElECT * FROM record WHERE steamid64=?', [steamID64])
 
@@ -68,6 +73,7 @@ public class SQLiteReader implements DataReader {
         }
         return null
     }
+    @Query(name="server_records")
     public Collection<PlayerRecord> getRecords(String group, Order order, int start, int end) {
         def query= "SELECT r.*,name FROM record r inner join steam_info s on r.id=s.record_id "
         
@@ -79,14 +85,17 @@ public class SQLiteReader implements DataReader {
             new PlayerRecord(attr)
         }
     }
+    @Query(name="server_num_record")
     public Integer getNumRecords() {
         return sql.firstRow('SELECT count(*) FROM record')[0]
     }
+    @Query(name="server_all_records")
     public Collection<PlayerRecord> getRecords() {
         return queryDB("SELECT * FROM record ", [], ['id', 'record_id']).collect {attr ->
             new PlayerRecord(attr)
         }
     }
+    @Query(name="player_history")
     public Collection<Match> getMatchHistory(String steamID64, String group, Order order, int start, int end) {
         def query= matchHistorySql
         
@@ -98,28 +107,34 @@ public class SQLiteReader implements DataReader {
             new Match(attr)
         }
     }
+    @Query(name="player_all_histories")
     public Collection<Match> getMatchHistory(String steamID64) {
         return queryDB(matchHistorySql, [steamID64], ['record_id', 'level_id', 'difficulty_id']).collect {attr ->
             new Match(attr)
         }
     }
+    @Query(name="player_num_matches")
     public Integer getNumMatches(String steamID64) {
         return sql.firstRow('SELECT count(*) from match_history h where h.record_id=(select id from record r where r.steamid64=?)', [steamID64])[0]
     }
+    @Query(name="server_categories")
     public Collection<String> getStatCategories() {
         return queryDB('SELECT category FROM aggregate GROUP BY category', [], []).collect { it.category }
     }
+    @Query(name="server_aggregate_data")
     public Collection<Stat> getAggregateData(String category) {
         return queryDB("SELECT * from aggregate where category=? ORDER BY stat ASC", [category], ['category']).collect {attr ->
             new Stat(attr)
         }
     }
+    @Query(name="player_aggregate_data")
     public Collection<Stat> getAggregateData(String category, String steamID64) {
         return queryDB("SELECT * from player where record_id=(select id from record where steamid64=?) and category=? ORDER BY stat ASC", 
                 [steamID64, category],  ['steamid64', 'category', 'record_id']).collect {attr ->
             new Stat(attr)
         }
     }
+    @Query(name="player_info")
     public SteamIDInfo getSteamIDInfo(String steamID64) {
         def row= sql.firstRow("select * from steam_info where record_id=(select id from record where steamid64=?)", [steamID64])
 
@@ -129,22 +144,25 @@ public class SQLiteReader implements DataReader {
         }
         return null
     }
+    @Query(name="server_wave_data")
     public Collection<WaveStat> getWaveData(String difficulty, String length, String category) {
         return queryDB("select wave, stat, sum(value) as value from wave_data where difficulty_id=(select id from difficulty where name=? and length=?) and category=? group by wave, stat", 
                 [difficulty, length, category], []).collect {attr ->
             new WaveStat(attr)
         }
     }
+    @Query(name="server_level_wave_data")
     public Collection<WaveStat> getWaveData(String level, String difficulty, String length, String category) {
         return queryDB("""SELECT wave, stat, value FROM wave_data WHERE difficulty_id=(select id from difficulty where name=? and length=?) 
                 and level_id=(select id from level where name=?) and category=?""", [difficulty, length, level, category], []).collect {attr ->
             new WaveStat(attr)
         }
     }
-
+    @Query(name="server_wave_categories")
     public Collection<String> getWaveDataCategories() {
         return queryDB('SELECT category FROM wave_data GROUP BY category', [], []).collect { it.category }
     }
+    @Query(name="server_level_data")
     public Collection<LevelDifficulty> getLevelData(String level) {
         return queryDB("""SELECT ld.*, d.name as difficulty, d.length FROM level_difficulty_join ld INNER JOIN level l ON l.id=ld.level_id 
                 INNER JOIN difficulty d ON d.id=ld.difficulty_id where l.name=?""", [level], ['difficulty_id', 'level_id']).collect {attr ->
@@ -152,6 +170,7 @@ public class SQLiteReader implements DataReader {
             new LevelDifficulty(attr)
         }
     }
+    @Query(name="server_difficulty_data")
     public Collection<LevelDifficulty> getDifficultyData(String difficulty, String length) {
         return queryDB("""SELECT ld.*, l.name as level FROM level_difficulty_join ld INNER JOIN difficulty d on d.id=ld.difficulty_id  
                 INNER JOIN level l ON l.id=ld.level_id where d.name=? and d.length=?""", [difficulty, length], ['difficulty_id', 'level_id']).collect {attr ->
