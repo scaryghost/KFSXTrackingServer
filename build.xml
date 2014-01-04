@@ -72,6 +72,30 @@
 
     -->
 
+    <target name="-javadoc-build">
+        <mkdir dir="${dist.javadoc.dir}"/>
+        <condition else="" property="javadoc.endorsed.classpath.cmd.line.arg" value="-J${endorsed.classpath.cmd.line.arg}">
+            <and>
+                <isset property="endorsed.classpath.cmd.line.arg"/>
+                <not>
+                    <equals arg1="${endorsed.classpath.cmd.line.arg}" arg2=""/>
+                </not>
+            </and>
+        </condition>
+        <taskdef name="groovydoc" classpath="${libs.groovy-all.classpath}:${libs.jansi-1.11.classpath}" classname="org.codehaus.groovy.ant.Groovydoc"/>
+        <groovydoc author="${javadoc.author}" charset="UTF-8" destdir="${dist.javadoc.dir}" private="${javadoc.private}" 
+                   sourcepath="${src.dir}" use="${javadoc.use}" windowtitle="${javadoc.windowtitle}" packagenames = "**.*">
+            <link packages="java.,org.xml.,javax.,org.xml." href="http://download.oracle.com/javase/7/docs/api"/>
+        </groovydoc>
+        <copy todir="${dist.javadoc.dir}">
+            <fileset dir="${src.dir}" excludes="${excludes}" includes="${includes}">
+                <filename name="**/doc-files/**"/>
+            </fileset>
+            <fileset dir="${build.generated.sources.dir}" erroronmissingdir="false">
+                <include name="**/doc-files/**"/>
+            </fileset>
+        </copy>
+    </target>
     <condition property="isUnix">
         <os family="unix"/>
     </condition>
