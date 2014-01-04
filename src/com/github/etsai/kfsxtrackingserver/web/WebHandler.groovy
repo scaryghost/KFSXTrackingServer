@@ -1,8 +1,6 @@
 package com.github.etsai.kfsxtrackingserver.web;
 
 import com.github.etsai.kfsxtrackingserver.Common
-import com.github.etsai.kfsxtrackingserver.DataReader
-import com.github.etsai.kfsxtrackingserver.impl.SQLiteReader
 import com.github.etsai.kfsxtrackingserver.Reader
 import com.github.etsai.utils.sql.ConnectionPool
 import fi.iki.elonen.NanoHTTPD

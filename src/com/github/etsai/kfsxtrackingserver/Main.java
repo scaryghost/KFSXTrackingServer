@@ -68,7 +68,7 @@ public class Main {
             if (props.getHttpPort() != null) {
                 Class<?> dataReaderClass;
                 if (props.getDbReaderScript() == null) {
-                    dataReaderClass= Class.forName("com.github.etsai.kfsxtrackingserver.impl.SQLiteReader");
+                    dataReaderClass= Class.forName("com.github.etsai.kfsxtrackingserver.DefaultReader");
                 } else {
                     dataReaderClass= loader.parseClass(new File(props.getDbReaderScript()));
                 }
