@@ -24,7 +24,7 @@ public class WebHandler extends NanoHTTPD {
     
     public WebHandler(int port, Path httpRootDir, ConnectionPool connPool, Class<?> readerClass){
         super(port)
-        this.httpRootDir= httpRootDir
+        this.httpRootDir= httpRootDir.toRealPath()
         this.connPool= connPool
         this.readerClass= readerClass
 
@@ -48,8 +48,9 @@ public class WebHandler extends NanoHTTPD {
             }
             if (resources[filename] == null) {
                 try {
-                    def filePath= Paths.get(filename)
-                    if (filePath.toRealPath().startsWith(httpRootDir.toRealPath())) {
+                    def filePath= httpRootDir.resolve(filename)
+                    System.err.println "Full path: $filePath"
+                    if (filePath.toRealPath().startsWith(httpRootDir)) {
                         msg= new FileInputStream(filePath.toFile())
                     } else {
                         status= Status.FORBIDDEN
@@ -57,7 +58,7 @@ public class WebHandler extends NanoHTTPD {
                         extension= "html"
                     }
                 } catch (NoSuchFileException ex) {
-                    Common.logger.log(Level.SEVERE, "File: $filename oes not exist", ex);
+                    Common.logger.log(Level.SEVERE, "File: $filename does not exist", ex);
                     status= Status.NOT_FOUND
                     msg= status.getDescription()
                     extension= "html"
