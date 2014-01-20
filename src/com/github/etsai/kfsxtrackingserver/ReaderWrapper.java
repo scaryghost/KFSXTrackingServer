@@ -14,11 +14,11 @@ import java.util.HashMap;
  *
  * @author etsai
  */
-public class Reader {
+public class ReaderWrapper {
     private final Object readerObj;
     private final HashMap<String, Method> annotatedMethods;
     
-    public Reader(Class readerClass, Connection conn) throws InstantiationException, IllegalAccessException, NoSuchMethodException, IllegalArgumentException, InvocationTargetException {
+    public ReaderWrapper(Class readerClass, Connection conn) throws InstantiationException, IllegalAccessException, NoSuchMethodException, IllegalArgumentException, InvocationTargetException {
         readerObj= readerClass.getConstructor(new Class<?>[] {Connection.class}).newInstance(conn);
         annotatedMethods= new HashMap<>();
         for(Method it: readerClass.getMethods()) {
@@ -30,8 +30,11 @@ public class Reader {
     
     public Object executeQuery(String name, Object...args) throws IllegalAccessException, IllegalArgumentException, InvocationTargetException {
         if (annotatedMethods.containsKey(name)) {
-            annotatedMethods.get(name).invoke(readerObj, args);
+            return annotatedMethods.get(name).invoke(readerObj, args);
         }
         return null;
+    }
+    public Object getReaderObject() {
+        return readerObj;
     }
 }

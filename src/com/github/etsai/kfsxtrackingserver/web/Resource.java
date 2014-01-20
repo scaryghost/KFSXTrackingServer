@@ -4,7 +4,7 @@
  */
 package com.github.etsai.kfsxtrackingserver.web;
 
-import com.github.etsai.kfsxtrackingserver.Reader;
+import com.github.etsai.kfsxtrackingserver.ReaderWrapper;
 import java.util.Map;
 
 /**
@@ -18,13 +18,13 @@ public abstract class Resource {
      */
     protected Map<String, String> queries;
     /** Variable that provides read access to the statistics */
-    protected Reader reader;
+    protected ReaderWrapper reader;
 
     /**
      * Set the reader variable
      * @param   reader      The reader object to use
      */
-    public void setDataReader(Reader reader) {
+    public void setDataReader(ReaderWrapper reader) {
         this.reader= reader;
     }
     /**
