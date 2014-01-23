@@ -1,7 +1,7 @@
 package com.github.etsai.kfsxtrackingserver.web;
 
 import com.github.etsai.kfsxtrackingserver.Common
-import com.github.etsai.kfsxtrackingserver.Reader
+import com.github.etsai.kfsxtrackingserver.ReaderWrapper
 import com.github.etsai.utils.sql.ConnectionPool
 import fi.iki.elonen.NanoHTTPD
 import fi.iki.elonen.NanoHTTPD.Method
@@ -16,11 +16,12 @@ import java.sql.Connection
 import java.util.logging.Level
 
 public class WebHandler extends NanoHTTPD {
-    private static def webpages= "webpages.xml"
+    private static def webpagesInfo= "webpages.xml"
     private static def mimeTypes= ["html":"text/html", "xml":"application/xml", "xsl":"application/xslt+xml", "css":"text/css", 
         "js":"text/javascript", "json":"application/json", "ico":"image/vdn.microsoft.icon"]
     
-    final def connPool, httpRootDir, readerClass
+    private final def connPool, httpRootDir, readerClass
+    private def lastModified, resources, webpagesFile, httpClasspath
     
     public WebHandler(int port, Path httpRootDir, ConnectionPool connPool, Class<?> readerClass){
         super(port)
@@ -28,9 +29,22 @@ public class WebHandler extends NanoHTTPD {
         this.connPool= connPool
         this.readerClass= readerClass
 
+        webpagesFile= httpRootDir.resolve(webpagesInfo).toFile()
         Common.logger.log(Level.CONFIG, "Listening for http requests on port: $port")
     }
 
+    private setupResources() {
+        System.err.println "Setting up resources"
+        lastModified= webpagesFile.lastModified()
+        def webpagesXmlRoot= new XmlSlurper().parse(webpagesFile)
+        httpClasspath= httpRootDir.resolve(webpagesXmlRoot.@classpath.toString())
+
+        resources= [:]
+        webpagesXmlRoot.page.each {
+            resources[it.@name.toString()]= httpClasspath.resolve(it.@script.toString())
+        }
+    }
+    
     @Override
     public Response serve(String uri, Method method, Map<String, String> header, Map<String, String> parms, Map<String, String> files) {
         def filename= uri.substring(1)
@@ -39,12 +53,8 @@ public class WebHandler extends NanoHTTPD {
         def msg, conn
         
         try {
-            def xmlRoot= new XmlSlurper().parse(httpRootDir.resolve(webpages).toFile())
-            def resources= [:]
-            def root= httpRootDir.resolve(xmlRoot.@classpath.toString())
-
-            xmlRoot.page.each {
-                resources[it.@name.toString()]= root.resolve(it.@script.toString())
+            if (lastModified != webpagesFile.lastModified()) {
+                setupResources()
             }
             if (resources[filename] == null) {
                 try {
@@ -67,11 +77,11 @@ public class WebHandler extends NanoHTTPD {
                 conn= connPool.getConnection()
                 
                 def gcl= new GroovyClassLoader();
-                gcl.addClasspath(root.toString());
+                gcl.addClasspath(httpClasspath.toString());
             
                 def webResource= (Resource)gcl.parseClass(resources[filename].toFile()).newInstance()
                 webResource.setQueries(parms)
-                webResource.setDataReader(new Reader(readerClass, conn))
+                webResource.setDataReader(new ReaderWrapper(readerClass, conn))
                 msg= webResource.generatePage()
                 
                 if (parms.xml != null) {
