@@ -171,9 +171,10 @@ public class DefaultReader {
      */
     @Query(name="server_difficulty_data")
     public Collection<LevelDifficulty> getDifficultyData(String difficulty, String length) {
-        return queryDB("""SELECT ld.*, d.name as difficulty, d.length FROM level_difficulty_join ld INNER JOIN level l ON l.id=ld.level_id 
-                INNER JOIN difficulty d ON d.id=ld.difficulty_id where l.name=?""", [level], ['difficulty_id', 'level_id']).collect {attr ->
-            attr.level= level
+        return queryDB("""SELECT ld.*, l.name as level FROM level_difficulty_join ld INNER JOIN difficulty d on d.id=ld.difficulty_id  
+                INNER JOIN level l ON l.id=ld.level_id where d.name=? and d.length=?""", [difficulty, length], ['difficulty_id', 'level_id']).collect {attr ->
+            attr.difficulty= difficulty
+            attr.length= length
             new LevelDifficulty(attr)
         }
     }
@@ -195,10 +196,9 @@ public class DefaultReader {
      */
     @Query(name="server_level_data")
     public Collection<LevelDifficulty> getLevelData(String level) {
-        return queryDB("""SELECT ld.*, l.name as level FROM level_difficulty_join ld INNER JOIN difficulty d on d.id=ld.difficulty_id  
-                INNER JOIN level l ON l.id=ld.level_id where d.name=? and d.length=?""", [difficulty, length], ['difficulty_id', 'level_id']).collect {attr ->
-            attr.difficulty= difficulty
-            attr.length= length
+        return queryDB("""SELECT ld.*, d.name as difficulty, d.length FROM level_difficulty_join ld INNER JOIN level l ON l.id=ld.level_id 
+                INNER JOIN difficulty d ON d.id=ld.difficulty_id where l.name=?""", [level], ['difficulty_id', 'level_id']).collect {attr ->
+            attr.level= level
             new LevelDifficulty(attr)
         }
     }

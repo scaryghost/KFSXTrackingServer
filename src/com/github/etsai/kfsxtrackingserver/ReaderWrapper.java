@@ -32,11 +32,15 @@ public class ReaderWrapper {
         }
     }
     
-    public Object executeQuery(String name, Object...args) throws IllegalAccessException, IllegalArgumentException, InvocationTargetException {
+    public Object executeQuery(String name, Object...args) throws IllegalAccessException, IllegalArgumentException, Throwable {
         if (!annotatedMethods.containsKey(name)) {
             throw new RuntimeException(String.format("Query name '%s' not found", name));
         }
-        return annotatedMethods.get(name).invoke(readerObj, args);
+        try {
+            return annotatedMethods.get(name).invoke(readerObj, args);
+        } catch (InvocationTargetException ex) {
+            throw ex.getCause();
+        }
     }
     public Object getReaderObject() {
         return readerObj;
