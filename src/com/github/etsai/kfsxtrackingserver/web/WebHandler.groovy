@@ -21,7 +21,7 @@ public class WebHandler extends NanoHTTPD {
         "js":"text/javascript", "json":"application/json", "ico":"image/vdn.microsoft.icon"]
     
     private final def connPool, httpRootDir, readerClass
-    private def lastModified, resources, webpagesFile, httpClasspath
+    private def lastModified, resources, webpagesFile, httpClasspath, gcl
     
     public WebHandler(int port, Path httpRootDir, ConnectionPool connPool, Class<?> readerClass){
         super(port)
@@ -30,18 +30,35 @@ public class WebHandler extends NanoHTTPD {
         this.readerClass= readerClass
 
         webpagesFile= httpRootDir.resolve(webpagesInfo).toFile()
+        setupResources()
         Common.logger.log(Level.CONFIG, "Listening for http requests on port: $port")
     }
 
-    private setupResources() {
+    private void setupResources() {
         System.err.println "Setting up resources"
         lastModified= webpagesFile.lastModified()
         def webpagesXmlRoot= new XmlSlurper().parse(webpagesFile)
         httpClasspath= httpRootDir.resolve(webpagesXmlRoot.@classpath.toString())
 
+        gcl= new GroovyClassLoader();
+        gcl.addClasspath(httpClasspath.toString());
+        
         resources= [:]
         webpagesXmlRoot.page.each {
-            resources[it.@name.toString()]= httpClasspath.resolve(it.@script.toString())
+            def scriptFile= httpClasspath.resolve(it.@script.toString()).toFile()
+            def webpage= it.@name.toString()
+            
+            if (!resources.containsKey(webpage)) {
+                Common.logger.log(Level.INFO, "Parsing file: `$scriptFile`")
+                resources[webpage]= [lastmodified: scriptFile.lastModified(), file: scriptFile, 
+                        scriptClass: gcl.parseClass(scriptFile)]
+            } else {
+                if (resources[webpage].lastmodified != scriptFile.lastModified()) {
+                    Common.logger.log(Level.INFO, "Reparsing file: `$scriptFile`")
+                    resources[webpage].lastmodified= scriptFile.lastModified()
+                    resources[webpage].scriptClass= gcl.parseClass(scriptFile)
+                }
+            }
         }
     }
     
@@ -53,10 +70,11 @@ public class WebHandler extends NanoHTTPD {
         def msg, conn
         
         try {
+            def resource= resources[filename]
             if (lastModified != webpagesFile.lastModified()) {
                 setupResources()
             }
-            if (resources[filename] == null) {
+            if (resource == null) {
                 try {
                     def filePath= httpRootDir.resolve(filename)
                     System.err.println "Full path: $filePath"
@@ -76,10 +94,12 @@ public class WebHandler extends NanoHTTPD {
             } else {
                 conn= connPool.getConnection()
                 
-                def gcl= new GroovyClassLoader();
-                gcl.addClasspath(httpClasspath.toString());
-            
-                def webResource= (Resource)gcl.parseClass(resources[filename].toFile()).newInstance()
+                if (resource.lastmodified != resource.file.lastModified()) {
+                    Common.logger.log(Level.INFO, "Reparsing file: `${resource.file}`")
+                    resource.lastmodified= resource.file.lastModified()
+                    resource.scriptClass= gcl.parseClass(resource.file)
+                }
+                def webResource= (Resource)resource.scriptClass.newInstance()
                 webResource.setQueries(parms)
                 webResource.setDataReader(new ReaderWrapper(readerClass, conn))
                 msg= webResource.generatePage()
