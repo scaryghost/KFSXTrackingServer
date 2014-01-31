@@ -20,7 +20,7 @@ public class WebHandler extends NanoHTTPD {
     private static def mimeTypes= ["html":"text/html", "xml":"application/xml", "xsl":"application/xslt+xml", "css":"text/css", 
         "js":"text/javascript", "json":"application/json", "ico":"image/vdn.microsoft.icon"]
     
-    private final def connPool, httpRootDir, readerClass
+    private final def connPool, httpRootDir, readerClass, scripts
     private def lastModified, resources, webpagesFile, httpClasspath, gcl
     
     public WebHandler(int port, Path httpRootDir, ConnectionPool connPool, Class<?> readerClass){
@@ -29,6 +29,7 @@ public class WebHandler extends NanoHTTPD {
         this.connPool= connPool
         this.readerClass= readerClass
 
+        scripts= [:]
         webpagesFile= httpRootDir.resolve(webpagesInfo).toFile()
         setupResources()
         Common.logger.log(Level.CONFIG, "Listening for http requests on port: $port")
@@ -48,15 +49,16 @@ public class WebHandler extends NanoHTTPD {
             def scriptFile= httpClasspath.resolve(it.@script.toString()).toFile()
             def webpage= it.@name.toString()
             
-            if (!resources.containsKey(webpage)) {
+            resources[webpage]= scriptFile
+            if (!scripts.containsKey(scriptFile)) {
                 Common.logger.log(Level.INFO, "Parsing file: `$scriptFile`")
-                resources[webpage]= [lastmodified: scriptFile.lastModified(), file: scriptFile, 
-                        scriptClass: gcl.parseClass(scriptFile)]
+                scripts[scriptFile]= [lastmodified: scriptFile.lastModified(), 
+                        clazz: gcl.parseClass(scriptFile)]
             } else {
-                if (resources[webpage].lastmodified != scriptFile.lastModified()) {
+                if (scripts[scriptFile].lastmodified != scriptFile.lastModified()) {
                     Common.logger.log(Level.INFO, "Reparsing file: `$scriptFile`")
-                    resources[webpage].lastmodified= scriptFile.lastModified()
-                    resources[webpage].scriptClass= gcl.parseClass(scriptFile)
+                    scripts[scriptFile].lastmodified= scriptFile.lastModified()
+                    scripts[scriptFile].clazz= gcl.parseClass(scriptFile)
                 }
             }
         }
@@ -70,10 +72,10 @@ public class WebHandler extends NanoHTTPD {
         def msg, conn
         
         try {
-            def resource= resources[filename]
             if (lastModified != webpagesFile.lastModified()) {
                 setupResources()
             }
+            def resource= resources[filename]
             if (resource == null) {
                 try {
                     def filePath= httpRootDir.resolve(filename)
@@ -93,13 +95,13 @@ public class WebHandler extends NanoHTTPD {
                 }
             } else {
                 conn= connPool.getConnection()
-                
-                if (resource.lastmodified != resource.file.lastModified()) {
-                    Common.logger.log(Level.INFO, "Reparsing file: `${resource.file}`")
-                    resource.lastmodified= resource.file.lastModified()
-                    resource.scriptClass= gcl.parseClass(resource.file)
+                def script= scripts[resource]
+                if (script.lastmodified != resource.lastModified()) {
+                    Common.logger.log(Level.INFO, "Reparsing file: `${resource}`")
+                    script.lastmodified= resource.lastModified()
+                    script.clazz= gcl.parseClass(resource)
                 }
-                def webResource= (Resource)resource.scriptClass.newInstance()
+                def webResource= (Resource)script.clazz.newInstance()
                 webResource.setQueries(parms)
                 webResource.setDataReader(new ReaderWrapper(readerClass, conn))
                 msg= webResource.generatePage()
