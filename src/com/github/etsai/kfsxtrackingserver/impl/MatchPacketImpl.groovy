@@ -35,7 +35,7 @@ public class MatchPacketImpl implements MatchPacket {
                 attrs.duration= parts[4].toInteger()
                 switch (parts[5]) {
                     case "0":
-                        attrs.result= Result.MID_GAME_VOTE
+                        attrs.result= Result.INCOMPLETE
                         break
                     case "1":
                         attrs.result= Result.LOSS
@@ -54,9 +54,11 @@ public class MatchPacketImpl implements MatchPacket {
                     case "summary":
                         attrs.duration= parts[6].toInteger()
                         attrs.completed= parts[5].toBoolean()
-                        parts[7].tokenize(",").each {
-                            def perkCount= it.tokenize("=")
-                            stats[perkCount[0]]= perkCount[1].toInteger()
+                        if (parts.size() > 7) {
+                            parts[7].tokenize(",").each {
+                                def perkCount= it.tokenize("=")
+                                stats[perkCount[0]]= perkCount[1].toInteger()
+                            }
                         }
                         break
                     default:

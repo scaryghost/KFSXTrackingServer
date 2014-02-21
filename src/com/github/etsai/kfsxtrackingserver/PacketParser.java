@@ -11,7 +11,7 @@ import java.net.DatagramPacket;
 import java.util.Map;
 
 /**
- * Interprets the messages received from the mutator
+ * Interprets the messages received from the KFStatsX mutator
  * @author etsai
  */
 public class PacketParser {
@@ -20,14 +20,12 @@ public class PacketParser {
      * @author etsai
      */
     public enum Result {
-        /** Match ended with a mid game vote */
-        MID_GAME_VOTE,
+        /** Match was not finished */
+        INCOMPLETE,
         /** Match was won */
         WIN,
         /** Match was lost */
         LOSS,
-        /** Player disconnected before match finished */
-        DISCONNECT
     }
     
     /**
