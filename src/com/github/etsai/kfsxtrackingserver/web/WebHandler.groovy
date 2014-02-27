@@ -99,6 +99,7 @@ public class WebHandler extends NanoHTTPD {
                 if (script.lastmodified != resource.lastModified()) {
                     Common.logger.log(Level.INFO, "Reparsing file: `${resource}`")
                     script.lastmodified= resource.lastModified()
+                    gcl.clearCache()
                     script.clazz= gcl.parseClass(resource)
                 }
                 def webResource= (Resource)script.clazz.newInstance()
