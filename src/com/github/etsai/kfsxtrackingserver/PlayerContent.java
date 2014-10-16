@@ -5,7 +5,6 @@
 package com.github.etsai.kfsxtrackingserver;
 
 import com.github.etsai.kfsxtrackingserver.PacketParser.PlayerPacket;
-import com.github.etsai.kfsxtrackingserver.PacketParser.Result;
 import java.util.Collection;
 
 /**

@@ -79,4 +79,4 @@ has more information on creating your own web content:
 https://github.com/scaryghost/KFSXTrackingServer/wiki/Creating-Web-Content
 
 ## Release Notes:
-https://github.com/scaryghost/KFSXTrackingServer/wiki/Release-KFSXTrackingServer-3.0.9
+https://github.com/scaryghost/KFSXTrackingServer/wiki/Release-KFSXTrackingServer-4.0

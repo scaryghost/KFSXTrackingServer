@@ -76,7 +76,7 @@ public class Main {
             String refactorGroup= clom.getRefactorGroup();
 
             if (refactorGroup != null) {
-                Common.logger.log(Level.INFO, "Refactoring data group: " + refactorGroup);
+                Common.logger.log(Level.INFO, "Refactoring data group: %s", refactorGroup);
                 writer.refactor(refactorGroup, clom.getRefactorInfo());
                 System.exit(0);
             }            
