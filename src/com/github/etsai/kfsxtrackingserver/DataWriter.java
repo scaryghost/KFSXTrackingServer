@@ -69,4 +69,11 @@ public interface DataWriter {
      * @param content Completed player statistics content
      */
     public void writePlayerData(PlayerContent content);
+    /**
+     * Refactor the data that falls under the given group.  See documentation for the implementing classes 
+     * to view what data groups can be refactored in their respective implementations
+     * @param group Name of the group to refactor on
+     * @param info Additional information that may be needed for refactoring
+     */
+    public void refactor(String group, String info);
 }

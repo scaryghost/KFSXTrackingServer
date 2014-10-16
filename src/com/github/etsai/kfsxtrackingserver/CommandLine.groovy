@@ -8,7 +8,7 @@ package com.github.etsai.kfsxtrackingserver
 import groovy.util.CliBuilder
 
 /**
- * Groovy implementation of the CommandLine abstract class
+ * Processes command line arguments
  * @author etsai
  */
 public class CommandLine {
@@ -17,9 +17,11 @@ public class CommandLine {
     public CommandLine (String[] args) {
         def cli= new CliBuilder(usage:"cli.groovy")
         cli.stopAtNonOption= false
-        cli.propertyfile(args:1, argName:'file', 'Reads in server properties from the file')
-        cli.version('Prints the version and exit')
+        cli.propertyfile(args:1, argName:'file', required:true, 'Reads in server properties from the file')
+        cli.version('Prints version information and exits')
         cli.help('Prints this message')
+        cli.r(longOpt: 'refactor', args:1, argName:'group', 'Refactors the stats in the specified group, then exit')
+        cli._(longOpt: 'refactor-info', args: 1, argName:'info', 'Extra information that may be needed to refactor the data')
         options= cli.parse(args)
         
         if (options == null) {
@@ -39,6 +41,14 @@ public class CommandLine {
     
     public String getPropertiesFilename() {
         return options.propertyfile
+    }
+
+    public String getRefactorGroup() {
+        return options.r
+    }
+
+    public String getRefactorInfo() {
+        return options.'refactor-info'
     }
 }
 
