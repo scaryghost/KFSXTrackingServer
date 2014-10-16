@@ -44,7 +44,7 @@ public class CommandLine {
     }
 
     public String getRefactorGroup() {
-        return options.r
+        return options.r ? options.r : null
     }
 
     public String getRefactorInfo() {
