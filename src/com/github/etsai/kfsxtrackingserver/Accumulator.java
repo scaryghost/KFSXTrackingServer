@@ -54,7 +54,7 @@ public class Accumulator {
                     incompletePlayerContent.put(steamID64, new PlayerContentImpl());
                     tasks.put(steamID64, new TimerTask() {
                         @Override public void run() {
-                            Common.logger.info("Discarding packets for steamID64: $steamID64");
+                            Common.logger.log(Level.INFO, "Discarding packets for steamID64: {0}", steamID64);
                             incompletePlayerContent.remove(steamID64);
                         }
                     });
@@ -81,7 +81,7 @@ public class Accumulator {
                         Common.logger.log(Level.WARNING, "Error contacting steam community.  Saving player statistics", ex);
                         writer.writePlayerData(content);
                     } catch (InvalidSteamIDException ex) {
-                        Common.logger.log(Level.SEVERE, "Invalid steamID64: $steamID64", ex);
+                        Common.logger.log(Level.SEVERE, "Invalid steamID64: " + steamID64, ex);
                     } catch (Exception ex) {
                         Common.logger.log(Level.SEVERE, "Error saving player statistics", ex);
                     }
