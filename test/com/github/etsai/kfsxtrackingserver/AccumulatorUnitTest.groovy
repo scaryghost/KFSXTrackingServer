@@ -32,13 +32,11 @@ public class AccumulatorUnitTest {
             writeSteamInfo([steamInfo])
         }
 
-        public void writeMatchData(MatchPacket packet) {
-            
-        }
+        public void writeMatchData(MatchPacket packet) { }
 
-        public void writePlayerData(PlayerContent content) {
-            
-        }
+        public void writePlayerData(PlayerContent content) { }
+
+        public void refactor(String group, String info) { }
     }
     private static def password= "server", ttl= 5000
     private static def steamid1= "76561197961630515", steamid2= "76561197995161935"
