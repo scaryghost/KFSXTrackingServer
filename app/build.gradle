@@ -59,18 +59,10 @@ public class Version {
     }
 }
 
-task copyEtcFiles {
-    outputs.dir file("$buildDir/etc")
-    doLast {
-        copy {
-            from 'etc'
-            into buildDir
-        }
+[["etc", "etc"], ["content/http", "http"]].each {
+    applicationDistribution.from(file(it[0])) { _ ->
+        into it[1]
     }
-}
-
-applicationDistribution.from(copyEtcFiles) {
-    into "etc"
 }
 
 compileGroovy.dependsOn generateSources
