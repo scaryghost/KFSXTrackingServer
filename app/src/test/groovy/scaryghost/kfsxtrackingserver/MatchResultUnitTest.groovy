@@ -17,13 +17,8 @@ public class MatchResultUnitTest {
     public MatchResultUnitTest() {
         header= "$PROTOCOL,$VERSION,$password"
     }
-    // TODO add test methods here.
-    // The methods must be annotated with annotation @Test. For example:
-    //
-    // @Test
-    // public void hello() {}
     private def buildPacket(def result) {
-        new PacketParser(password).parse("$header|7707|result|2|305|$result|_close")
+        new PacketParser(password).parse("$header|7707|result|2|305|$result")
     }
     @Test
     public void checkPort() {
@@ -40,9 +35,14 @@ public class MatchResultUnitTest {
         def matchPacket= buildPacket("1")
         assertEquals(matchPacket.getAttributes().result, PacketParser.Result.LOSS)
     }
+    @Test
+    public void checkMidGameVote() {
+        def matchPacket= buildPacket("0")
+        assertEquals(matchPacket.getAttributes().result, PacketParser.Result.MID_GAME_VOTE)
+    }
     @Test(expected= InvalidPacketFormatException.class)
     public void checkInvalidResult() {
-        def matchPacket= buildPacket("0")
+        def matchPacket= buildPacket("3")
     }
     @Test
     public void checkDuration() {

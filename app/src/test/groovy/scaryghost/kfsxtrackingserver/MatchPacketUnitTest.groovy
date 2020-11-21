@@ -17,13 +17,8 @@ class MatchPacketUnitTest {
     public MatchPacketUnitTest() {
         header= "$PROTOCOL,$VERSION,$password"
     }
-    // TODO add test methods here.
-    // The methods must be annotated with annotation @Test. For example:
-    //
-    // @Test
-    // public void hello() {}
     private def buildPacket() {
-        new PacketParser(password).parse("$header|7707|kills|1|Bloat=1,Clot=10")
+        new PacketParser(password).parse("$header|7707|wave|1|kills|KFVetCommando|Clot=29,Gorefast=2,Bloat=3")
     }
     @Test
     public void checkPort() {
@@ -38,11 +33,16 @@ class MatchPacketUnitTest {
     @Test
     public void checkCategory() {
         def matchPacket= buildPacket()
-        assertEquals(matchPacket.getCategory(), "kills")
+        assertEquals(matchPacket.getCategory(), "wave")
+    }
+    @Test
+    public void checkType() {
+        def matchPacket= buildPacket()
+        assertEquals(matchPacket.getAttributes()["type"], "kills")
     }
     @Test(expected= InvalidPacketFormatException.class)
     public void invalidWave() {
-        def matchPacket= new PacketParser(password).parse("$header|7707|kills|abcd|Bloat=1,Clot=10")
+        def matchPacket= new PacketParser(password).parse("$header|7707|wave|abcd|kills|Bloat=1,Clot=10")
     }
     @Test(expected= InvalidPacketFormatException.class)
     public void invalidNumParts() {

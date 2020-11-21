@@ -12,18 +12,13 @@ import static org.junit.Assert.*
 class MatchStatUnitTest {
     private static final def password= "server"
 
-    private final def header, category= "kills"
+    private final def header, category= "wave"
     public MatchStatUnitTest() {
         header= "$PROTOCOL,$VERSION,$password"
     }
 
-    // TODO add test methods here.
-    // The methods must be annotated with annotation @Test. For example:
-    //
-    // @Test
-    // public void hello() {}
     private def buildPacket(def statStr) {
-        new PacketParser(password).parse("$header|7707|$category|2|$statStr")
+        new PacketParser(password).parse("$header|7707|$category|2|kills|KFVetCommando|$statStr")
     }
     @Test
     public void checkPort() {
@@ -31,9 +26,9 @@ class MatchStatUnitTest {
         assertEquals(matchPacket.getServerPort(), 7707)
     }
     @Test
-    public void checkBlankAttributes() {
+    public void checkAttributes() {
         def matchPacket= buildPacket("")
-        assertEquals(matchPacket.getAttributes().isEmpty(), true)
+        assertEquals(matchPacket.getAttributes(), ["type": "kills", "perk": "KFVetCommando"])
     }
     @Test
     public void checkStats() {

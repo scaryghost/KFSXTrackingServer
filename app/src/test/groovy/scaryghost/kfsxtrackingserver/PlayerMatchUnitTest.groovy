@@ -19,8 +19,11 @@ public class PlayerMatchUnitTest {
         header= "$PROTOCOL,$VERSION,$password|7707"
     }
     
-    private def buildPacket(result, wave, finalWave, finalWaveSurvived) {
-        new PacketParser(password).parse("$header|1364787|6|match|$result|$wave|$finalWave|$finalWaveSurvived|305|_close")
+    private def buildPacket(disconnected, wave, finalWave, finalWaveSurvived) {
+        //kfstatsx-player,3,server|7707|76561197961630515|6|match|0|3|0|0|331|_close
+        //kfstatsx-player,3,server|7707|76561197961630515|6|match|0|2|0|0|129|_close
+        //kfstatsx-player,3,server|7707|76561197961630515|6|match|0|1|0|0|72|_close
+        new PacketParser(password).parse("$header|1364787|6|match|$disconnected|$wave|$finalWave|$finalWaveSurvived|305|_close")
     }
     @Test
     public void checkBlankStats() {
@@ -42,23 +45,9 @@ public class PlayerMatchUnitTest {
         def playerPacket= buildPacket(1, "no number here", 0, 0)
     }
     @Test
-    public void checkResultLoss() {
-        def playerPacket= buildPacket(1, 2, 0, 0)
-        assertEquals(playerPacket.getAttributes().result, Result.LOSS)
-    }
-    @Test
-    public void checkResultWin() {
-        def playerPacket= buildPacket(2, 2, 0, 0)
-        assertEquals(playerPacket.getAttributes().result, Result.WIN)
-    }
-    @Test
     public void checkResultDisconnect() {
-        def playerPacket= buildPacket(0, 2, 0, 0)
-        assertEquals(playerPacket.getAttributes().result, Result.DISCONNECT)
-    }
-    @Test(expected= InvalidPacketFormatException.class)
-    public void checkInvalidResult() {
-        def playerPacket= buildPacket(-1, 2, 0, 0)
+        def playerPacket= buildPacket(1, 2, 0, 0)
+        assertTrue(playerPacket.getAttributes().disconnected)
     }
     @Test
     public void checkFinaleSurvived1() {
