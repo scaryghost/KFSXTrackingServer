@@ -10,11 +10,11 @@ plugins {
     // Apply the application plugin to add support for building a CLI application in Java.
     id 'application'
     id 'groovy'
-    id 'com.palantir.git-version' version '0.12.3'
+    id "com.moonlitdoor.git-version" version "0.1.1"
 }
 
 applicationName = "KFSXTrackingServer"
-version gitDescribeToVersion(gitVersion())
+version gitDescribeToVersion(gitVersion)
 
 repositories {
     // Use JCenter for resolving dependencies.
@@ -69,7 +69,6 @@ compileGroovy.source generateSources.outputs.files, sourceSets.main.groovy
 
 
 def gitDescribeToVersion(describe) {
-    def appVersion
     def describeParts = describe.split("-")
     def parts = describeParts[0].split("\\.")
 
