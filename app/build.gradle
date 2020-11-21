@@ -60,7 +60,7 @@ public class Version {
 
 [["etc", "etc"], ["content/http", "http"]].each {
     applicationDistribution.from(file(it[0])) { _ ->
-        into it[1]
+        into "share/${it[1]}"
     }
 }
 
