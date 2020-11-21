@@ -26,7 +26,7 @@ public class SteamPoller implements Runnable {
     }
     
     public static String[] poll(def steamID64) throws InvalidSteamIDException, IOException {
-        def url= new URL("http://steamcommunity.com/profiles/${steamID64}?xml=1")
+        def url= new URL("https://steamcommunity.com/profiles/${steamID64}?xml=1")
         def content= url.getContent().readLines().join("\n")
         def steamXmlRoot= new XmlSlurper().parseText(content)
         def name, avatar
